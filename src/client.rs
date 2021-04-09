@@ -26,6 +26,7 @@ impl Client {
     pub async fn instant_query(
         &self,
         query: &str,
+        time: &str,
     ) -> Result<QueryResult, Box<dyn std::error::Error>> {
         let mut url = self.base_url.clone();
         url.push_str("/query");
@@ -33,7 +34,7 @@ impl Client {
         let result = self
             .client
             .get(&url)
-            .query(&[("query", query)])
+            .query(&[("query", query), ("time", time)])
             .send()
             .await?
             .json::<QueryResult>()
