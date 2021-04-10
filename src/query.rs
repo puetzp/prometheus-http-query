@@ -1,6 +1,5 @@
 pub trait Query {
-    fn get_base_path(&self) -> &'static str;
-    fn get_query_params(&self) -> Vec<(&str, &str)>;
+    fn get_query_params(&self) -> Vec<(String, String)>;
 }
 
 pub struct InstantQuery<'a> {
@@ -10,19 +9,15 @@ pub struct InstantQuery<'a> {
 }
 
 impl<'a> Query for InstantQuery<'a> {
-    fn get_base_path(&self) -> &'static str {
-        "query"
-    }
-
-    fn get_query_params(&self) -> Vec<(&str, &str)> {
-        let mut params = vec![("query", self.query)];
+    fn get_query_params(&self) -> Vec<(String, String)> {
+        let mut params = vec![("query".to_string(), self.query.to_string())];
 
         if let Some(t) = &self.time {
-            params.push(("time", t));
+            params.push(("time".to_string(), t.to_string()));
         }
 
         if let Some(t) = &self.timeout {
-            params.push(("timeout", t));
+            params.push(("timeout".to_string(), t.to_string()));
         }
 
         params
@@ -38,26 +33,22 @@ pub struct RangeQuery<'a> {
 }
 
 impl<'a> Query for RangeQuery<'a> {
-    fn get_base_path(&self) -> &'static str {
-        "query_range"
-    }
-
-    fn get_query_params(&self) -> Vec<(&str, &str)> {
-        let mut params = vec![("query", self.query)];
+    fn get_query_params(&self) -> Vec<(String, String)> {
+        let mut params = vec![("query".to_string(), self.query.to_string())];
 
         if let Some(t) = &self.start {
-            params.push(("start", t));
+            params.push(("start".to_string(), t.to_string()));
         }
 
         if let Some(t) = &self.end {
-            params.push(("end", t));
+            params.push(("end".to_string(), t.to_string()));
         }
         if let Some(t) = &self.step {
-            params.push(("step", t));
+            params.push(("step".to_string(), t.to_string()));
         }
 
         if let Some(t) = &self.timeout {
-            params.push(("timeout", t));
+            params.push(("timeout".to_string(), t.to_string()));
         }
 
         params

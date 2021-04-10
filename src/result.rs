@@ -88,11 +88,9 @@ mod tests {
     }
 }
 
-pub trait QueryResult {}
-
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(deny_unknown_fields)]
-pub struct InstantQueryResult {
+pub struct InstantQueryResponse {
     pub status: Status,
     pub data: Option<InstantData>,
     #[serde(alias = "errorType")]
@@ -101,11 +99,9 @@ pub struct InstantQueryResult {
     pub warnings: Option<Vec<String>>,
 }
 
-impl QueryResult for InstantQueryResult {}
-
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(deny_unknown_fields)]
-pub struct RangeQueryResult {
+pub struct RangeQueryResponse {
     pub status: Status,
     pub data: Option<RangeData>,
     #[serde(alias = "errorType")]
@@ -113,8 +109,6 @@ pub struct RangeQueryResult {
     pub error: Option<String>,
     pub warnings: Option<Vec<String>>,
 }
-
-impl QueryResult for RangeQueryResult {}
 
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(deny_unknown_fields)]

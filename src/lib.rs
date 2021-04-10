@@ -3,3 +3,4 @@ pub mod query;
 pub mod result;
 pub use self::client::Client;
 pub use self::query::InstantQuery;
+pub use self::query::RangeQuery;

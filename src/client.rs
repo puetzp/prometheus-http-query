@@ -11,7 +11,7 @@ impl Default for Client {
     fn default() -> Self {
         Client {
             client: reqwest::Client::new(),
-            base_url: String::from("http://127.0.0.1:9090/api/v1/"),
+            base_url: String::from("http://127.0.0.1:9090/api/v1"),
         }
     }
 }
@@ -24,40 +24,43 @@ impl Client {
         }
     }
 
-    pub async fn execute<T: Query>(
+    pub async fn instant(
         &self,
-        query: &T,
-    ) -> Result<Box<dyn QueryResult>, Box<dyn std::error::Error>> {
+        query: &InstantQuery<'_>,
+    ) -> Result<InstantQueryResponse, reqwest::Error> {
         let mut url = self.base_url.clone();
 
-        let base_path = query.get_base_path();
-
-        url.push_str(base_path);
+        url.push_str("/query");
 
         let params = query.get_query_params();
 
-        if base_path == "query" {
-            Ok(Box::new(
-                self.client
-                    .get(&url)
-                    .query(params.as_slice())
-                    .send()
-                    .await?
-                    .json::<InstantQueryResult>()
-                    .await?,
-            ))
-        } else if base_path == "query_range" {
-            Ok(Box::new(
-                self.client
-                    .get(&url)
-                    .query(params.as_slice())
-                    .send()
-                    .await?
-                    .json::<RangeQueryResult>()
-                    .await?,
-            ))
-        } else {
-            // return error
-        }
+        Ok(self
+            .client
+            .get(&url)
+            .query(params.as_slice())
+            .send()
+            .await?
+            .json::<InstantQueryResponse>()
+            .await?)
+    }
+
+    pub async fn range(
+        &self,
+        query: &RangeQuery<'_>,
+    ) -> Result<RangeQueryResponse, reqwest::Error> {
+        let mut url = self.base_url.clone();
+
+        url.push_str("/query_range");
+
+        let params = query.get_query_params();
+
+        Ok(self
+            .client
+            .get(&url)
+            .query(params.as_slice())
+            .send()
+            .await?
+            .json::<RangeQueryResponse>()
+            .await?)
     }
 }
