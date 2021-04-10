@@ -37,7 +37,7 @@ mod tests {
     use std::iter::FromIterator;
 
     #[test]
-    fn test_deserialize() {
+    fn test_deserialize_instant_query_response() {
         let r = InstantQueryResponse {
             status: Status::Success,
             data: Some(Data {
