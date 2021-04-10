@@ -6,7 +6,7 @@ use std::collections::HashMap;
 #[serde(deny_unknown_fields)]
 pub struct RangeQueryResponse {
     pub status: Status,
-    pub data: Option<Data>,
+    pub data: Data,
     #[serde(alias = "errorType")]
     pub error_type: Option<String>,
     pub error: Option<String>,
@@ -40,7 +40,7 @@ mod tests {
     fn test_deserialize_range_query_response() {
         let r = RangeQueryResponse {
             status: Status::Success,
-            data: Some(Data {
+            data: Data {
                 result_type: ResultType::Vector,
                 result: vec![Metric {
                     labels: HashMap::<_, _>::from_iter(IntoIter::new([
@@ -55,7 +55,7 @@ mod tests {
                         (1617961500.0, String::from("1")),
                     ],
                 }],
-            }),
+            },
             error_type: None,
             error: None,
             warnings: None,
@@ -75,7 +75,6 @@ mod tests {
                     variant: "Success",
                 },
                 Token::Str("data"),
-                Token::Some,
                 Token::Struct {
                     name: "Data",
                     len: 2,

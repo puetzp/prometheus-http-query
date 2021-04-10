@@ -6,7 +6,7 @@ use std::collections::HashMap;
 #[serde(deny_unknown_fields)]
 pub struct InstantQueryResponse {
     pub status: Status,
-    pub data: Option<Data>,
+    pub data: Data,
     #[serde(alias = "errorType")]
     pub error_type: Option<String>,
     pub error: Option<String>,
@@ -14,11 +14,17 @@ pub struct InstantQueryResponse {
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
-#[serde(deny_unknown_fields)]
+pub struct Value {
+    pub epoch: f64,
+    pub value: String,
+}
+
+#[derive(Deserialize, Debug, PartialEq)]
 pub struct Metric {
     #[serde(rename = "metric")]
     pub labels: HashMap<String, String>,
-    pub value: (f64, String),
+    #[serde(flatten)]
+    pub value: Value,
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
@@ -40,7 +46,7 @@ mod tests {
     fn test_deserialize_instant_query_response() {
         let r = InstantQueryResponse {
             status: Status::Success,
-            data: Some(Data {
+            data: Data {
                 result_type: ResultType::Vector,
                 result: vec![Metric {
                     labels: HashMap::<_, _>::from_iter(IntoIter::new([
@@ -50,7 +56,7 @@ mod tests {
                     ])),
                     value: (1617960600.0, String::from("1")),
                 }],
-            }),
+            },
             error_type: None,
             error: None,
             warnings: None,
@@ -70,7 +76,6 @@ mod tests {
                     variant: "Success",
                 },
                 Token::Str("data"),
-                Token::Some,
                 Token::Struct {
                     name: "Data",
                     len: 2,
