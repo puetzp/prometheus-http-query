@@ -38,7 +38,7 @@ mod tests {
 
     #[test]
     fn test_deserialize() {
-        let r = QueryResult {
+        let r = InstantQueryResponse {
             status: Status::Success,
             data: Some(Data {
                 result_type: ResultType::Vector,
@@ -60,7 +60,7 @@ mod tests {
             &r,
             &[
                 Token::Struct {
-                    name: "QueryResult",
+                    name: "InstantQueryResponse",
                     len: 2,
                 },
                 Token::Str("status"),
