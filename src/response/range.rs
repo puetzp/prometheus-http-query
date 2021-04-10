@@ -15,9 +15,8 @@ pub struct RangeQueryResponse {
 
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(deny_unknown_fields)]
-pub struct Metric {
-    #[serde(rename = "metric")]
-    pub labels: HashMap<String, String>,
+pub struct Value {
+    pub metric: HashMap<String, String>,
     pub values: Vec<(f64, String)>,
 }
 
@@ -26,5 +25,5 @@ pub struct Metric {
 pub struct Data {
     #[serde(alias = "resultType")]
     pub result_type: ResultType,
-    pub result: Vec<Metric>,
+    pub result: Vec<Value>,
 }
