@@ -88,6 +88,34 @@ mod tests {
     }
 }
 
+pub trait QueryResult {}
+
+#[derive(Deserialize, Debug, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct InstantQueryResult {
+    pub status: Status,
+    pub data: Option<InstantData>,
+    #[serde(alias = "errorType")]
+    pub error_type: Option<String>,
+    pub error: Option<String>,
+    pub warnings: Option<Vec<String>>,
+}
+
+impl QueryResult for InstantQueryResult {}
+
+#[derive(Deserialize, Debug, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct RangeQueryResult {
+    pub status: Status,
+    pub data: Option<RangeData>,
+    #[serde(alias = "errorType")]
+    pub error_type: Option<String>,
+    pub error: Option<String>,
+    pub warnings: Option<Vec<String>>,
+}
+
+impl QueryResult for RangeQueryResult {}
+
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub enum Status {
@@ -112,7 +140,7 @@ pub enum ResultType {
 
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(deny_unknown_fields)]
-pub struct Metric {
+pub struct InstantMetric {
     #[serde(rename = "metric")]
     pub labels: HashMap<String, String>,
     pub value: (f64, String),
@@ -120,19 +148,24 @@ pub struct Metric {
 
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(deny_unknown_fields)]
-pub struct Data {
-    #[serde(alias = "resultType")]
-    pub result_type: ResultType,
-    pub result: Vec<Metric>,
+pub struct RangeMetric {
+    #[serde(rename = "metric")]
+    pub labels: HashMap<String, String>,
+    pub values: Vec<(f64, String)>,
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(deny_unknown_fields)]
-pub struct QueryResult {
-    pub status: Status,
-    pub data: Option<Data>,
-    #[serde(alias = "errorType")]
-    pub error_type: Option<String>,
-    pub error: Option<String>,
-    pub warnings: Option<Vec<String>>,
+pub struct InstantData {
+    #[serde(alias = "resultType")]
+    pub result_type: ResultType,
+    pub result: Vec<InstantMetric>,
+}
+
+#[derive(Deserialize, Debug, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct RangeData {
+    #[serde(alias = "resultType")]
+    pub result_type: ResultType,
+    pub result: Vec<RangeMetric>,
 }

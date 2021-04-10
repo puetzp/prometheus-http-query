@@ -1,5 +1,5 @@
 use crate::query::*;
-use crate::result::QueryResult;
+use crate::result::*;
 
 pub struct Client {
     client: reqwest::Client,
@@ -11,7 +11,7 @@ impl Default for Client {
     fn default() -> Self {
         Client {
             client: reqwest::Client::new(),
-            base_url: String::from("http://127.0.0.1:9090/api/v1"),
+            base_url: String::from("http://127.0.0.1:9090/api/v1/"),
         }
     }
 }
@@ -27,21 +27,37 @@ impl Client {
     pub async fn execute<T: Query>(
         &self,
         query: &T,
-    ) -> Result<QueryResult, Box<dyn std::error::Error>> {
+    ) -> Result<Box<dyn QueryResult>, Box<dyn std::error::Error>> {
         let mut url = self.base_url.clone();
-        url.push_str(query.get_base_path());
+
+        let base_path = query.get_base_path();
+
+        url.push_str(base_path);
 
         let params = query.get_query_params();
 
-        let result = self
-            .client
-            .get(&url)
-            .query(params.as_slice())
-            .send()
-            .await?
-            .json::<QueryResult>()
-            .await?;
-
-        Ok(result)
+        if base_path == "query" {
+            Ok(Box::new(
+                self.client
+                    .get(&url)
+                    .query(params.as_slice())
+                    .send()
+                    .await?
+                    .json::<InstantQueryResult>()
+                    .await?,
+            ))
+        } else if base_path == "query_range" {
+            Ok(Box::new(
+                self.client
+                    .get(&url)
+                    .query(params.as_slice())
+                    .send()
+                    .await?
+                    .json::<RangeQueryResult>()
+                    .await?,
+            ))
+        } else {
+            // return error
+        }
     }
 }

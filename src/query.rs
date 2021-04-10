@@ -11,7 +11,7 @@ pub struct InstantQuery<'a> {
 
 impl<'a> Query for InstantQuery<'a> {
     fn get_base_path(&self) -> &'static str {
-        "/query"
+        "query"
     }
 
     fn get_query_params(&self) -> Vec<(&str, &str)> {
@@ -39,7 +39,7 @@ pub struct RangeQuery<'a> {
 
 impl<'a> Query for RangeQuery<'a> {
     fn get_base_path(&self) -> &'static str {
-        "/query_range"
+        "query_range"
     }
 
     fn get_query_params(&self) -> Vec<(&str, &str)> {
