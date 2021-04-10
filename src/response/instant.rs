@@ -15,8 +15,9 @@ pub struct InstantQueryResponse {
 
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(deny_unknown_fields)]
-pub struct Value {
-    pub metric: HashMap<String, String>,
+pub struct Metric {
+    #[serde(rename = "metric")]
+    pub labels: HashMap<String, String>,
     pub value: (f64, String),
 }
 
@@ -25,7 +26,7 @@ pub struct Value {
 pub struct Data {
     #[serde(alias = "resultType")]
     pub result_type: ResultType,
-    pub result: Vec<Value>,
+    pub result: Vec<Metric>,
 }
 
 #[cfg(test)]
