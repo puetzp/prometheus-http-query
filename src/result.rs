@@ -20,10 +20,7 @@ mod tests {
                         (String::from("__name__"), String::from("up")),
                         (String::from("job"), String::from("prometheus")),
                     ])),
-                    value: Value {
-                        timestamp: 1617960600.0,
-                        value: String::from("1"),
-                    },
+                    value: (1617960600.0, String::from("1")),
                 }],
             }),
             error_type: None,
@@ -72,15 +69,10 @@ mod tests {
                 Token::Str("prometheus"),
                 Token::MapEnd,
                 Token::Str("value"),
-                Token::Struct {
-                    name: "Value",
-                    len: 2,
-                },
-                Token::Str("timestamp"),
+                Token::Tuple { len: 2 },
                 Token::F64(1617960600.0),
-                Token::Str("value"),
                 Token::Str("1"),
-                Token::StructEnd,
+                Token::TupleEnd,
                 Token::StructEnd,
                 Token::SeqEnd,
                 Token::StructEnd,
@@ -120,17 +112,10 @@ pub enum ResultType {
 
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(deny_unknown_fields)]
-pub struct Value {
-    pub timestamp: f64,
-    pub value: String,
-}
-
-#[derive(Deserialize, Debug, PartialEq)]
-#[serde(deny_unknown_fields)]
 pub struct Metric {
     #[serde(rename = "metric")]
     pub labels: HashMap<String, String>,
-    pub value: Value,
+    pub value: (f64, String),
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
