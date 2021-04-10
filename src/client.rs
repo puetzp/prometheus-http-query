@@ -1,5 +1,6 @@
 use crate::query::*;
-use crate::result::*;
+use crate::response::instant::*;
+use crate::response::range::*;
 
 pub struct Client {
     client: reqwest::Client,
