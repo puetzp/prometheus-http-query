@@ -1,3 +1,4 @@
+use crate::query::*;
 use crate::result::QueryResult;
 
 pub struct Client {
@@ -23,18 +24,19 @@ impl Client {
         }
     }
 
-    pub async fn instant_query(
+    pub async fn execute<T: Query>(
         &self,
-        query: &str,
-        time: &str,
+        query: &T,
     ) -> Result<QueryResult, Box<dyn std::error::Error>> {
         let mut url = self.base_url.clone();
-        url.push_str("/query");
+        url.push_str(query.get_base_path());
+
+        let params = query.get_query_params();
 
         let result = self
             .client
             .get(&url)
-            .query(&[("query", query), ("time", time)])
+            .query(params.as_slice())
             .send()
             .await?
             .json::<QueryResult>()
