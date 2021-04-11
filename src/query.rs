@@ -26,26 +26,20 @@ impl<'a> Query for InstantQuery<'a> {
 
 pub struct RangeQuery<'a> {
     pub query: &'a str,
-    pub start: Option<&'a str>,
-    pub end: Option<&'a str>,
-    pub step: Option<&'a str>,
+    pub start: &'a str,
+    pub end: &'a str,
+    pub step: &'a str,
     pub timeout: Option<&'a str>,
 }
 
 impl<'a> Query for RangeQuery<'a> {
     fn get_query_params(&self) -> Vec<(&str, &str)> {
-        let mut params = vec![("query", self.query)];
-
-        if let Some(t) = &self.start {
-            params.push(("start", t));
-        }
-
-        if let Some(t) = &self.end {
-            params.push(("end", t));
-        }
-        if let Some(t) = &self.step {
-            params.push(("step", t));
-        }
+        let mut params = vec![
+            ("query", self.query),
+            ("start", self.start),
+            ("end", self.end),
+            ("step", self.step),
+        ];
 
         if let Some(t) = &self.timeout {
             params.push(("timeout", t));
