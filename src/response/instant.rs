@@ -1,4 +1,5 @@
 use super::{ResultType, Status};
+use serde::de::Deserializer;
 use serde::Deserialize;
 use std::collections::HashMap;
 
@@ -13,12 +14,38 @@ pub struct InstantQueryResponse {
     pub warnings: Option<Vec<String>>,
 }
 
-#[derive(Deserialize, Debug, PartialEq)]
-#[serde(deny_unknown_fields)]
+#[derive(Debug, PartialEq)]
 pub struct Metric {
-    #[serde(rename = "metric")]
     pub labels: HashMap<String, String>,
-    pub value: (f64, String),
+    pub epoch: f64,
+    pub value: String,
+}
+
+impl<'de> Deserialize<'de> for Metric {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct TmpMetric {
+            metric: HashMap<String, String>,
+            value: TmpValue,
+        }
+
+        #[derive(Deserialize)]
+        struct TmpValue {
+            epoch: f64,
+            value: String,
+        }
+
+        let tmp: TmpMetric = Deserialize::deserialize(deserializer)?;
+
+        Ok(Metric {
+            labels: tmp.metric,
+            epoch: tmp.value.epoch,
+            value: tmp.value.value,
+        })
+    }
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
@@ -48,7 +75,8 @@ mod tests {
                         (String::from("__name__"), String::from("up")),
                         (String::from("job"), String::from("prometheus")),
                     ])),
-                    value: (1617960600.0, String::from("1")),
+                    epoch: 1617960600.0,
+                    value: String::from("1"),
                 }],
             },
             error_type: None,
@@ -83,7 +111,7 @@ mod tests {
                 Token::Str("result"),
                 Token::Seq { len: Some(1) },
                 Token::Struct {
-                    name: "Metric",
+                    name: "TmpMetric",
                     len: 2,
                 },
                 Token::Str("metric"),
@@ -95,11 +123,15 @@ mod tests {
                 Token::Str("job"),
                 Token::Str("prometheus"),
                 Token::MapEnd,
-                Token::Str("value"),
-                Token::Tuple { len: 2 },
+                Token::Struct {
+                    name: "TmpValue",
+                    len: 2,
+                },
+                Token::Str("epoch"),
                 Token::F64(1617960600.0),
+                Token::Str("value"),
                 Token::Str("1"),
-                Token::TupleEnd,
+                Token::StructEnd,
                 Token::StructEnd,
                 Token::SeqEnd,
                 Token::StructEnd,
