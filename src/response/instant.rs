@@ -126,8 +126,9 @@ mod tests {
                 Token::Str("job"),
                 Token::Str("prometheus"),
                 Token::MapEnd,
+                Token::Str("value"),
                 Token::Struct {
-                    name: "Value",
+                    name: "TmpValue",
                     len: 2,
                 },
                 Token::Str("epoch"),
