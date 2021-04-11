@@ -14,17 +14,11 @@ pub struct InstantQueryResponse {
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
-pub struct Value {
-    pub epoch: f64,
-    pub value: String,
-}
-
-#[derive(Deserialize, Debug, PartialEq)]
+#[serde(deny_unknown_fields)]
 pub struct Metric {
     #[serde(rename = "metric")]
     pub labels: HashMap<String, String>,
-    #[serde(flatten)]
-    pub value: Value,
+    pub value: (f64, String),
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
