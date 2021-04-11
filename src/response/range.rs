@@ -25,7 +25,7 @@ pub struct Value {
 pub struct Metric {
     #[serde(rename = "metric")]
     pub labels: HashMap<String, String>,
-    pub values: Vec<Value>,
+    pub samples: Vec<Value>,
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
@@ -55,7 +55,7 @@ mod tests {
                         (String::from("__name__"), String::from("up")),
                         (String::from("job"), String::from("prometheus")),
                     ])),
-                    values: vec![
+                    samples: vec![
                         Value {
                             epoch: 1617960600.0,
                             value: String::from("1"),
@@ -119,7 +119,7 @@ mod tests {
                 Token::Str("job"),
                 Token::Str("prometheus"),
                 Token::MapEnd,
-                Token::Str("values"),
+                Token::Str("samples"),
                 Token::Seq { len: Some(4) },
                 Token::Struct {
                     name: "Value",
