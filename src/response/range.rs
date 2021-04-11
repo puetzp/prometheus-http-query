@@ -15,10 +15,17 @@ pub struct RangeQueryResponse {
 
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(deny_unknown_fields)]
+pub struct Value {
+    pub epoch: f64,
+    pub value: String,
+}
+
+#[derive(Deserialize, Debug, PartialEq)]
+#[serde(deny_unknown_fields)]
 pub struct Metric {
     #[serde(rename = "metric")]
     pub labels: HashMap<String, String>,
-    pub values: Vec<(f64, String)>,
+    pub values: Vec<Value>,
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
@@ -49,10 +56,22 @@ mod tests {
                         (String::from("job"), String::from("prometheus")),
                     ])),
                     values: vec![
-                        (1617960600.0, String::from("1")),
-                        (1617960900.0, String::from("1")),
-                        (1617961200.0, String::from("1")),
-                        (1617961500.0, String::from("1")),
+                        Value {
+                            epoch: 1617960600.0,
+                            value: String::from("1"),
+                        },
+                        Value {
+                            epoch: 1617960900.0,
+                            value: String::from("1"),
+                        },
+                        Value {
+                            epoch: 1617961200.0,
+                            value: String::from("1"),
+                        },
+                        Value {
+                            epoch: 1617961500.0,
+                            value: String::from("1"),
+                        },
                     ],
                 }],
             },
@@ -102,22 +121,42 @@ mod tests {
                 Token::MapEnd,
                 Token::Str("values"),
                 Token::Seq { len: Some(4) },
-                Token::Tuple { len: 2 },
+                Token::Struct {
+                    name: "Value",
+                    len: 2,
+                },
+                Token::Str("epoch"),
                 Token::F64(1617960600.0),
+                Token::Str("value"),
                 Token::Str("1"),
-                Token::TupleEnd,
-                Token::Tuple { len: 2 },
+                Token::StructEnd,
+                Token::Struct {
+                    name: "Value",
+                    len: 2,
+                },
+                Token::Str("epoch"),
                 Token::F64(1617960900.0),
+                Token::Str("value"),
                 Token::Str("1"),
-                Token::TupleEnd,
-                Token::Tuple { len: 2 },
+                Token::StructEnd,
+                Token::Struct {
+                    name: "Value",
+                    len: 2,
+                },
+                Token::Str("epoch"),
                 Token::F64(1617961200.0),
+                Token::Str("value"),
                 Token::Str("1"),
-                Token::TupleEnd,
-                Token::Tuple { len: 2 },
+                Token::StructEnd,
+                Token::Struct {
+                    name: "Value",
+                    len: 2,
+                },
+                Token::Str("epoch"),
                 Token::F64(1617961500.0),
+                Token::Str("value"),
                 Token::Str("1"),
-                Token::TupleEnd,
+                Token::StructEnd,
                 Token::SeqEnd,
                 Token::StructEnd,
                 Token::SeqEnd,
