@@ -25,6 +25,7 @@ pub struct Value {
 pub struct Metric {
     #[serde(rename = "metric")]
     pub labels: HashMap<String, String>,
+    #[serde(rename = "values")]
     pub samples: Vec<Value>,
 }
 
@@ -119,7 +120,7 @@ mod tests {
                 Token::Str("job"),
                 Token::Str("prometheus"),
                 Token::MapEnd,
-                Token::Str("samples"),
+                Token::Str("values"),
                 Token::Seq { len: Some(4) },
                 Token::Struct {
                     name: "Value",

@@ -12,3 +12,4 @@ serde = { version = "1", features = ["derive"] }
 
 [dev-dependencies]
 serde_test = "1"
+tokio-test = "0.4"
