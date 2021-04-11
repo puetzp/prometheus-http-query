@@ -21,8 +21,8 @@ impl Scheme {
 /// A client used to execute queries. It uses a `reqwest::Client` internally
 /// that manages connections for us.
 pub struct Client {
-    client: reqwest::Client,
-    base_url: String,
+    pub(crate) client: reqwest::Client,
+    pub(crate) base_url: String,
 }
 
 impl Default for Client {

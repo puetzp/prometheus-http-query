@@ -13,6 +13,8 @@ pub struct RangeQueryResponse {
     pub warnings: Option<Vec<String>>,
 }
 
+impl super::QueryResponse for RangeQueryResponse {}
+
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct Value {

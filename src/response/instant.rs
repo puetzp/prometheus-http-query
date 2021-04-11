@@ -14,6 +14,8 @@ pub struct InstantQueryResponse {
     pub warnings: Option<Vec<String>>,
 }
 
+impl super::QueryResponse for InstantQueryResponse {}
+
 #[derive(Debug, PartialEq)]
 pub struct Metric {
     pub labels: HashMap<String, String>,
