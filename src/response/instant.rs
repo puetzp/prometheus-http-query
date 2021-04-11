@@ -27,12 +27,15 @@ impl<'de> Deserialize<'de> for Metric {
         D: Deserializer<'de>,
     {
         #[derive(Deserialize)]
+        #[serde(deny_unknown_fields)]
         struct TmpMetric {
-            metric: HashMap<String, String>,
+            #[serde(alias = "metric")]
+            labels: HashMap<String, String>,
             value: TmpValue,
         }
 
         #[derive(Deserialize)]
+        #[serde(deny_unknown_fields)]
         struct TmpValue {
             epoch: f64,
             value: String,
@@ -41,7 +44,7 @@ impl<'de> Deserialize<'de> for Metric {
         let tmp: TmpMetric = Deserialize::deserialize(deserializer)?;
 
         Ok(Metric {
-            labels: tmp.metric,
+            labels: tmp.labels,
             epoch: tmp.value.epoch,
             value: tmp.value.value,
         })
@@ -114,7 +117,7 @@ mod tests {
                     name: "TmpMetric",
                     len: 2,
                 },
-                Token::Str("metric"),
+                Token::Str("labels"),
                 Token::Map { len: Some(3) },
                 Token::Str("instance"),
                 Token::Str("localhost:9090"),
@@ -124,7 +127,7 @@ mod tests {
                 Token::Str("prometheus"),
                 Token::MapEnd,
                 Token::Struct {
-                    name: "TmpValue",
+                    name: "Value",
                     len: 2,
                 },
                 Token::Str("epoch"),
