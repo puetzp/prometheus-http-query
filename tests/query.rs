@@ -9,7 +9,6 @@ fn test_instant_query() {
         timeout: None,
     };
     let result = tokio_test::block_on(async { client.instant(&query).await.unwrap() });
-    println!("{:?}", result.data.result);
     assert!(!result.data.result.is_empty());
 }
 
