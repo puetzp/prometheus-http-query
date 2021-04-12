@@ -1,7 +1,3 @@
-use crate::query::*;
-use crate::response::instant::*;
-use crate::response::range::*;
-
 /// A helper enum that is passed to the `Client::new` function in
 /// order to avoid errors on unsupported connection schemes.
 pub enum Scheme {
@@ -59,75 +55,5 @@ impl Client {
             base_url: format!("{}://{}:{}/api/v1", scheme.as_str(), host, port),
             ..Default::default()
         }
-    }
-
-    /// Execute an instant query.
-    ///
-    /// ```rust
-    /// use prometheus_http_query::{Client, InstantQuery};
-    ///
-    /// let client: Client = Default::default();
-    /// let query = InstantQuery {
-    ///     query: "up",
-    ///     time: None,
-    ///     timeout: None,
-    /// };
-    /// let response = tokio_test::block_on( async { client.instant(&query).await.unwrap() });
-    /// assert!(!response.data.result.is_empty());
-    /// ```
-    pub async fn instant(
-        &self,
-        query: &InstantQuery<'_>,
-    ) -> Result<InstantQueryResponse, reqwest::Error> {
-        let mut url = self.base_url.clone();
-
-        url.push_str("/query");
-
-        let params = query.get_query_params();
-
-        Ok(self
-            .client
-            .get(&url)
-            .query(params.as_slice())
-            .send()
-            .await?
-            .json::<InstantQueryResponse>()
-            .await?)
-    }
-
-    /// Execute an instant query.
-    ///
-    /// ```rust
-    /// use prometheus_http_query::{Client, RangeQuery};
-    ///
-    /// let client: Client = Default::default();
-    /// let query = RangeQuery {
-    ///     query: "up",
-    ///     start: "2021-04-09T11:30:00.000+02:00",
-    ///     end: "2021-04-09T12:30:00.000+02:00",
-    ///     step: "5m",
-    ///     timeout: None,
-    /// };
-    /// let response = tokio_test::block_on( async { client.range(&query).await.unwrap() });
-    /// assert!(!response.data.result.is_empty());
-    /// ```
-    pub async fn range(
-        &self,
-        query: &RangeQuery<'_>,
-    ) -> Result<RangeQueryResponse, reqwest::Error> {
-        let mut url = self.base_url.clone();
-
-        url.push_str("/query_range");
-
-        let params = query.get_query_params();
-
-        Ok(self
-            .client
-            .get(&url)
-            .query(params.as_slice())
-            .send()
-            .await?
-            .json::<RangeQueryResponse>()
-            .await?)
     }
 }

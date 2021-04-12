@@ -4,4 +4,5 @@ pub mod response;
 pub use self::client::Client;
 pub use self::client::Scheme;
 pub use self::query::InstantQuery;
+pub use self::query::Query;
 pub use self::query::RangeQuery;

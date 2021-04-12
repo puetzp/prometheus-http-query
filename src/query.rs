@@ -35,6 +35,20 @@ impl<'a> Query for InstantQuery<'a> {
         params
     }
 
+    /// Execute an instant query.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery};
+    ///
+    /// let client: Client = Default::default();
+    /// let query = InstantQuery {
+    ///     query: "up",
+    ///     time: None,
+    ///     timeout: None,
+    /// };
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(!response.data.result.is_empty());
+    /// ```
     async fn execute(&self, client: &Client) -> Result<Self::Response, reqwest::Error> {
         let mut url = client.base_url.clone();
 
@@ -80,6 +94,22 @@ impl<'a> Query for RangeQuery<'a> {
         params
     }
 
+    /// Execute an instant query.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, RangeQuery};
+    ///
+    /// let client: Client = Default::default();
+    /// let query = RangeQuery {
+    ///     query: "up",
+    ///     start: "2021-04-09T11:30:00.000+02:00",
+    ///     end: "2021-04-09T12:30:00.000+02:00",
+    ///     step: "5m",
+    ///     timeout: None,
+    /// };
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(!response.data.result.is_empty());
+    /// ```
     async fn execute(&self, client: &Client) -> Result<Self::Response, reqwest::Error> {
         let mut url = client.base_url.clone();
 
