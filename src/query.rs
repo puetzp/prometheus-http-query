@@ -4,11 +4,9 @@ use crate::response::range::RangeQueryResponse;
 use async_trait::async_trait;
 
 #[async_trait]
-pub trait Query {
-    type Response;
-
+pub trait Query<T> {
     fn get_query_params(&self) -> Vec<(&str, &str)>;
-    async fn execute(&self, client: &Client) -> Result<Self::Response, reqwest::Error>;
+    async fn execute(&self, client: &Client) -> Result<T, reqwest::Error>;
 }
 
 pub struct InstantQuery<'a> {
@@ -18,9 +16,7 @@ pub struct InstantQuery<'a> {
 }
 
 #[async_trait]
-impl<'a> Query for InstantQuery<'a> {
-    type Response = InstantQueryResponse;
-
+impl<'a> Query<InstantQueryResponse> for InstantQuery<'a> {
     fn get_query_params(&self) -> Vec<(&str, &str)> {
         let mut params = vec![("query", self.query)];
 
@@ -49,7 +45,7 @@ impl<'a> Query for InstantQuery<'a> {
     /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
     /// assert!(!response.data.result.is_empty());
     /// ```
-    async fn execute(&self, client: &Client) -> Result<Self::Response, reqwest::Error> {
+    async fn execute(&self, client: &Client) -> Result<InstantQueryResponse, reqwest::Error> {
         let mut url = client.base_url.clone();
 
         url.push_str("/query");
@@ -76,9 +72,7 @@ pub struct RangeQuery<'a> {
 }
 
 #[async_trait]
-impl<'a> Query for RangeQuery<'a> {
-    type Response = RangeQueryResponse;
-
+impl<'a> Query<RangeQueryResponse> for RangeQuery<'a> {
     fn get_query_params(&self) -> Vec<(&str, &str)> {
         let mut params = vec![
             ("query", self.query),
@@ -110,7 +104,7 @@ impl<'a> Query for RangeQuery<'a> {
     /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
     /// assert!(!response.data.result.is_empty());
     /// ```
-    async fn execute(&self, client: &Client) -> Result<Self::Response, reqwest::Error> {
+    async fn execute(&self, client: &Client) -> Result<RangeQueryResponse, reqwest::Error> {
         let mut url = client.base_url.clone();
 
         url.push_str("/query_range");
