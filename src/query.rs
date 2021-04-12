@@ -113,7 +113,7 @@ impl<'a> Query for RangeQuery<'a> {
     async fn execute(&self, client: &Client) -> Result<Self::Response, reqwest::Error> {
         let mut url = client.base_url.clone();
 
-        url.push_str("/query");
+        url.push_str("/query_range");
 
         let params = self.get_query_params();
 
