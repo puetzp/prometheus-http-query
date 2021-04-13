@@ -1,20 +1,51 @@
-use super::{ResultType, Status};
+use super::Status;
 use serde::de::Deserializer;
 use serde::Deserialize;
 use std::collections::HashMap;
 
-#[derive(Deserialize, Debug, PartialEq)]
-#[serde(deny_unknown_fields)]
+#[derive(Debug, PartialEq)]
 pub struct InstantQueryResponse {
     pub status: Status,
-    pub data: Data,
-    #[serde(alias = "errorType")]
+    pub data: Vec<Metric>,
     pub error_type: Option<String>,
     pub error: Option<String>,
     pub warnings: Option<Vec<String>>,
 }
 
 impl super::QueryResponse for InstantQueryResponse {}
+
+impl<'de> Deserialize<'de> for InstantQueryResponse {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        #[serde(deny_unknown_fields)]
+        struct TmpInstantQueryResponse {
+            status: Status,
+            data: TmpData,
+            #[serde(alias = "errorType")]
+            error_type: Option<String>,
+            error: Option<String>,
+            warnings: Option<Vec<String>>,
+        }
+
+        #[derive(Deserialize)]
+        struct TmpData {
+            result: Vec<Metric>,
+        }
+
+        let tmp: TmpInstantQueryResponse = Deserialize::deserialize(deserializer)?;
+
+        Ok(InstantQueryResponse {
+            status: tmp.status,
+            data: tmp.data.result,
+            error_type: tmp.error_type,
+            error: tmp.error,
+            warnings: tmp.warnings,
+        })
+    }
+}
 
 #[derive(Debug, PartialEq)]
 pub struct Metric {
@@ -53,14 +84,6 @@ impl<'de> Deserialize<'de> for Metric {
     }
 }
 
-#[derive(Deserialize, Debug, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub struct Data {
-    #[serde(alias = "resultType")]
-    pub result_type: ResultType,
-    pub result: Vec<Metric>,
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -72,18 +95,15 @@ mod tests {
     fn test_deserialize_instant_query_response() {
         let r = InstantQueryResponse {
             status: Status::Success,
-            data: Data {
-                result_type: ResultType::Vector,
-                result: vec![Metric {
-                    labels: HashMap::<_, _>::from_iter(IntoIter::new([
-                        (String::from("instance"), String::from("localhost:9090")),
-                        (String::from("__name__"), String::from("up")),
-                        (String::from("job"), String::from("prometheus")),
-                    ])),
-                    epoch: 1617960600.0,
-                    value: String::from("1"),
-                }],
-            },
+            data: vec![Metric {
+                labels: HashMap::<_, _>::from_iter(IntoIter::new([
+                    (String::from("instance"), String::from("localhost:9090")),
+                    (String::from("__name__"), String::from("up")),
+                    (String::from("job"), String::from("prometheus")),
+                ])),
+                epoch: 1617960600.0,
+                value: String::from("1"),
+            }],
             error_type: None,
             error: None,
             warnings: None,
@@ -93,7 +113,7 @@ mod tests {
             &r,
             &[
                 Token::Struct {
-                    name: "InstantQueryResponse",
+                    name: "TmpInstantQueryResponse",
                     len: 2,
                 },
                 Token::Str("status"),
@@ -104,14 +124,8 @@ mod tests {
                 },
                 Token::Str("data"),
                 Token::Struct {
-                    name: "Data",
+                    name: "TmpData",
                     len: 2,
-                },
-                Token::Str("result_type"),
-                Token::Enum { name: "ResultType" },
-                Token::UnitVariant {
-                    name: "ResultType",
-                    variant: "Vector",
                 },
                 Token::Str("result"),
                 Token::Seq { len: Some(1) },

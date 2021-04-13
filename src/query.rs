@@ -6,7 +6,7 @@ use async_trait::async_trait;
 #[async_trait]
 pub trait Query<T: for<'de> serde::Deserialize<'de>> {
     fn get_query_params(&self) -> Vec<(&str, &str)>;
-    fn get_query_prefix(&self) -> &str;
+    fn get_query_endpoint(&self) -> &str;
 
     /// Execute a query.
     ///
@@ -31,12 +31,12 @@ pub trait Query<T: for<'de> serde::Deserialize<'de>> {
     ///     timeout: None,
     /// };
     /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
-    /// assert!(!response.data.result.is_empty());
+    /// assert!(!response.data.is_empty());
     /// ```
     async fn execute(&self, client: &Client) -> Result<T, reqwest::Error> {
         let mut url = client.base_url.clone();
 
-        url.push_str(self.get_query_prefix());
+        url.push_str(self.get_query_endpoint());
 
         let params = self.get_query_params();
 
@@ -78,7 +78,7 @@ impl<'a> Query<InstantQueryResponse> for InstantQuery<'a> {
         params
     }
 
-    fn get_query_prefix(&self) -> &str {
+    fn get_query_endpoint(&self) -> &str {
         "/query"
     }
 }
@@ -108,7 +108,7 @@ impl<'a> Query<RangeQueryResponse> for RangeQuery<'a> {
         params
     }
 
-    fn get_query_prefix(&self) -> &str {
+    fn get_query_endpoint(&self) -> &str {
         "/query_range"
     }
 }
