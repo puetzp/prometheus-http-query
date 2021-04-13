@@ -4,9 +4,54 @@ use crate::response::range::RangeQueryResponse;
 use async_trait::async_trait;
 
 #[async_trait]
-pub trait Query<T> {
+pub trait Query<T: for<'de> serde::Deserialize<'de>> {
     fn get_query_params(&self) -> Vec<(&str, &str)>;
-    async fn execute(&self, client: &Client) -> Result<T, reqwest::Error>;
+    fn get_query_prefix(&self) -> &str;
+
+    /// Execute a query.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, RangeQuery, InstantQuery};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = RangeQuery {
+    ///     query: "up",
+    ///     start: "2021-04-09T11:30:00.000+02:00",
+    ///     end: "2021-04-09T12:30:00.000+02:00",
+    ///     step: "5m",
+    ///     timeout: None,
+    /// };
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(!response.data.result.is_empty());
+    ///
+    /// let query = InstantQuery {
+    ///     query: "up",
+    ///     time: None,
+    ///     timeout: None,
+    /// };
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(!response.data.result.is_empty());
+    /// ```
+    async fn execute(&self, client: &Client) -> Result<T, reqwest::Error> {
+        let mut url = client.base_url.clone();
+
+        url.push_str(self.get_query_prefix());
+
+        let params = self.get_query_params();
+
+        let response = client
+            .client
+            .get(&url)
+            .query(params.as_slice())
+            .send()
+            .await?;
+
+        match response.error_for_status() {
+            Ok(res) => res.json::<T>().await,
+            Err(err) => Err(err),
+        }
+    }
 }
 
 pub struct InstantQuery<'a> {
@@ -31,38 +76,8 @@ impl<'a> Query<InstantQueryResponse> for InstantQuery<'a> {
         params
     }
 
-    /// Execute an instant query.
-    ///
-    /// ```rust
-    /// use prometheus_http_query::{Client, Query, InstantQuery};
-    ///
-    /// let client: Client = Default::default();
-    /// let query = InstantQuery {
-    ///     query: "up",
-    ///     time: None,
-    ///     timeout: None,
-    /// };
-    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
-    /// assert!(!response.data.result.is_empty());
-    /// ```
-    async fn execute(&self, client: &Client) -> Result<InstantQueryResponse, reqwest::Error> {
-        let mut url = client.base_url.clone();
-
-        url.push_str("/query");
-
-        let params = self.get_query_params();
-
-        let response = client
-            .client
-            .get(&url)
-            .query(params.as_slice())
-            .send()
-            .await?;
-
-        match response.error_for_status() {
-            Ok(res) => res.json::<InstantQueryResponse>().await,
-            Err(err) => Err(err),
-        }
+    fn get_query_prefix(&self) -> &str {
+        "/query"
     }
 }
 
@@ -91,39 +106,7 @@ impl<'a> Query<RangeQueryResponse> for RangeQuery<'a> {
         params
     }
 
-    /// Execute an instant query.
-    ///
-    /// ```rust
-    /// use prometheus_http_query::{Client, Query, RangeQuery};
-    ///
-    /// let client: Client = Default::default();
-    /// let query = RangeQuery {
-    ///     query: "up",
-    ///     start: "2021-04-09T11:30:00.000+02:00",
-    ///     end: "2021-04-09T12:30:00.000+02:00",
-    ///     step: "5m",
-    ///     timeout: None,
-    /// };
-    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
-    /// assert!(!response.data.result.is_empty());
-    /// ```
-    async fn execute(&self, client: &Client) -> Result<RangeQueryResponse, reqwest::Error> {
-        let mut url = client.base_url.clone();
-
-        url.push_str("/query_range");
-
-        let params = self.get_query_params();
-
-        let response = client
-            .client
-            .get(&url)
-            .query(params.as_slice())
-            .send()
-            .await?;
-
-        match response.error_for_status() {
-            Ok(res) => res.json::<RangeQueryResponse>().await,
-            Err(err) => Err(err),
-        }
+    fn get_query_prefix(&self) -> &str {
+        "/query_range"
     }
 }
