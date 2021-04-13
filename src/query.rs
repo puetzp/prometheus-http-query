@@ -52,14 +52,17 @@ impl<'a> Query<InstantQueryResponse> for InstantQuery<'a> {
 
         let params = self.get_query_params();
 
-        Ok(client
+        let response = client
             .client
             .get(&url)
             .query(params.as_slice())
             .send()
-            .await?
-            .json::<InstantQueryResponse>()
-            .await?)
+            .await?;
+
+        match response.error_for_status() {
+            Ok(res) => res.json::<InstantQueryResponse>().await,
+            Err(err) => Err(err),
+        }
     }
 }
 
@@ -111,13 +114,16 @@ impl<'a> Query<RangeQueryResponse> for RangeQuery<'a> {
 
         let params = self.get_query_params();
 
-        Ok(client
+        let response = client
             .client
             .get(&url)
             .query(params.as_slice())
             .send()
-            .await?
-            .json::<RangeQueryResponse>()
-            .await?)
+            .await?;
+
+        match response.error_for_status() {
+            Ok(res) => res.json::<RangeQueryResponse>().await,
+            Err(err) => Err(err),
+        }
     }
 }
