@@ -47,6 +47,8 @@ pub trait Query<T: for<'de> serde::Deserialize<'de>> {
             .send()
             .await?;
 
+        // NOTE: Can be changed to .map(async |resp| resp.json ...)
+        // when async closures are stable.
         match response.error_for_status() {
             Ok(res) => res.json::<T>().await,
             Err(err) => Err(err),
