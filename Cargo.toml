@@ -7,6 +7,7 @@ repository = "https://github.com/puetzp/prometheus-http-query"
 documentation = "https://docs.rs/prometheus-http-query"
 readme = "README.md"
 license = "MIT"
+description = "Prometheus HTTP API client"
 
 [dependencies]
 reqwest = { version = "0.11", features = ["json"] }
