@@ -1,10 +1,12 @@
 [package]
 name = "prometheus-http-query"
 version = "0.1.0"
-authors = ["Peter Sebastian Puetz <peter.puetz@itenos.de>"]
+authors = ["Peter Sebastian Pütz <ppuetz@protonmail.com>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+repository = "https://github.com/puetzp/prometheus-http-query"
+documentation = "https://docs.rs/prometheus-http-query"
+readme = "README.md"
+license = "MIT"
 
 [dependencies]
 reqwest = { version = "0.11", features = ["json"] }
