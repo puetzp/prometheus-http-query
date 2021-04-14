@@ -36,6 +36,23 @@
 //!     assert!(response.is_success());
 //! }
 //! ```
+//!
+//! # Notes
+//!
+//! The response types `InstantQueryResponse` and `RangeQueryResponse` do not exactly match
+//! the deserialzed version of the JSON that Prometheus sends back to the client. The reasoning
+//! behind this is that there is only one possible type of response to e.g. an instant query, namely
+//! a vector of metrics. So the structure of the response is dumbed down in order to wheat out
+//! redundant information that the JSON contains, like the resultType.
+//!
+//! # Future plans
+//!
+//! * Add metadata queries (series/labels) (non-breaking)
+//! * Provide types for the values of e.g. InstantQuery.query or RangeQuery.start in order to
+//! catch possible errors with the format before actually sending the request to a remote Prometheus
+//! instance (breaking)
+//! * The best way of preventing issues with the query format would be to provide a builder type to
+//! build a query and translate it to a query string to be sent to Prometheus (breaking)
 pub mod client;
 pub mod query;
 pub mod response;
