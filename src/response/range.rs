@@ -1,25 +1,64 @@
-use super::{ResultType, Status};
+use super::Status;
+use serde::de::Deserializer;
 use serde::Deserialize;
 use std::collections::HashMap;
 
-#[derive(Deserialize, Debug, PartialEq)]
-#[serde(deny_unknown_fields)]
+#[derive(Debug, PartialEq)]
 pub struct RangeQueryResponse {
     pub status: Status,
-    pub data: Data,
-    #[serde(alias = "errorType")]
+    pub data: Vec<Metric>,
     pub error_type: Option<String>,
     pub error: Option<String>,
     pub warnings: Option<Vec<String>>,
 }
 
-impl super::QueryResponse for RangeQueryResponse {}
+impl super::Response for RangeQueryResponse {
+    fn is_success(&self) -> bool {
+        match self.status {
+            Status::Success => true,
+            _ => false,
+        }
+    }
 
-#[derive(Deserialize, Debug, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub struct Value {
-    pub epoch: f64,
-    pub value: String,
+    fn is_error(&self) -> bool {
+        match self.status {
+            Status::Error => true,
+            _ => false,
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for RangeQueryResponse {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        #[serde(deny_unknown_fields)]
+        struct TmpRangeQueryResponse {
+            status: Status,
+            data: TmpData,
+            #[serde(alias = "errorType")]
+            error_type: Option<String>,
+            error: Option<String>,
+            warnings: Option<Vec<String>>,
+        }
+
+        #[derive(Deserialize)]
+        struct TmpData {
+            result: Vec<Metric>,
+        }
+
+        let tmp: TmpRangeQueryResponse = Deserialize::deserialize(deserializer)?;
+
+        Ok(RangeQueryResponse {
+            status: tmp.status,
+            data: tmp.data.result,
+            error_type: tmp.error_type,
+            error: tmp.error,
+            warnings: tmp.warnings,
+        })
+    }
 }
 
 #[derive(Deserialize, Debug, PartialEq)]
@@ -33,10 +72,9 @@ pub struct Metric {
 
 #[derive(Deserialize, Debug, PartialEq)]
 #[serde(deny_unknown_fields)]
-pub struct Data {
-    #[serde(alias = "resultType")]
-    pub result_type: ResultType,
-    pub result: Vec<Metric>,
+pub struct Value {
+    pub epoch: f64,
+    pub value: String,
 }
 
 #[cfg(test)]
@@ -50,34 +88,31 @@ mod tests {
     fn test_deserialize_range_query_response() {
         let r = RangeQueryResponse {
             status: Status::Success,
-            data: Data {
-                result_type: ResultType::Vector,
-                result: vec![Metric {
-                    labels: HashMap::<_, _>::from_iter(IntoIter::new([
-                        (String::from("instance"), String::from("localhost:9090")),
-                        (String::from("__name__"), String::from("up")),
-                        (String::from("job"), String::from("prometheus")),
-                    ])),
-                    samples: vec![
-                        Value {
-                            epoch: 1617960600.0,
-                            value: String::from("1"),
-                        },
-                        Value {
-                            epoch: 1617960900.0,
-                            value: String::from("1"),
-                        },
-                        Value {
-                            epoch: 1617961200.0,
-                            value: String::from("1"),
-                        },
-                        Value {
-                            epoch: 1617961500.0,
-                            value: String::from("1"),
-                        },
-                    ],
-                }],
-            },
+            data: vec![Metric {
+                labels: HashMap::<_, _>::from_iter(IntoIter::new([
+                    (String::from("instance"), String::from("localhost:9090")),
+                    (String::from("__name__"), String::from("up")),
+                    (String::from("job"), String::from("prometheus")),
+                ])),
+                samples: vec![
+                    Value {
+                        epoch: 1617960600.0,
+                        value: String::from("1"),
+                    },
+                    Value {
+                        epoch: 1617960900.0,
+                        value: String::from("1"),
+                    },
+                    Value {
+                        epoch: 1617961200.0,
+                        value: String::from("1"),
+                    },
+                    Value {
+                        epoch: 1617961500.0,
+                        value: String::from("1"),
+                    },
+                ],
+            }],
             error_type: None,
             error: None,
             warnings: None,
@@ -87,7 +122,7 @@ mod tests {
             &r,
             &[
                 Token::Struct {
-                    name: "RangeQueryResponse",
+                    name: "TmpRangeQueryResponse",
                     len: 2,
                 },
                 Token::Str("status"),
@@ -98,14 +133,8 @@ mod tests {
                 },
                 Token::Str("data"),
                 Token::Struct {
-                    name: "Data",
+                    name: "TmpData",
                     len: 2,
-                },
-                Token::Str("result_type"),
-                Token::Enum { name: "ResultType" },
-                Token::UnitVariant {
-                    name: "ResultType",
-                    variant: "Vector",
                 },
                 Token::Str("result"),
                 Token::Seq { len: Some(1) },

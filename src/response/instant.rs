@@ -12,7 +12,21 @@ pub struct InstantQueryResponse {
     pub warnings: Option<Vec<String>>,
 }
 
-impl super::QueryResponse for InstantQueryResponse {}
+impl super::Response for InstantQueryResponse {
+    fn is_success(&self) -> bool {
+        match self.status {
+            Status::Success => true,
+            _ => false,
+        }
+    }
+
+    fn is_error(&self) -> bool {
+        match self.status {
+            Status::Error => true,
+            _ => false,
+        }
+    }
+}
 
 impl<'de> Deserialize<'de> for InstantQueryResponse {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>

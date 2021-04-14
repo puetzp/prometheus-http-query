@@ -11,7 +11,7 @@ pub trait Query<T: for<'de> serde::Deserialize<'de>> {
     /// Execute a query.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Query, RangeQuery, InstantQuery};
+    /// use prometheus_http_query::{Client, Query, RangeQuery, InstantQuery, Response};
     ///
     /// let client: Client = Default::default();
     ///
@@ -23,7 +23,7 @@ pub trait Query<T: for<'de> serde::Deserialize<'de>> {
     ///     timeout: None,
     /// };
     /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
-    /// assert!(!response.data.result.is_empty());
+    /// assert!(response.is_success());
     ///
     /// let query = InstantQuery {
     ///     query: "up",
@@ -31,7 +31,7 @@ pub trait Query<T: for<'de> serde::Deserialize<'de>> {
     ///     timeout: None,
     /// };
     /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
-    /// assert!(!response.data.is_empty());
+    /// assert!(response.is_success());
     /// ```
     async fn execute(&self, client: &Client) -> Result<T, reqwest::Error> {
         let mut url = client.base_url.clone();
