@@ -48,6 +48,7 @@
 //! # Future plans
 //!
 //! * Add metadata queries (series/labels) (non-breaking)
+//! * Expose configuration parameters of the reqwest client
 //! * Provide types for the values of e.g. InstantQuery.query or RangeQuery.start in order to
 //! catch possible errors with the format before actually sending the request to a remote Prometheus
 //! instance (breaking)
