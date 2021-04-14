@@ -11,7 +11,7 @@ pub trait Query<T: for<'de> serde::Deserialize<'de>> {
     /// Execute a query.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Query, RangeQuery, InstantQuery, Response};
+    /// use prometheus_http_query::{Client, Query, RangeQuery, InstantQuery};
     ///
     /// let client: Client = Default::default();
     ///

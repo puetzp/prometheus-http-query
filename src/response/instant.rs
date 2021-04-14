@@ -12,19 +12,13 @@ pub struct InstantQueryResponse {
     pub warnings: Option<Vec<String>>,
 }
 
-impl super::Response for InstantQueryResponse {
-    fn is_success(&self) -> bool {
-        match self.status {
-            Status::Success => true,
-            _ => false,
-        }
+impl InstantQueryResponse {
+    pub fn is_success(&self) -> bool {
+        matches!(self.status, Status::Success)
     }
 
-    fn is_error(&self) -> bool {
-        match self.status {
-            Status::Error => true,
-            _ => false,
-        }
+    pub fn is_error(&self) -> bool {
+        matches!(self.status, Status::Error)
     }
 }
 

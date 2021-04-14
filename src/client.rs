@@ -1,15 +1,15 @@
 /// A helper enum that is passed to the `Client::new` function in
 /// order to avoid errors on unsupported connection schemes.
 pub enum Scheme {
-    HTTP,
-    HTTPS,
+    Http,
+    Https,
 }
 
 impl Scheme {
     fn as_str(&self) -> &str {
         match self {
-            Scheme::HTTP => "http",
-            Scheme::HTTPS => "https",
+            Scheme::Http => "http",
+            Scheme::Https => "https",
         }
     }
 }
@@ -48,7 +48,7 @@ impl Client {
     /// ```rust
     /// use prometheus_http_query::{Client, Scheme};
     ///
-    /// let client = Client::new(Scheme::HTTP, "localhost", 9090);
+    /// let client = Client::new(Scheme::Http, "localhost", 9090);
     /// ```
     pub fn new(scheme: Scheme, host: &str, port: u16) -> Self {
         Client {
