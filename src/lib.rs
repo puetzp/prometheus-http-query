@@ -42,7 +42,7 @@
 //! The response types `InstantQueryResponse` and `RangeQueryResponse` do not exactly match
 //! the deserialzed version of the JSON that Prometheus sends back to the client. The reasoning
 //! behind this is that there is only one possible type of response to e.g. an instant query, namely
-//! a vector of metrics. So the structure of the response is dumbed down in order to wheat out
+//! a vector of metrics. So the structure of the response is dumbed down in order to get rid of
 //! redundant information that the JSON contains, like the resultType.
 //!
 //! # Future plans
