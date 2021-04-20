@@ -3,9 +3,9 @@ use crate::error::BuilderError;
 use crate::response::instant::InstantQueryResponse;
 use crate::response::range::RangeQueryResponse;
 use async_trait::async_trait;
+use chrono::DateTime;
 use std::fmt;
 use std::str::FromStr;
-use time::OffsetDateTime;
 
 #[async_trait]
 pub trait Query<T: for<'de> serde::Deserialize<'de>> {
@@ -130,7 +130,7 @@ impl<'a> Query<RangeQueryResponse> for RangeQuery<'a> {
 pub struct InstantQueryBuilder<'b> {
     metric: Option<&'b str>,
     labels: Option<Vec<Label<'b>>>,
-    time: Option<Time>,
+    time: Option<String>,
     timeout: Option<Vec<Duration>>,
 }
 
@@ -334,9 +334,9 @@ impl<'b> InstantQueryBuilder<'b> {
     /// ```
     pub fn at(mut self, time: &'b str) -> Result<Self, BuilderError> {
         match f64::from_str(time) {
-            Ok(t) => self.time = Some(Time::Unix(t)),
-            Err(_) => match OffsetDateTime::parse(time, "%FT%T%z") {
-                Ok(t) => self.time = Some(Time::Rfc3339(t)),
+            Ok(t) => self.time = Some(t.to_string()),
+            Err(_) => match DateTime::parse_from_rfc3339(time) {
+                Ok(t) => self.time = Some(t.to_rfc3339()),
                 Err(_) => return Err(BuilderError::InvalidTimeSpecifier),
             },
         }
@@ -399,14 +399,6 @@ impl<'b> InstantQueryBuilder<'b> {
     }
 
     pub fn build(&self) -> Result<InstantQuery, BuilderError> {
-        let time = match &self.time {
-            Some(t) => match t {
-                Time::Unix(t) => Some(t.to_string()),
-                Time::Rfc3339(t) => Some(t.format("%FT%T%z")),
-            },
-            None => None,
-        };
-
         let timeout = match &self.timeout {
             Some(to) => {
                 let formatted = to
@@ -453,7 +445,7 @@ impl<'b> InstantQueryBuilder<'b> {
 
         let q = InstantQuery {
             query: query,
-            time: time,
+            time: self.time.clone(),
             timeout: timeout,
         };
 
@@ -467,12 +459,6 @@ enum Label<'c> {
     Without((&'c str, &'c str)),
     Matches((&'c str, &'c str)),
     Clashes((&'c str, &'c str)),
-}
-
-#[derive(Debug)]
-enum Time {
-    Unix(f64),
-    Rfc3339(OffsetDateTime),
 }
 
 #[derive(Debug, Ord, PartialOrd, Eq, PartialEq)]
