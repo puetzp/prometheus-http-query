@@ -419,6 +419,10 @@ impl<'b> InstantQueryBuilder<'b> {
     }
 
     pub fn build(&self) -> Result<InstantQuery, BuilderError> {
+        if self.metric.is_none() && self.labels.is_none() {
+            return Err(BuilderError::IllegalVectorSelector);
+        }
+
         let timeout = match &self.timeout {
             Some(to) => {
                 let formatted = to
