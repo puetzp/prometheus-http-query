@@ -214,6 +214,23 @@ impl<'b> InstantQueryBuilder<'b> {
         self
     }
 
+    /// Add a label matcher that only selects labels that do not match the provided string.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder()
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .without_label("code", "500")
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    /// ```
     pub fn without_label(mut self, label: &'b str, value: &'b str) -> Self {
         if let Some(ref mut labels) = self.labels {
             labels.push(Label::Without((label, value)));
@@ -224,6 +241,23 @@ impl<'b> InstantQueryBuilder<'b> {
         self
     }
 
+    /// Add a label matcher that only selects labels that regex-match the provided string.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder()
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .match_label("code", "400|500")
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    /// ```
     pub fn match_label(mut self, label: &'b str, value: &'b str) -> Self {
         if let Some(ref mut labels) = self.labels {
             labels.push(Label::Matches((label, value)));
@@ -234,6 +268,23 @@ impl<'b> InstantQueryBuilder<'b> {
         self
     }
 
+    /// Add a label matcher that only selects labels that do not regex-match the provided string.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder()
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .no_match_label("code", "400|500")
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    /// ```
     pub fn no_match_label(mut self, label: &'b str, value: &'b str) -> Self {
         if let Some(ref mut labels) = self.labels {
             labels.push(Label::Clashes((label, value)));
