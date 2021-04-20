@@ -188,6 +188,7 @@ impl<'b> InstantQueryBuilder<'b> {
     }
 
     /// Add a label matcher that only selects labels that exactly match the provided string.
+    /// Label matchers are chainable and label names can even appear multiple times in one query.
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Query, InstantQuery};
@@ -215,6 +216,7 @@ impl<'b> InstantQueryBuilder<'b> {
     }
 
     /// Add a label matcher that only selects labels that do not match the provided string.
+    /// Label matchers are chainable and label names can even appear multiple times in one query.
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Query, InstantQuery};
@@ -242,6 +244,7 @@ impl<'b> InstantQueryBuilder<'b> {
     }
 
     /// Add a label matcher that only selects labels that regex-match the provided string.
+    /// Label matchers are chainable and label names can even appear multiple times in one query.
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Query, InstantQuery};
@@ -269,6 +272,7 @@ impl<'b> InstantQueryBuilder<'b> {
     }
 
     /// Add a label matcher that only selects labels that do not regex-match the provided string.
+    /// Label matchers are chainable and label names can even appear multiple times in one query.
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Query, InstantQuery};
@@ -295,6 +299,39 @@ impl<'b> InstantQueryBuilder<'b> {
         self
     }
 
+    /// Evaluate a query at a specific point in time. `time` must be either a UNIX timestamp
+    /// with optional decimal places or a RFC3339-compatible timestamp which is passed to the
+    /// function as a string literal, e.g. `1618922012` or `2021-04-20T14:33:32+02:00`.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder()
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .with_label("code", "200")
+    ///     .at("1618922012")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    ///
+    /// let another_query = InstantQuery::builder()
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .with_label("code", "200")
+    ///     .at("2021-04-20T14:33:32+02:00")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let another_response = tokio_test::block_on( async { another_query.execute(&client).await.unwrap() });
+    /// assert!(another_response.is_success());
+    /// ```
     pub fn at(mut self, time: &'b str) -> Result<Self, BuilderError> {
         match f64::from_str(time) {
             Ok(t) => self.time = Some(Time::Unix(t)),
