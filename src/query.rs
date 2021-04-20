@@ -30,7 +30,7 @@ pub trait Query<T: for<'de> serde::Deserialize<'de>> {
     /// assert!(response.is_success());
     ///
     /// let query = InstantQuery {
-    ///     query: "up",
+    ///     query: "up".to_string(),
     ///     time: None,
     ///     timeout: None,
     /// };

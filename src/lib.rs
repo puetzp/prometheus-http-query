@@ -14,7 +14,7 @@
 //!     let client: Client = Default::default();
 //!
 //!     let instant_q = InstantQuery {
-//!         query: "up",
+//!         query: "up".to_string(),
 //!         time: None,
 //!         timeout: None,
 //!     };
