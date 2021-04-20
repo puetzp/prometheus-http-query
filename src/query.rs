@@ -60,6 +60,7 @@ pub trait Query<T: for<'de> serde::Deserialize<'de>> {
     }
 }
 
+#[derive(Debug)]
 pub struct InstantQuery {
     pub query: String,
     pub time: Option<String>,
@@ -88,7 +89,7 @@ impl Query<InstantQueryResponse> for InstantQuery {
 }
 
 impl InstantQuery {
-    pub fn builder(&self) -> InstantQueryBuilder {
+    pub fn builder() -> InstantQueryBuilder<'static> {
         InstantQueryBuilder {
             ..Default::default()
         }
@@ -125,6 +126,7 @@ impl<'a> Query<RangeQueryResponse> for RangeQuery<'a> {
     }
 }
 
+#[derive(Debug)]
 pub struct InstantQueryBuilder<'b> {
     metric: Option<&'b str>,
     labels: Option<Vec<Label<'b>>>,
@@ -144,6 +146,31 @@ impl<'b> Default for InstantQueryBuilder<'b> {
 }
 
 impl<'b> InstantQueryBuilder<'b> {
+    /// Add a metric name to the query.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder().metric("up").unwrap().build().unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    /// ```
+    ///
+    /// Some strings are reserved PromQL keywords and cannot be used in a query (at least not
+    /// as a metric name except using the `__name__` label like `{__name__="on"}`).
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery, BuilderError};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder().metric("group_left");
+    ///
+    /// assert!(query.is_err());
+    /// ```
     pub fn metric(mut self, metric: &'b str) -> Result<Self, BuilderError> {
         match metric {
             "bool" | "on" | "ignoring" | "group_left" | "group_right" => {
@@ -325,6 +352,7 @@ impl<'b> InstantQueryBuilder<'b> {
     }
 }
 
+#[derive(Debug)]
 enum Label<'c> {
     With((&'c str, &'c str)),
     Without((&'c str, &'c str)),
@@ -332,12 +360,13 @@ enum Label<'c> {
     Clashes((&'c str, &'c str)),
 }
 
+#[derive(Debug)]
 enum Time {
     Unix(f64),
     Rfc3339(OffsetDateTime),
 }
 
-#[derive(Ord, PartialOrd, Eq, PartialEq)]
+#[derive(Debug, Ord, PartialOrd, Eq, PartialEq)]
 enum Duration {
     Milliseconds(usize),
     Seconds(usize),
