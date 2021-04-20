@@ -343,6 +343,26 @@ impl<'b> InstantQueryBuilder<'b> {
         Ok(self)
     }
 
+    /// Provide a custom evaluation timeout other than the Prometheus server's
+    /// default. Must adhere to the PromQL [time duration format](https://prometheus.io/docs/prometheus/latest/querying/basics/#time_durations).
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder()
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .with_label("code", "200")
+    ///     .timeout("30s")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    /// ```
     pub fn timeout(mut self, timeout: &'b str) -> Result<Self, BuilderError> {
         let chars = ['s', 'm', 'h', 'd', 'w', 'y'];
 
