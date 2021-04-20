@@ -3,6 +3,7 @@ use crate::error::BuilderError;
 use crate::response::instant::InstantQueryResponse;
 use crate::response::range::RangeQueryResponse;
 use async_trait::async_trait;
+use std::fmt;
 use std::str::FromStr;
 use time::OffsetDateTime;
 
@@ -59,23 +60,23 @@ pub trait Query<T: for<'de> serde::Deserialize<'de>> {
     }
 }
 
-pub struct InstantQuery<'a> {
-    pub query: &'a str,
-    pub time: Option<&'a str>,
-    pub timeout: Option<&'a str>,
+pub struct InstantQuery {
+    pub query: String,
+    pub time: Option<String>,
+    pub timeout: Option<String>,
 }
 
 #[async_trait]
-impl<'a> Query<InstantQueryResponse> for InstantQuery<'a> {
+impl Query<InstantQueryResponse> for InstantQuery {
     fn get_query_params(&self) -> Vec<(&str, &str)> {
-        let mut params = vec![("query", self.query)];
+        let mut params = vec![("query", self.query.as_str())];
 
         if let Some(t) = &self.time {
-            params.push(("time", t));
+            params.push(("time", t.as_str()));
         }
 
         if let Some(t) = &self.timeout {
-            params.push(("timeout", t));
+            params.push(("timeout", t.as_str()));
         }
 
         params
@@ -86,8 +87,8 @@ impl<'a> Query<InstantQueryResponse> for InstantQuery<'a> {
     }
 }
 
-impl<'a> InstantQuery<'a> {
-    fn builder(&self) -> InstantQueryBuilder {
+impl InstantQuery {
+    pub fn builder(&self) -> InstantQueryBuilder {
         InstantQueryBuilder {
             ..Default::default()
         }
@@ -197,9 +198,9 @@ impl<'b> InstantQueryBuilder<'b> {
 
     pub fn at(mut self, time: &'b str) -> Result<Self, BuilderError> {
         match f64::from_str(time) {
-            Ok(t) => self.time = Some(Time::UNIX(t)),
+            Ok(t) => self.time = Some(Time::Unix(t)),
             Err(_) => match OffsetDateTime::parse(time, "%FT%T%z") {
-                Ok(t) => self.time = Some(Time::RFC3339(t)),
+                Ok(t) => self.time = Some(Time::Rfc3339(t)),
                 Err(_) => return Err(BuilderError::InvalidTimeSpecifier),
             },
         }
@@ -260,6 +261,68 @@ impl<'b> InstantQueryBuilder<'b> {
 
         Ok(self)
     }
+
+    pub fn build(&self) -> Result<InstantQuery, BuilderError> {
+        let time = match &self.time {
+            Some(t) => match t {
+                Time::Unix(t) => Some(t.to_string()),
+                Time::Rfc3339(t) => Some(t.format("%FT%T%z")),
+            },
+            None => None,
+        };
+
+        let timeout = match &self.timeout {
+            Some(to) => {
+                let formatted = to
+                    .iter()
+                    .map(|x| x.to_string())
+                    .collect::<Vec<String>>()
+                    .as_slice()
+                    .concat();
+
+                Some(formatted)
+            }
+            None => None,
+        };
+
+        let labels = match &self.labels {
+            Some(l) => {
+                let joined = l
+                    .iter()
+                    .map(|x| match x {
+                        Label::With(pair) => format!("{}={}", pair.0, pair.1),
+                        Label::Without(pair) => format!("{}!={}", pair.0, pair.1),
+                        Label::Matches(pair) => format!("{}=~{}", pair.0, pair.1),
+                        Label::Clashes(pair) => format!("{}!~{}", pair.0, pair.1),
+                    })
+                    .collect::<Vec<String>>()
+                    .as_slice()
+                    .join(",");
+
+                Some(joined)
+            }
+            None => None,
+        };
+
+        let query = match self.metric {
+            Some(m) => match labels {
+                Some(l) => format!("{}{{{}}}", m, l),
+                None => m.to_string(),
+            },
+            None => match labels {
+                Some(l) => format!("{{{}}}", l),
+                None => return Err(BuilderError::InvalidQuery),
+            },
+        };
+
+        let q = InstantQuery {
+            query: query,
+            time: time,
+            timeout: timeout,
+        };
+
+        Ok(q)
+    }
 }
 
 enum Label<'c> {
@@ -270,8 +333,8 @@ enum Label<'c> {
 }
 
 enum Time {
-    UNIX(f64),
-    RFC3339(OffsetDateTime),
+    Unix(f64),
+    Rfc3339(OffsetDateTime),
 }
 
 #[derive(Ord, PartialOrd, Eq, PartialEq)]
@@ -283,4 +346,18 @@ enum Duration {
     Days(usize),
     Weeks(usize),
     Years(usize),
+}
+
+impl fmt::Display for Duration {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Duration::Milliseconds(d) => write!(f, "{}ms", d),
+            Duration::Seconds(d) => write!(f, "{}s", d),
+            Duration::Minutes(d) => write!(f, "{}m", d),
+            Duration::Hours(d) => write!(f, "{}h", d),
+            Duration::Days(d) => write!(f, "{}d", d),
+            Duration::Weeks(d) => write!(f, "{}w", d),
+            Duration::Years(d) => write!(f, "{}y", d),
+        }
+    }
 }
