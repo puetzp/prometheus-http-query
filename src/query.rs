@@ -146,14 +146,18 @@ impl<'b> Default for InstantQueryBuilder<'b> {
 }
 
 impl<'b> InstantQueryBuilder<'b> {
-    /// Add a metric name to the query.
+    /// Add a metric name to the time series selector.
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Query, InstantQuery};
     ///
     /// let client: Client = Default::default();
     ///
-    /// let query = InstantQuery::builder().metric("up").unwrap().build().unwrap();
+    /// let query = InstantQuery::builder()
+    ///     .metric("up")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
     ///
     /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
     /// assert!(response.is_success());
@@ -183,6 +187,23 @@ impl<'b> InstantQueryBuilder<'b> {
         }
     }
 
+    /// Add a label matcher that only selects labels that exactly match the provided string.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder()
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .with_label("code", "200")
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    /// ```
     pub fn with_label(mut self, label: &'b str, value: &'b str) -> Self {
         if let Some(ref mut labels) = self.labels {
             labels.push(Label::With((label, value)));
@@ -317,10 +338,10 @@ impl<'b> InstantQueryBuilder<'b> {
                 let joined = l
                     .iter()
                     .map(|x| match x {
-                        Label::With(pair) => format!("{}={}", pair.0, pair.1),
-                        Label::Without(pair) => format!("{}!={}", pair.0, pair.1),
-                        Label::Matches(pair) => format!("{}=~{}", pair.0, pair.1),
-                        Label::Clashes(pair) => format!("{}!~{}", pair.0, pair.1),
+                        Label::With(pair) => format!("{}=\"{}\"", pair.0, pair.1),
+                        Label::Without(pair) => format!("{}!=\"{}\"", pair.0, pair.1),
+                        Label::Matches(pair) => format!("{}=~\"{}\"", pair.0, pair.1),
+                        Label::Clashes(pair) => format!("{}!~\"{}\"", pair.0, pair.1),
                     })
                     .collect::<Vec<String>>()
                     .as_slice()
