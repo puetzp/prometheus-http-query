@@ -355,7 +355,7 @@ impl<'b> InstantQueryBuilder<'b> {
     ///     .metric("promhttp_metric_handler_requests_total")
     ///     .unwrap()
     ///     .with_label("code", "200")
-    ///     .timeout("30s")
+    ///     .timeout("30s500ms")
     ///     .unwrap()
     ///     .build()
     ///     .unwrap();
@@ -368,6 +368,8 @@ impl<'b> InstantQueryBuilder<'b> {
 
         let durations: Result<Vec<Duration>, BuilderError> = timeout
             .split_inclusive(chars.as_ref())
+            .map(|s| s.split_inclusive("ms"))
+            .flatten()
             .map(|d| {
                 if d.ends_with("ms") {
                     match d.strip_suffix("ms").unwrap().parse::<usize>() {
