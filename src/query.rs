@@ -443,10 +443,6 @@ impl<'b> InstantQueryBuilder<'b> {
     /// assert!(response.is_success());
     /// ```
     pub fn build(&self) -> Result<InstantQuery, BuilderError> {
-        if self.metric.is_none() && self.labels.is_none() {
-            return Err(BuilderError::IllegalVectorSelector);
-        }
-
         let timeout = match &self.timeout {
             Some(to) => {
                 let formatted = to
@@ -487,7 +483,7 @@ impl<'b> InstantQueryBuilder<'b> {
             },
             None => match labels {
                 Some(l) => format!("{{{}}}", l),
-                None => return Err(BuilderError::InvalidQuery),
+                None => return Err(BuilderError::IllegalVectorSelector),
             },
         };
 

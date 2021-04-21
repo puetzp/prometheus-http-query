@@ -6,7 +6,6 @@ pub enum BuilderError {
     InvalidMetricName,
     InvalidTimeSpecifier,
     InvalidTimeDuration,
-    InvalidQuery,
     IllegalVectorSelector,
 }
 
@@ -16,7 +15,6 @@ impl fmt::Display for BuilderError {
             Self::InvalidMetricName => InvalidMetricNameError.fmt(f),
             Self::InvalidTimeSpecifier => InvalidTimeSpecifierError.fmt(f),
             Self::InvalidTimeDuration => InvalidTimeDurationError.fmt(f),
-            Self::InvalidQuery => InvalidQueryError.fmt(f),
             Self::IllegalVectorSelector => IllegalVectorSelectorError.fmt(f),
         }
     }
@@ -47,16 +45,7 @@ pub struct InvalidTimeDurationError;
 
 impl fmt::Display for InvalidTimeDurationError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "...TODO...")
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct InvalidQueryError;
-
-impl fmt::Display for InvalidQueryError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "...TODO...")
+        write!(f, "the provided time duration is invalid as it does not comply with PromQL time duration syntax")
     }
 }
 
