@@ -420,6 +420,28 @@ impl<'b> InstantQueryBuilder<'b> {
         Ok(self)
     }
 
+    /// Build the query using the provided parameters.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder()
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .with_label("code", "400")
+    ///     .with_label("code", "500")
+    ///     .at("1618987524")
+    ///     .unwrap()
+    ///     .timeout("1m30s500ms")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    /// ```
     pub fn build(&self) -> Result<InstantQuery, BuilderError> {
         if self.metric.is_none() && self.labels.is_none() {
             return Err(BuilderError::IllegalVectorSelector);
