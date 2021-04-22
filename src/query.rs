@@ -9,7 +9,9 @@ use std::str::FromStr;
 
 #[async_trait]
 pub trait Query<T: for<'de> serde::Deserialize<'de>> {
+    #[doc(hidden)]
     fn get_query_params(&self) -> Vec<(&str, &str)>;
+    #[doc(hidden)]
     fn get_query_endpoint(&self) -> &str;
 
     /// Execute a query.
@@ -69,6 +71,7 @@ pub struct InstantQuery {
 
 #[async_trait]
 impl Query<InstantQueryResponse> for InstantQuery {
+    #[doc(hidden)]
     fn get_query_params(&self) -> Vec<(&str, &str)> {
         let mut params = vec![("query", self.query.as_str())];
 
@@ -83,6 +86,7 @@ impl Query<InstantQueryResponse> for InstantQuery {
         params
     }
 
+    #[doc(hidden)]
     fn get_query_endpoint(&self) -> &str {
         "/query"
     }
@@ -106,6 +110,7 @@ pub struct RangeQuery<'a> {
 
 #[async_trait]
 impl<'a> Query<RangeQueryResponse> for RangeQuery<'a> {
+    #[doc(hidden)]
     fn get_query_params(&self) -> Vec<(&str, &str)> {
         let mut params = vec![
             ("query", self.query),
@@ -121,6 +126,7 @@ impl<'a> Query<RangeQueryResponse> for RangeQuery<'a> {
         params
     }
 
+    #[doc(hidden)]
     fn get_query_endpoint(&self) -> &str {
         "/query_range"
     }
@@ -145,7 +151,17 @@ impl<'b> Default for InstantQueryBuilder<'b> {
     }
 }
 
-impl<'b> InstantQueryBuilder<'b> {
+pub trait QueryBuilder<'b> {
+    fn get_metric(&self) -> Option<&'b str>;
+    fn set_metric(&mut self, metric: &'b str);
+    fn get_labels(&self) -> Option<&Vec<Label<'b>>>;
+    fn set_label(&mut self, label: Label<'b>);
+    fn set_labels(&mut self, labels: Vec<Label<'b>>);
+    fn get_time(&self) -> Option<&String>;
+    fn set_time(&mut self, time: String);
+    fn get_timeout(&self) -> Option<&Vec<Duration>>;
+    fn set_timeout(&mut self, timeout: Vec<Duration>);
+
     /// Add a metric name to the time series selector.
     ///
     /// ```rust
@@ -175,13 +191,16 @@ impl<'b> InstantQueryBuilder<'b> {
     ///
     /// assert!(query.is_err());
     /// ```
-    pub fn metric(mut self, metric: &'b str) -> Result<Self, BuilderError> {
+    fn metric(mut self, metric: &'b str) -> Result<Self, BuilderError>
+    where
+        Self: Sized,
+    {
         match metric {
             "bool" | "on" | "ignoring" | "group_left" | "group_right" => {
                 Err(BuilderError::InvalidMetricName)
             }
             _ => {
-                self.metric = Some(metric);
+                self.set_metric(metric);
                 Ok(self)
             }
         }
@@ -205,11 +224,14 @@ impl<'b> InstantQueryBuilder<'b> {
     /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
     /// assert!(response.is_success());
     /// ```
-    pub fn with_label(mut self, label: &'b str, value: &'b str) -> Self {
-        if let Some(ref mut labels) = self.labels {
-            labels.push(Label::With((label, value)));
+    fn with_label(mut self, label: &'b str, value: &'b str) -> Self
+    where
+        Self: Sized,
+    {
+        if self.get_labels().is_some() {
+            self.set_label(Label::With((label, value)));
         } else {
-            self.labels = Some(vec![Label::With((label, value))]);
+            self.set_labels(vec![Label::With((label, value))]);
         }
 
         self
@@ -233,11 +255,14 @@ impl<'b> InstantQueryBuilder<'b> {
     /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
     /// assert!(response.is_success());
     /// ```
-    pub fn without_label(mut self, label: &'b str, value: &'b str) -> Self {
-        if let Some(ref mut labels) = self.labels {
-            labels.push(Label::Without((label, value)));
+    fn without_label(mut self, label: &'b str, value: &'b str) -> Self
+    where
+        Self: Sized,
+    {
+        if self.get_labels().is_some() {
+            self.set_label(Label::Without((label, value)));
         } else {
-            self.labels = Some(vec![Label::Without((label, value))]);
+            self.set_labels(vec![Label::Without((label, value))]);
         }
 
         self
@@ -261,11 +286,14 @@ impl<'b> InstantQueryBuilder<'b> {
     /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
     /// assert!(response.is_success());
     /// ```
-    pub fn match_label(mut self, label: &'b str, value: &'b str) -> Self {
-        if let Some(ref mut labels) = self.labels {
-            labels.push(Label::Matches((label, value)));
+    fn match_label(mut self, label: &'b str, value: &'b str) -> Self
+    where
+        Self: Sized,
+    {
+        if self.get_labels().is_some() {
+            self.set_label(Label::Matches((label, value)));
         } else {
-            self.labels = Some(vec![Label::Matches((label, value))]);
+            self.set_labels(vec![Label::Matches((label, value))]);
         }
 
         self
@@ -289,11 +317,14 @@ impl<'b> InstantQueryBuilder<'b> {
     /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
     /// assert!(response.is_success());
     /// ```
-    pub fn no_match_label(mut self, label: &'b str, value: &'b str) -> Self {
-        if let Some(ref mut labels) = self.labels {
-            labels.push(Label::Clashes((label, value)));
+    fn no_match_label(mut self, label: &'b str, value: &'b str) -> Self
+    where
+        Self: Sized,
+    {
+        if self.get_labels().is_some() {
+            self.set_label(Label::Clashes((label, value)));
         } else {
-            self.labels = Some(vec![Label::Matches((label, value))]);
+            self.set_labels(vec![Label::Matches((label, value))]);
         }
 
         self
@@ -332,11 +363,14 @@ impl<'b> InstantQueryBuilder<'b> {
     /// let another_response = tokio_test::block_on( async { another_query.execute(&client).await.unwrap() });
     /// assert!(another_response.is_success());
     /// ```
-    pub fn at(mut self, time: &'b str) -> Result<Self, BuilderError> {
+    fn at(mut self, time: &'b str) -> Result<Self, BuilderError>
+    where
+        Self: Sized,
+    {
         match f64::from_str(time) {
-            Ok(t) => self.time = Some(t.to_string()),
+            Ok(t) => self.set_time(t.to_string()),
             Err(_) => match DateTime::parse_from_rfc3339(time) {
-                Ok(t) => self.time = Some(t.to_rfc3339()),
+                Ok(t) => self.set_time(t.to_rfc3339()),
                 Err(_) => return Err(BuilderError::InvalidTimeSpecifier),
             },
         }
@@ -363,7 +397,10 @@ impl<'b> InstantQueryBuilder<'b> {
     /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
     /// assert!(response.is_success());
     /// ```
-    pub fn timeout(mut self, timeout: &'b str) -> Result<Self, BuilderError> {
+    fn timeout(mut self, timeout: &'b str) -> Result<Self, BuilderError>
+    where
+        Self: Sized,
+    {
         let chars = ['s', 'm', 'h', 'd', 'w', 'y'];
 
         let durations: Result<Vec<Duration>, BuilderError> = timeout
@@ -414,11 +451,57 @@ impl<'b> InstantQueryBuilder<'b> {
 
         if let Ok(mut d) = durations {
             d.sort_unstable();
-            self.timeout = Some(d);
+            self.set_timeout(d);
         }
 
         Ok(self)
     }
+
+    type Output;
+
+    fn build(&self) -> Result<Self::Output, BuilderError>;
+}
+
+impl<'b> QueryBuilder<'b> for InstantQueryBuilder<'b> {
+    fn get_metric(&self) -> Option<&'b str> {
+        self.metric
+    }
+
+    fn set_metric(&mut self, metric: &'b str) {
+        self.metric = Some(metric)
+    }
+
+    fn get_labels(&self) -> Option<&Vec<Label<'b>>> {
+        self.labels.as_ref()
+    }
+
+    fn set_label(&mut self, label: Label<'b>) {
+        if let Some(ref mut l) = &mut self.labels {
+            l.push(label)
+        }
+    }
+
+    fn set_labels(&mut self, labels: Vec<Label<'b>>) {
+        self.labels = Some(labels)
+    }
+
+    fn get_time(&self) -> Option<&String> {
+        self.time.as_ref()
+    }
+
+    fn set_time(&mut self, time: String) {
+        self.time = Some(time.to_owned())
+    }
+
+    fn get_timeout(&self) -> Option<&Vec<Duration>> {
+        self.timeout.as_ref()
+    }
+
+    fn set_timeout(&mut self, timeout: Vec<Duration>) {
+        self.timeout = Some(timeout)
+    }
+
+    type Output = InstantQuery;
 
     /// Build the query using the provided parameters.
     ///
@@ -442,7 +525,7 @@ impl<'b> InstantQueryBuilder<'b> {
     /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
     /// assert!(response.is_success());
     /// ```
-    pub fn build(&self) -> Result<InstantQuery, BuilderError> {
+    fn build(&self) -> Result<InstantQuery, BuilderError> {
         let timeout = match &self.timeout {
             Some(to) => {
                 let formatted = to
@@ -498,7 +581,7 @@ impl<'b> InstantQueryBuilder<'b> {
 }
 
 #[derive(Debug)]
-enum Label<'c> {
+pub enum Label<'c> {
     With((&'c str, &'c str)),
     Without((&'c str, &'c str)),
     Matches((&'c str, &'c str)),
@@ -506,7 +589,7 @@ enum Label<'c> {
 }
 
 #[derive(Debug, Ord, PartialOrd, Eq, PartialEq)]
-enum Duration {
+pub enum Duration {
     Milliseconds(usize),
     Seconds(usize),
     Minutes(usize),
