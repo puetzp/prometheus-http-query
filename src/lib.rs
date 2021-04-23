@@ -54,6 +54,7 @@
 //! instance (breaking)
 //! * The best way of preventing issues with the query format would be to provide a builder type to
 //! build a query and translate it to a query string to be sent to Prometheus (breaking)
+pub mod builder;
 pub mod client;
 pub mod error;
 pub mod query;
