@@ -592,7 +592,7 @@ impl<'b> QueryBuilder<'b> for RangeQueryBuilder<'b> {
                 .collect::<Vec<String>>()
                 .as_slice()
                 .concat(),
-            None => return Err(BuilderError::IllegalRangeQuery),
+            None => return Err(BuilderError::IllegalRangeVectorSelector),
         };
 
         let labels = match &self.labels {
@@ -627,12 +627,12 @@ impl<'b> QueryBuilder<'b> for RangeQueryBuilder<'b> {
 
         let start = match &self.start {
             Some(s) => s.clone(),
-            None => return Err(BuilderError::IllegalRangeQuery),
+            None => return Err(BuilderError::IllegalRangeVectorSelector),
         };
 
         let end = match &self.end {
             Some(e) => e.clone(),
-            None => return Err(BuilderError::IllegalRangeQuery),
+            None => return Err(BuilderError::IllegalRangeVectorSelector),
         };
 
         let q = RangeQuery {
