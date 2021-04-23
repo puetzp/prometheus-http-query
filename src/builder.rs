@@ -33,7 +33,7 @@ pub trait QueryBuilder<'b>: private::SealedQueryBuilder {
     /// Add a metric name to the time series selector.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Query, InstantQuery};
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder};
     ///
     /// let client: Client = Default::default();
     ///
@@ -51,7 +51,7 @@ pub trait QueryBuilder<'b>: private::SealedQueryBuilder {
     /// as a metric name except using the `__name__` label like `{__name__="on"}`).
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Query, InstantQuery, BuilderError};
+    /// use prometheus_http_query::{Client, Query, InstantQuery, BuilderError, QueryBuilder};
     ///
     /// let client: Client = Default::default();
     ///
@@ -78,7 +78,7 @@ pub trait QueryBuilder<'b>: private::SealedQueryBuilder {
     /// Label matchers are chainable and label names can even appear multiple times in one query.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Query, InstantQuery};
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder};
     ///
     /// let client: Client = Default::default();
     ///
@@ -109,7 +109,7 @@ pub trait QueryBuilder<'b>: private::SealedQueryBuilder {
     /// Label matchers are chainable and label names can even appear multiple times in one query.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Query, InstantQuery};
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder};
     ///
     /// let client: Client = Default::default();
     ///
@@ -140,7 +140,7 @@ pub trait QueryBuilder<'b>: private::SealedQueryBuilder {
     /// Label matchers are chainable and label names can even appear multiple times in one query.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Query, InstantQuery};
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder};
     ///
     /// let client: Client = Default::default();
     ///
@@ -171,7 +171,7 @@ pub trait QueryBuilder<'b>: private::SealedQueryBuilder {
     /// Label matchers are chainable and label names can even appear multiple times in one query.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Query, InstantQuery};
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder};
     ///
     /// let client: Client = Default::default();
     ///
@@ -203,7 +203,7 @@ pub trait QueryBuilder<'b>: private::SealedQueryBuilder {
     /// function as a string literal, e.g. `1618922012` or `2021-04-20T14:33:32+02:00`.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Query, InstantQuery};
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder};
     ///
     /// let client: Client = Default::default();
     ///
@@ -249,7 +249,7 @@ pub trait QueryBuilder<'b>: private::SealedQueryBuilder {
     /// default. Must adhere to the PromQL [time duration format](https://prometheus.io/docs/prometheus/latest/querying/basics/#time_durations).
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Query, InstantQuery};
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder};
     ///
     /// let client: Client = Default::default();
     ///
@@ -426,7 +426,7 @@ impl<'b> QueryBuilder<'b> for InstantQueryBuilder<'b> {
     /// Build the query using the provided parameters.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Query, InstantQuery};
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder};
     ///
     /// let client: Client = Default::default();
     ///

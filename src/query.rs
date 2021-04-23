@@ -26,10 +26,10 @@ pub trait Query<T: for<'de> serde::Deserialize<'de>>: private::SealedQuery {
     /// let client: Client = Default::default();
     ///
     /// let query = RangeQuery {
-    ///     query: "up",
-    ///     start: "2021-04-09T11:30:00.000+02:00",
-    ///     end: "2021-04-09T12:30:00.000+02:00",
-    ///     step: "5m",
+    ///     query: "up".to_string(),
+    ///     start: "2021-04-09T11:30:00.000+02:00".to_string(),
+    ///     end: "2021-04-09T12:30:00.000+02:00".to_string(),
+    ///     step: "5m".to_string(),
     ///     timeout: None,
     /// };
     /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });

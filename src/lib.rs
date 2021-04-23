@@ -24,10 +24,10 @@
 //!     assert!(response.is_success());
 //!
 //!     let range_q = RangeQuery {
-//!         query: "up",
-//!         start: "2021-04-09T11:30:00.000+02:00",
-//!         end: "2021-04-09T12:30:00.000+02:00",
-//!         step: "5m",
+//!         query: "up".to_string(),
+//!         start: "2021-04-09T11:30:00.000+02:00".to_string(),
+//!         end: "2021-04-09T12:30:00.000+02:00".to_string(),
+//!         step: "5m".to_string(),
 //!         timeout: None,
 //!     };
 //!
@@ -59,6 +59,7 @@ pub mod client;
 pub mod error;
 pub mod query;
 pub mod response;
+pub use self::builder::QueryBuilder;
 pub use self::client::Client;
 pub use self::client::Scheme;
 pub use self::error::BuilderError;
