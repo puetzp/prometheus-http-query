@@ -1,7 +1,7 @@
 use crate::error::BuilderError;
 use crate::query::{InstantQuery, RangeQuery};
+use crate::util::*;
 use chrono::DateTime;
-use std::fmt;
 use std::str::FromStr;
 
 mod private {
@@ -281,44 +281,12 @@ pub trait QueryBuilder<'b>: private::SealedQueryBuilder {
 }
 
 #[derive(Debug)]
-pub enum Label<'c> {
-    With((&'c str, &'c str)),
-    Without((&'c str, &'c str)),
-    Matches((&'c str, &'c str)),
-    Clashes((&'c str, &'c str)),
-}
-
-#[derive(Debug, Ord, PartialOrd, Eq, PartialEq)]
-pub enum Duration {
-    Milliseconds(usize),
-    Seconds(usize),
-    Minutes(usize),
-    Hours(usize),
-    Days(usize),
-    Weeks(usize),
-    Years(usize),
-}
-
-impl fmt::Display for Duration {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Duration::Milliseconds(d) => write!(f, "{}ms", d),
-            Duration::Seconds(d) => write!(f, "{}s", d),
-            Duration::Minutes(d) => write!(f, "{}m", d),
-            Duration::Hours(d) => write!(f, "{}h", d),
-            Duration::Days(d) => write!(f, "{}d", d),
-            Duration::Weeks(d) => write!(f, "{}w", d),
-            Duration::Years(d) => write!(f, "{}y", d),
-        }
-    }
-}
-
-#[derive(Debug)]
 pub struct InstantQueryBuilder<'b> {
     pub(crate) metric: Option<&'b str>,
     pub(crate) labels: Option<Vec<Label<'b>>>,
     pub(crate) time: Option<String>,
     pub(crate) timeout: Option<Vec<Duration>>,
+    pub(crate) aggregation: Option<Aggregation>,
 }
 
 impl<'b> Default for InstantQueryBuilder<'b> {
@@ -328,6 +296,7 @@ impl<'b> Default for InstantQueryBuilder<'b> {
             labels: None,
             time: None,
             timeout: None,
+            aggregation: None,
         }
     }
 }

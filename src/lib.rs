@@ -59,6 +59,7 @@ pub mod client;
 pub mod error;
 pub mod query;
 pub mod response;
+mod util;
 pub use self::builder::QueryBuilder;
 pub use self::client::Client;
 pub use self::client::Scheme;
