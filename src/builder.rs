@@ -4,34 +4,30 @@ use chrono::DateTime;
 use std::fmt;
 use std::str::FromStr;
 
-#[derive(Debug)]
-pub struct InstantQueryBuilder<'b> {
-    pub(crate) metric: Option<&'b str>,
-    pub(crate) labels: Option<Vec<Label<'b>>>,
-    pub(crate) time: Option<String>,
-    pub(crate) timeout: Option<Vec<Duration>>,
+mod private {
+    pub trait SealedQueryBuilder {}
+
+    impl SealedQueryBuilder for super::InstantQueryBuilder<'_> {}
 }
 
-impl<'b> Default for InstantQueryBuilder<'b> {
-    fn default() -> Self {
-        InstantQueryBuilder {
-            metric: None,
-            labels: None,
-            time: None,
-            timeout: None,
-        }
-    }
-}
-
-pub trait QueryBuilder<'b> {
+pub trait QueryBuilder<'b>: private::SealedQueryBuilder {
+    #[doc(hidden)]
     fn get_metric(&self) -> Option<&'b str>;
+    #[doc(hidden)]
     fn set_metric(&mut self, metric: &'b str);
+    #[doc(hidden)]
     fn get_labels(&self) -> Option<&Vec<Label<'b>>>;
+    #[doc(hidden)]
     fn set_label(&mut self, label: Label<'b>);
+    #[doc(hidden)]
     fn set_labels(&mut self, labels: Vec<Label<'b>>);
+    #[doc(hidden)]
     fn get_time(&self) -> Option<&String>;
+    #[doc(hidden)]
     fn set_time(&mut self, time: String);
+    #[doc(hidden)]
     fn get_timeout(&self) -> Option<&Vec<Duration>>;
+    #[doc(hidden)]
     fn set_timeout(&mut self, timeout: Vec<Duration>);
 
     /// Add a metric name to the time series selector.
@@ -332,6 +328,25 @@ pub trait QueryBuilder<'b> {
     type Output;
 
     fn build(&self) -> Result<Self::Output, BuilderError>;
+}
+
+#[derive(Debug)]
+pub struct InstantQueryBuilder<'b> {
+    pub(crate) metric: Option<&'b str>,
+    pub(crate) labels: Option<Vec<Label<'b>>>,
+    pub(crate) time: Option<String>,
+    pub(crate) timeout: Option<Vec<Duration>>,
+}
+
+impl<'b> Default for InstantQueryBuilder<'b> {
+    fn default() -> Self {
+        InstantQueryBuilder {
+            metric: None,
+            labels: None,
+            time: None,
+            timeout: None,
+        }
+    }
 }
 
 impl<'b> QueryBuilder<'b> for InstantQueryBuilder<'b> {
