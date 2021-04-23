@@ -22,10 +22,6 @@ pub trait QueryBuilder<'b>: private::SealedQueryBuilder {
     #[doc(hidden)]
     fn set_labels(&mut self, labels: Vec<Label<'b>>);
     #[doc(hidden)]
-    fn get_time(&self) -> Option<&String>;
-    #[doc(hidden)]
-    fn set_time(&mut self, time: String);
-    #[doc(hidden)]
     fn get_timeout(&self) -> Option<&Vec<Duration>>;
     #[doc(hidden)]
     fn set_timeout(&mut self, timeout: Vec<Duration>);
@@ -358,14 +354,6 @@ impl<'b> QueryBuilder<'b> for InstantQueryBuilder<'b> {
         self.labels = Some(labels)
     }
 
-    fn get_time(&self) -> Option<&String> {
-        self.time.as_ref()
-    }
-
-    fn set_time(&mut self, time: String) {
-        self.time = Some(time.to_owned())
-    }
-
     fn get_timeout(&self) -> Option<&Vec<Duration>> {
         self.timeout.as_ref()
     }
@@ -489,12 +477,35 @@ impl<'a> InstantQueryBuilder<'a> {
     /// ```
     pub fn at(mut self, time: &'a str) -> Result<Self, BuilderError> {
         match f64::from_str(time) {
-            Ok(t) => self.set_time(t.to_string()),
+            Ok(t) => self.time = Some(t.to_string()),
             Err(_) => match DateTime::parse_from_rfc3339(time) {
-                Ok(t) => self.set_time(t.to_rfc3339()),
+                Ok(t) => self.time = Some(t.to_rfc3339()),
                 Err(_) => return Err(BuilderError::InvalidTimeSpecifier),
             },
         }
         Ok(self)
+    }
+}
+
+#[derive(Debug)]
+pub struct RangeQueryBuilder<'b> {
+    pub(crate) metric: Option<&'b str>,
+    pub(crate) labels: Option<Vec<Label<'b>>>,
+    pub(crate) start: Option<String>,
+    pub(crate) end: Option<String>,
+    pub(crate) step: Option<Vec<Duration>>,
+    pub(crate) timeout: Option<Vec<Duration>>,
+}
+
+impl<'b> Default for RangeQueryBuilder<'b> {
+    fn default() -> Self {
+        RangeQueryBuilder {
+            metric: None,
+            labels: None,
+            start: None,
+            end: None,
+            step: None,
+            timeout: None,
+        }
     }
 }
