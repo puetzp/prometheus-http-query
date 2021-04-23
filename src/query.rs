@@ -4,8 +4,15 @@ use crate::response::instant::InstantQueryResponse;
 use crate::response::range::RangeQueryResponse;
 use async_trait::async_trait;
 
+mod private {
+    pub trait SealedQuery {}
+
+    impl SealedQuery for super::InstantQuery {}
+    impl<'a> SealedQuery for super::RangeQuery<'a> {}
+}
+
 #[async_trait]
-pub trait Query<T: for<'de> serde::Deserialize<'de>> {
+pub trait Query<T: for<'de> serde::Deserialize<'de>>: private::SealedQuery {
     #[doc(hidden)]
     fn get_query_params(&self) -> Vec<(&str, &str)>;
     #[doc(hidden)]
