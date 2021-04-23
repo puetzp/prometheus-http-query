@@ -8,7 +8,7 @@ mod private {
     pub trait SealedQuery {}
 
     impl SealedQuery for super::InstantQuery {}
-    impl<'a> SealedQuery for super::RangeQuery<'a> {}
+    impl SealedQuery for super::RangeQuery {}
 }
 
 #[async_trait]
@@ -104,27 +104,27 @@ impl InstantQuery {
     }
 }
 
-pub struct RangeQuery<'a> {
-    pub query: &'a str,
-    pub start: &'a str,
-    pub end: &'a str,
-    pub step: &'a str,
-    pub timeout: Option<&'a str>,
+pub struct RangeQuery {
+    pub query: String,
+    pub start: String,
+    pub end: String,
+    pub step: String,
+    pub timeout: Option<String>,
 }
 
 #[async_trait]
-impl<'a> Query<RangeQueryResponse> for RangeQuery<'a> {
+impl Query<RangeQueryResponse> for RangeQuery {
     #[doc(hidden)]
     fn get_query_params(&self) -> Vec<(&str, &str)> {
         let mut params = vec![
-            ("query", self.query),
-            ("start", self.start),
-            ("end", self.end),
-            ("step", self.step),
+            ("query", self.query.as_str()),
+            ("start", self.start.as_str()),
+            ("end", self.end.as_str()),
+            ("step", self.step.as_str()),
         ];
 
         if let Some(t) = &self.timeout {
-            params.push(("timeout", t));
+            params.push(("timeout", t.as_str()));
         }
 
         params
