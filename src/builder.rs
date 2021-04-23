@@ -561,6 +561,7 @@ impl<'b> QueryBuilder<'b> for RangeQueryBuilder<'b> {
     ///     .end("1619166669")
     ///     .unwrap()
     ///     .step("5m")
+    ///     .unwrap()
     ///     .timeout("30s")
     ///     .unwrap()
     ///     .build()

@@ -1,4 +1,4 @@
-use crate::builder::InstantQueryBuilder;
+use crate::builder::{InstantQueryBuilder, RangeQueryBuilder};
 use crate::client::Client;
 use crate::response::instant::InstantQueryResponse;
 use crate::response::range::RangeQueryResponse;
@@ -133,5 +133,13 @@ impl Query<RangeQueryResponse> for RangeQuery {
     #[doc(hidden)]
     fn get_query_endpoint(&self) -> &str {
         "/query_range"
+    }
+}
+
+impl RangeQuery {
+    pub fn builder() -> RangeQueryBuilder<'static> {
+        RangeQueryBuilder {
+            ..Default::default()
+        }
     }
 }
