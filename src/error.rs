@@ -7,6 +7,7 @@ pub enum BuilderError {
     InvalidTimeSpecifier,
     InvalidTimeDuration,
     IllegalVectorSelector,
+    IllegalRangeQuery,
 }
 
 impl fmt::Display for BuilderError {
@@ -16,6 +17,7 @@ impl fmt::Display for BuilderError {
             Self::InvalidTimeSpecifier => InvalidTimeSpecifierError.fmt(f),
             Self::InvalidTimeDuration => InvalidTimeDurationError.fmt(f),
             Self::IllegalVectorSelector => IllegalVectorSelectorError.fmt(f),
+            Self::IllegalRangeQuery => IllegalRangeQueryError.fmt(f),
         }
     }
 }
@@ -56,5 +58,15 @@ pub struct IllegalVectorSelectorError;
 impl fmt::Display for IllegalVectorSelectorError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "vector selectors must either specify a name or at least one label matcher that does not match the empty string")
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct IllegalRangeQueryError;
+
+// error message was shamelessly copied from the PromQL documentation.
+impl fmt::Display for IllegalRangeQueryError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "a range query must have start, end and step parameters")
     }
 }
