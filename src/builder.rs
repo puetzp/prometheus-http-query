@@ -198,53 +198,6 @@ pub trait QueryBuilder<'b>: private::SealedQueryBuilder {
         self
     }
 
-    /// Evaluate a query at a specific point in time. `time` must be either a UNIX timestamp
-    /// with optional decimal places or a RFC3339-compatible timestamp which is passed to the
-    /// function as a string literal, e.g. `1618922012` or `2021-04-20T14:33:32+02:00`.
-    ///
-    /// ```rust
-    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder};
-    ///
-    /// let client: Client = Default::default();
-    ///
-    /// let query = InstantQuery::builder()
-    ///     .metric("promhttp_metric_handler_requests_total")
-    ///     .unwrap()
-    ///     .with_label("code", "200")
-    ///     .at("1618922012")
-    ///     .unwrap()
-    ///     .build()
-    ///     .unwrap();
-    ///
-    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
-    /// assert!(response.is_success());
-    ///
-    /// let another_query = InstantQuery::builder()
-    ///     .metric("promhttp_metric_handler_requests_total")
-    ///     .unwrap()
-    ///     .with_label("code", "200")
-    ///     .at("2021-04-20T14:33:32+02:00")
-    ///     .unwrap()
-    ///     .build()
-    ///     .unwrap();
-    ///
-    /// let another_response = tokio_test::block_on( async { another_query.execute(&client).await.unwrap() });
-    /// assert!(another_response.is_success());
-    /// ```
-    fn at(mut self, time: &'b str) -> Result<Self, BuilderError>
-    where
-        Self: Sized,
-    {
-        match f64::from_str(time) {
-            Ok(t) => self.set_time(t.to_string()),
-            Err(_) => match DateTime::parse_from_rfc3339(time) {
-                Ok(t) => self.set_time(t.to_rfc3339()),
-                Err(_) => return Err(BuilderError::InvalidTimeSpecifier),
-            },
-        }
-        Ok(self)
-    }
-
     /// Provide a custom evaluation timeout other than the Prometheus server's
     /// default. Must adhere to the PromQL [time duration format](https://prometheus.io/docs/prometheus/latest/querying/basics/#time_durations).
     ///
@@ -497,5 +450,51 @@ impl<'b> QueryBuilder<'b> for InstantQueryBuilder<'b> {
         };
 
         Ok(q)
+    }
+}
+
+impl<'a> InstantQueryBuilder<'a> {
+    /// Evaluate a query at a specific point in time. `time` must be either a UNIX timestamp
+    /// with optional decimal places or a RFC3339-compatible timestamp which is passed to the
+    /// function as a string literal, e.g. `1618922012` or `2021-04-20T14:33:32+02:00`.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder()
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .with_label("code", "200")
+    ///     .at("1618922012")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    ///
+    /// let another_query = InstantQuery::builder()
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .with_label("code", "200")
+    ///     .at("2021-04-20T14:33:32+02:00")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let another_response = tokio_test::block_on( async { another_query.execute(&client).await.unwrap() });
+    /// assert!(another_response.is_success());
+    /// ```
+    pub fn at(mut self, time: &'a str) -> Result<Self, BuilderError> {
+        match f64::from_str(time) {
+            Ok(t) => self.set_time(t.to_string()),
+            Err(_) => match DateTime::parse_from_rfc3339(time) {
+                Ok(t) => self.set_time(t.to_rfc3339()),
+                Err(_) => return Err(BuilderError::InvalidTimeSpecifier),
+            },
+        }
+        Ok(self)
     }
 }
