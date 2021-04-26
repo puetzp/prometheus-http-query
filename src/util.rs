@@ -1,10 +1,19 @@
 use std::fmt;
 
+// TODO: count_values, bottomk, topk, quantile
 #[derive(Debug)]
-pub(crate) enum Aggregation {}
+pub(crate) enum Aggregation<'a> {
+    Sum(Option<LabelList<'a>>),
+    Min(Option<LabelList<'a>>),
+    Max(Option<LabelList<'a>>),
+    Group(Option<LabelList<'a>>),
+    Stddev(Option<LabelList<'a>>),
+    Stdvar(Option<LabelList<'a>>),
+    Count(Option<LabelList<'a>>),
+}
 
 #[derive(Debug)]
-pub enum LabelList<'a> {
+pub(crate) enum LabelList<'a> {
     By(&'a [&'a str]),
     Without(&'a [&'a str]),
 }

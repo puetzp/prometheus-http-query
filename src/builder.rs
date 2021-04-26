@@ -286,7 +286,7 @@ pub struct InstantQueryBuilder<'b> {
     pub(crate) labels: Option<Vec<Label<'b>>>,
     pub(crate) time: Option<String>,
     pub(crate) timeout: Option<Vec<Duration>>,
-    pub(crate) aggregation: Option<Aggregation>,
+    pub(crate) aggregation: Option<Aggregation<'b>>,
 }
 
 impl<'b> Default for InstantQueryBuilder<'b> {
