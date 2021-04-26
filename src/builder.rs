@@ -456,6 +456,33 @@ impl<'a> InstantQueryBuilder<'a> {
         Ok(self)
     }
 
+    /// Calculate sum over dimensions.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder, LabelList};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder()
+    ///     .sum(None)
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    ///
+    /// let another_query = InstantQuery::builder()
+    ///     .sum(Some(LabelList::By(&["code"])))
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { another_query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    ///
     pub fn sum(mut self, labels: Option<LabelList<'a>>) -> Self {
         self.aggregation = Some(Aggregation::Sum(labels));
         self

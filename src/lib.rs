@@ -67,3 +67,4 @@ pub use self::error::BuilderError;
 pub use self::query::InstantQuery;
 pub use self::query::Query;
 pub use self::query::RangeQuery;
+pub use self::util::LabelList;
