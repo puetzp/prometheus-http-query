@@ -488,13 +488,99 @@ impl<'a> InstantQueryBuilder<'a> {
         self
     }
 
+    /// Select minimum over dimensions.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder, LabelList};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder()
+    ///     .min(None)
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    ///
+    /// let another_query = InstantQuery::builder()
+    ///     .min(Some(LabelList::By(&["code"])))
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { another_query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    ///
     pub fn min(mut self, labels: Option<LabelList<'a>>) -> Self {
         self.aggregation = Some(Aggregation::Min(labels));
         self
     }
 
+    /// Select maximum over dimensions.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder, LabelList};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder()
+    ///     .max(None)
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    ///
+    /// let another_query = InstantQuery::builder()
+    ///     .max(Some(LabelList::By(&["code"])))
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { another_query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    ///
     pub fn max(mut self, labels: Option<LabelList<'a>>) -> Self {
         self.aggregation = Some(Aggregation::Max(labels));
+        self
+    }
+
+    /// Calculate the average over dimensions.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder, LabelList};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder()
+    ///     .avg(None)
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    ///
+    /// let another_query = InstantQuery::builder()
+    ///     .avg(Some(LabelList::By(&["code"])))
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { another_query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    ///
+    pub fn avg(mut self, labels: Option<LabelList<'a>>) -> Self {
+        self.aggregation = Some(Aggregation::Avg(labels));
         self
     }
 

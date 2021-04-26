@@ -6,6 +6,7 @@ pub(crate) enum Aggregation<'a> {
     Sum(Option<LabelList<'a>>),
     Min(Option<LabelList<'a>>),
     Max(Option<LabelList<'a>>),
+    Avg(Option<LabelList<'a>>),
     Group(Option<LabelList<'a>>),
     Stddev(Option<LabelList<'a>>),
     Stdvar(Option<LabelList<'a>>),
