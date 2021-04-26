@@ -10,10 +10,14 @@ pub(crate) enum Aggregation<'a> {
     Stddev(Option<LabelList<'a>>),
     Stdvar(Option<LabelList<'a>>),
     Count(Option<LabelList<'a>>),
+    CountValues(Option<LabelList<'a>>, &'a str),
+    BottomK(Option<LabelList<'a>>, usize),
+    TopK(Option<LabelList<'a>>, usize),
+    Quantile(Option<LabelList<'a>>, f32),
 }
 
 #[derive(Debug)]
-pub(crate) enum LabelList<'a> {
+pub enum LabelList<'a> {
     By(&'a [&'a str]),
     Without(&'a [&'a str]),
 }

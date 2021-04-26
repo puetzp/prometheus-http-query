@@ -455,6 +455,61 @@ impl<'a> InstantQueryBuilder<'a> {
         }
         Ok(self)
     }
+
+    pub fn sum(mut self, labels: Option<LabelList<'a>>) -> Self {
+        self.aggregation = Some(Aggregation::Sum(labels));
+        self
+    }
+
+    pub fn min(mut self, labels: Option<LabelList<'a>>) -> Self {
+        self.aggregation = Some(Aggregation::Min(labels));
+        self
+    }
+
+    pub fn max(mut self, labels: Option<LabelList<'a>>) -> Self {
+        self.aggregation = Some(Aggregation::Max(labels));
+        self
+    }
+
+    pub fn group(mut self, labels: Option<LabelList<'a>>) -> Self {
+        self.aggregation = Some(Aggregation::Group(labels));
+        self
+    }
+
+    pub fn stddev(mut self, labels: Option<LabelList<'a>>) -> Self {
+        self.aggregation = Some(Aggregation::Stddev(labels));
+        self
+    }
+
+    pub fn stdvar(mut self, labels: Option<LabelList<'a>>) -> Self {
+        self.aggregation = Some(Aggregation::Stdvar(labels));
+        self
+    }
+
+    pub fn count(mut self, labels: Option<LabelList<'a>>) -> Self {
+        self.aggregation = Some(Aggregation::Count(labels));
+        self
+    }
+
+    pub fn count_values(mut self, labels: Option<LabelList<'a>>, parameter: &'a str) -> Self {
+        self.aggregation = Some(Aggregation::CountValues(labels, parameter));
+        self
+    }
+
+    pub fn bottomk(mut self, labels: Option<LabelList<'a>>, parameter: usize) -> Self {
+        self.aggregation = Some(Aggregation::BottomK(labels, parameter));
+        self
+    }
+
+    pub fn topk(mut self, labels: Option<LabelList<'a>>, parameter: usize) -> Self {
+        self.aggregation = Some(Aggregation::TopK(labels, parameter));
+        self
+    }
+
+    pub fn quantile(mut self, labels: Option<LabelList<'a>>, parameter: f32) -> Self {
+        self.aggregation = Some(Aggregation::Quantile(labels, parameter));
+        self
+    }
 }
 
 #[derive(Debug)]
