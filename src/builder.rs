@@ -390,7 +390,7 @@ impl<'b> QueryBuilder<'b> for InstantQueryBuilder<'b> {
             None => None,
         };
 
-        let query = match self.metric {
+        let mut query = match self.metric {
             Some(m) => match labels {
                 Some(l) => format!("{}{{{}}}", m, l),
                 None => m.to_string(),
@@ -400,6 +400,13 @@ impl<'b> QueryBuilder<'b> for InstantQueryBuilder<'b> {
                 None => return Err(BuilderError::IllegalVectorSelector),
             },
         };
+
+        if let Some(agg) = &self.aggregation {
+            // Quite ugly: the Display implementation for Aggregation provides the opening
+            // brace (because parameters for TopK, BottomK etc. need to be included
+            // in the braces) while the closing brace is appended here...
+            query = agg.to_string() + &query + ")";
+        }
 
         let q = InstantQuery {
             query: query,

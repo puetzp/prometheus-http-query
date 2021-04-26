@@ -17,10 +17,74 @@ pub(crate) enum Aggregation<'a> {
     Quantile(Option<LabelList<'a>>, f32),
 }
 
+impl<'a> fmt::Display for Aggregation<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Aggregation::Sum(labels) => match labels {
+                Some(l) => write!(f, "sum {} (", l.to_string()),
+                None => write!(f, "sum ("),
+            },
+            Aggregation::Min(labels) => match labels {
+                Some(l) => write!(f, "min {} (", l.to_string()),
+                None => write!(f, "min ("),
+            },
+            Aggregation::Max(labels) => match labels {
+                Some(l) => write!(f, "max {} (", l.to_string()),
+                None => write!(f, "max ("),
+            },
+            Aggregation::Avg(labels) => match labels {
+                Some(l) => write!(f, "avg {} (", l.to_string()),
+                None => write!(f, "avg ("),
+            },
+            Aggregation::Group(labels) => match labels {
+                Some(l) => write!(f, "group {} (", l.to_string()),
+                None => write!(f, "group ("),
+            },
+            Aggregation::Stddev(labels) => match labels {
+                Some(l) => write!(f, "stddev {} (", l.to_string()),
+                None => write!(f, "stddev ("),
+            },
+            Aggregation::Stdvar(labels) => match labels {
+                Some(l) => write!(f, "stdvar {} (", l.to_string()),
+                None => write!(f, "stdvar ("),
+            },
+            Aggregation::Count(labels) => match labels {
+                Some(l) => write!(f, "count {} (", l.to_string()),
+                None => write!(f, "count ("),
+            },
+            Aggregation::CountValues(labels, parameter) => match labels {
+                Some(l) => write!(f, "count_values {} ({},", l.to_string(), parameter),
+                None => write!(f, "count_values ({},", parameter),
+            },
+            Aggregation::BottomK(labels, parameter) => match labels {
+                Some(l) => write!(f, "bottomk {} ({},", l.to_string(), parameter),
+                None => write!(f, "bottomk ({},", parameter),
+            },
+            Aggregation::TopK(labels, parameter) => match labels {
+                Some(l) => write!(f, "topk {} ({},", l.to_string(), parameter),
+                None => write!(f, "topk ({},", parameter),
+            },
+            Aggregation::Quantile(labels, parameter) => match labels {
+                Some(l) => write!(f, "quantile {} ({},", l.to_string(), parameter),
+                None => write!(f, "quantile ({},", parameter),
+            },
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum LabelList<'a> {
     By(&'a [&'a str]),
     Without(&'a [&'a str]),
+}
+
+impl<'a> fmt::Display for LabelList<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            LabelList::By(list) => write!(f, "by ({})", list.join(",")),
+            LabelList::Without(list) => write!(f, "without ({})", list.join(",")),
+        }
+    }
 }
 
 #[derive(Debug)]
