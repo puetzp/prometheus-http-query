@@ -504,7 +504,7 @@ impl<'a> InstantQueryBuilder<'a> {
     ///
     /// let query = InstantQuery::builder()
     ///     .min(None)
-    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .metric("node_cpu_seconds_total")
     ///     .unwrap()
     ///     .build()
     ///     .unwrap();
@@ -513,8 +513,8 @@ impl<'a> InstantQueryBuilder<'a> {
     /// assert!(response.is_success());
     ///
     /// let another_query = InstantQuery::builder()
-    ///     .min(Some(LabelList::By(&["code"])))
-    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .min(Some(LabelList::By(&["cpu"])))
+    ///     .metric("node_cpu_seconds_total")
     ///     .unwrap()
     ///     .build()
     ///     .unwrap();
@@ -536,7 +536,7 @@ impl<'a> InstantQueryBuilder<'a> {
     ///
     /// let query = InstantQuery::builder()
     ///     .max(None)
-    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .metric("node_cpu_seconds_total")
     ///     .unwrap()
     ///     .build()
     ///     .unwrap();
@@ -545,8 +545,8 @@ impl<'a> InstantQueryBuilder<'a> {
     /// assert!(response.is_success());
     ///
     /// let another_query = InstantQuery::builder()
-    ///     .max(Some(LabelList::By(&["code"])))
-    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .max(Some(LabelList::By(&["cpu"])))
+    ///     .metric("node_cpu_seconds_total")
     ///     .unwrap()
     ///     .build()
     ///     .unwrap();
@@ -568,6 +568,60 @@ impl<'a> InstantQueryBuilder<'a> {
     ///
     /// let query = InstantQuery::builder()
     ///     .avg(None)
+    ///     .metric("node_memory_Active_bytes")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    ///
+    pub fn avg(mut self, labels: Option<LabelList<'a>>) -> Self {
+        self.aggregation = Some(Aggregation::Avg(labels));
+        self
+    }
+
+    /// All values in the resulting vector are 1.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder, LabelList};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder()
+    ///     .group(None)
+    ///     .metric("node_cpu_seconds_total")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    ///
+    /// let another_query = InstantQuery::builder()
+    ///     .group(Some(LabelList::Without(&["mode"])))
+    ///     .metric("node_cpu_seconds_total")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { another_query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    ///
+    pub fn group(mut self, labels: Option<LabelList<'a>>) -> Self {
+        self.aggregation = Some(Aggregation::Group(labels));
+        self
+    }
+
+    /// Calculate population standard deviation over dimensions.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder, LabelList};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder()
+    ///     .stddev(None)
     ///     .metric("promhttp_metric_handler_requests_total")
     ///     .unwrap()
     ///     .build()
@@ -577,7 +631,7 @@ impl<'a> InstantQueryBuilder<'a> {
     /// assert!(response.is_success());
     ///
     /// let another_query = InstantQuery::builder()
-    ///     .avg(Some(LabelList::By(&["code"])))
+    ///     .stddev(Some(LabelList::By(&["code"])))
     ///     .metric("promhttp_metric_handler_requests_total")
     ///     .unwrap()
     ///     .build()
@@ -586,46 +640,148 @@ impl<'a> InstantQueryBuilder<'a> {
     /// let response = tokio_test::block_on( async { another_query.execute(&client).await.unwrap() });
     /// assert!(response.is_success());
     ///
-    pub fn avg(mut self, labels: Option<LabelList<'a>>) -> Self {
-        self.aggregation = Some(Aggregation::Avg(labels));
-        self
-    }
-
-    pub fn group(mut self, labels: Option<LabelList<'a>>) -> Self {
-        self.aggregation = Some(Aggregation::Group(labels));
-        self
-    }
-
     pub fn stddev(mut self, labels: Option<LabelList<'a>>) -> Self {
         self.aggregation = Some(Aggregation::Stddev(labels));
         self
     }
 
+    /// Calculate population standard variance over dimensions.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder, LabelList};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder()
+    ///     .stdvar(None)
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    ///
+    /// let another_query = InstantQuery::builder()
+    ///     .stdvar(Some(LabelList::By(&["code"])))
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { another_query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    ///
     pub fn stdvar(mut self, labels: Option<LabelList<'a>>) -> Self {
         self.aggregation = Some(Aggregation::Stdvar(labels));
         self
     }
 
+    /// Count number of elements in the vector.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder, LabelList};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder()
+    ///     .count(None)
+    ///     .metric("node_cpu_seconds_total")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    ///
     pub fn count(mut self, labels: Option<LabelList<'a>>) -> Self {
         self.aggregation = Some(Aggregation::Count(labels));
         self
     }
 
+    /// Count number of elements with the same value.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder, LabelList};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder()
+    ///     .count_values(None, "http_code")
+    ///     .metric("promhttp_metric_handler_requests_total")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    ///
     pub fn count_values(mut self, labels: Option<LabelList<'a>>, parameter: &'a str) -> Self {
         self.aggregation = Some(Aggregation::CountValues(labels, parameter));
         self
     }
 
+    /// Smallest k elements by sample value.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder, LabelList};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder()
+    ///     .bottomk(None, 5)
+    ///     .metric("node_cpu_seconds_total")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    ///
     pub fn bottomk(mut self, labels: Option<LabelList<'a>>, parameter: usize) -> Self {
         self.aggregation = Some(Aggregation::BottomK(labels, parameter));
         self
     }
 
+    /// Largest k elements by sample value.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder, LabelList};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder()
+    ///     .topk(None, 5)
+    ///     .metric("node_cpu_seconds_total")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    ///
     pub fn topk(mut self, labels: Option<LabelList<'a>>, parameter: usize) -> Self {
         self.aggregation = Some(Aggregation::TopK(labels, parameter));
         self
     }
 
+    /// Calculate φ-quantile (0 ≤ φ ≤ 1) over dimensions.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Query, InstantQuery, QueryBuilder, LabelList};
+    ///
+    /// let client: Client = Default::default();
+    ///
+    /// let query = InstantQuery::builder()
+    ///     .quantile(Some(LabelList::By(&["cpu","mode"])), 0.1)
+    ///     .metric("node_cpu_seconds_total")
+    ///     .unwrap()
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// let response = tokio_test::block_on( async { query.execute(&client).await.unwrap() });
+    /// assert!(response.is_success());
+    ///
     pub fn quantile(mut self, labels: Option<LabelList<'a>>, parameter: f32) -> Self {
         self.aggregation = Some(Aggregation::Quantile(labels, parameter));
         self
