@@ -1,4 +1,6 @@
+use chrono::DateTime;
 use std::fmt;
+use std::str::FromStr;
 
 #[derive(Debug, PartialEq)]
 pub struct InstantVector(pub(crate) String);
@@ -13,74 +15,10 @@ impl fmt::Display for InstantVector {
 #[derive(Debug, PartialEq)]
 pub struct RangeVector(pub(crate) String);
 
-#[derive(Debug)]
-pub(crate) enum Aggregation<'a> {
-    Sum(Option<LabelList<'a>>),
-    Min(Option<LabelList<'a>>),
-    Max(Option<LabelList<'a>>),
-    Avg(Option<LabelList<'a>>),
-    Group(Option<LabelList<'a>>),
-    Stddev(Option<LabelList<'a>>),
-    Stdvar(Option<LabelList<'a>>),
-    Count(Option<LabelList<'a>>),
-    CountValues(Option<LabelList<'a>>, &'a str),
-    BottomK(Option<LabelList<'a>>, usize),
-    TopK(Option<LabelList<'a>>, usize),
-    Quantile(Option<LabelList<'a>>, f32),
-}
-
-impl<'a> fmt::Display for Aggregation<'a> {
+impl fmt::Display for RangeVector {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Aggregation::Sum(labels) => match labels {
-                Some(l) => write!(f, "sum {} (", l.to_string()),
-                None => write!(f, "sum ("),
-            },
-            Aggregation::Min(labels) => match labels {
-                Some(l) => write!(f, "min {} (", l.to_string()),
-                None => write!(f, "min ("),
-            },
-            Aggregation::Max(labels) => match labels {
-                Some(l) => write!(f, "max {} (", l.to_string()),
-                None => write!(f, "max ("),
-            },
-            Aggregation::Avg(labels) => match labels {
-                Some(l) => write!(f, "avg {} (", l.to_string()),
-                None => write!(f, "avg ("),
-            },
-            Aggregation::Group(labels) => match labels {
-                Some(l) => write!(f, "group {} (", l.to_string()),
-                None => write!(f, "group ("),
-            },
-            Aggregation::Stddev(labels) => match labels {
-                Some(l) => write!(f, "stddev {} (", l.to_string()),
-                None => write!(f, "stddev ("),
-            },
-            Aggregation::Stdvar(labels) => match labels {
-                Some(l) => write!(f, "stdvar {} (", l.to_string()),
-                None => write!(f, "stdvar ("),
-            },
-            Aggregation::Count(labels) => match labels {
-                Some(l) => write!(f, "count {} (", l.to_string()),
-                None => write!(f, "count ("),
-            },
-            Aggregation::CountValues(labels, parameter) => match labels {
-                Some(l) => write!(f, "count_values {} ({},", l.to_string(), parameter),
-                None => write!(f, "count_values ({},", parameter),
-            },
-            Aggregation::BottomK(labels, parameter) => match labels {
-                Some(l) => write!(f, "bottomk {} ({},", l.to_string(), parameter),
-                None => write!(f, "bottomk ({},", parameter),
-            },
-            Aggregation::TopK(labels, parameter) => match labels {
-                Some(l) => write!(f, "topk {} ({},", l.to_string(), parameter),
-                None => write!(f, "topk ({},", parameter),
-            },
-            Aggregation::Quantile(labels, parameter) => match labels {
-                Some(l) => write!(f, "quantile {} ({},", l.to_string(), parameter),
-                None => write!(f, "quantile ({},", parameter),
-            },
-        }
+        let RangeVector(s) = self;
+        write!(f, "{}", s)
     }
 }
 
@@ -129,5 +67,15 @@ impl fmt::Display for Duration {
             Duration::Weeks(d) => write!(f, "{}w", d),
             Duration::Years(d) => write!(f, "{}y", d),
         }
+    }
+}
+
+pub(crate) fn validate_timestamp(timestamp: &str) -> bool {
+    if f64::from_str(timestamp).is_ok() {
+        true
+    } else if DateTime::parse_from_rfc3339(timestamp).is_ok() {
+        true
+    } else {
+        false
     }
 }

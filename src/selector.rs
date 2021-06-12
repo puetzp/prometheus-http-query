@@ -1,4 +1,4 @@
-use crate::error::BuilderError;
+use crate::error::Error;
 use crate::util::*;
 
 #[derive(Debug, PartialEq)]
@@ -67,14 +67,14 @@ impl<'a> Selector<'a> {
         self
     }
 
-    pub fn to_instant(self) -> Result<InstantVector, BuilderError> {
+    pub fn to_instant_selector(self) -> Result<InstantVector, Error> {
         let selector_str = build_selector_string(self)?;
         Ok(InstantVector(selector_str))
     }
 
-    pub fn to_range(self, duration: &'a str) -> Result<RangeVector, BuilderError> {
+    pub fn to_range_selector(self, duration: &'a str) -> Result<RangeVector, Error> {
         if duration.is_empty() {
-            return Err(BuilderError::EmptyRange);
+            return Err(Error::EmptyRange);
         }
 
         let dur = format!("[{}]", duration);
@@ -84,7 +84,7 @@ impl<'a> Selector<'a> {
     }
 }
 
-fn build_selector_string(selector: Selector) -> Result<String, BuilderError> {
+fn build_selector_string(selector: Selector) -> Result<String, Error> {
     let labels = match selector.labels {
         Some(l) => {
             let joined = l
@@ -108,7 +108,7 @@ fn build_selector_string(selector: Selector) -> Result<String, BuilderError> {
         Some(m) => {
             match m {
                 "bool" | "on" | "ignoring" | "group_left" | "group_right" => {
-                    return Err(BuilderError::IllegalMetricName)
+                    return Err(Error::IllegalMetricName)
                 }
                 _ => {}
             }
@@ -120,7 +120,7 @@ fn build_selector_string(selector: Selector) -> Result<String, BuilderError> {
         }
         None => match labels {
             Some(l) => Ok(format!("{{{}}}", l)),
-            None => return Err(BuilderError::IllegalVectorSelector),
+            None => return Err(Error::IllegalTimeSeriesSelector),
         },
     }
 }
@@ -178,7 +178,7 @@ mod tests {
 
         assert_eq!(
             build_selector_string(s).unwrap_err(),
-            BuilderError::IllegalVectorSelector
+            Error::IllegalTimeSeriesSelector
         );
     }
 
@@ -191,7 +191,7 @@ mod tests {
 
         assert_eq!(
             build_selector_string(s).unwrap_err(),
-            BuilderError::IllegalMetricName
+            Error::IllegalMetricName
         );
     }
 
@@ -203,7 +203,7 @@ mod tests {
             .match_label("job", ".*server")
             .no_match_label("status", "4..")
             .without_label("env", "test")
-            .to_instant()
+            .to_instant_selector()
             .unwrap();
 
         let result = InstantVector("http_requests_total{handler=\"/api/comments\",job=~\".*server\",status!~\"4..\",env!=\"test\"}".to_string());
@@ -219,7 +219,7 @@ mod tests {
             .match_label("job", ".*server")
             .no_match_label("status", "4..")
             .without_label("env", "test")
-            .to_range("5m")
+            .to_range_selector("5m")
             .unwrap();
 
         let result = RangeVector("http_requests_total{handler=\"/api/comments\",job=~\".*server\",status!~\"4..\",env!=\"test\"}[5m]".to_string());
@@ -235,9 +235,9 @@ mod tests {
             .match_label("job", ".*server")
             .no_match_label("status", "4..")
             .without_label("env", "test")
-            .to_range("")
+            .to_range_selector("")
             .unwrap_err();
 
-        assert_eq!(s, BuilderError::EmptyRange);
+        assert_eq!(s, Error::EmptyRange);
     }
 }

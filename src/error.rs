@@ -1,41 +1,30 @@
-use std::error::Error;
+use std::error::Error as StdError;
 use std::fmt;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum BuilderError {
-    InvalidMetricName,
+#[derive(Debug)]
+pub enum Error {
     IllegalMetricName,
-    InvalidTimeSpecifier,
+    InvalidTimestamp,
     InvalidTimeDuration,
-    IllegalVectorSelector,
-    IllegalRangeVectorSelector,
+    IllegalTimeSeriesSelector,
     EmptyRange,
+    Reqwest(reqwest::Error),
 }
 
-impl fmt::Display for BuilderError {
+impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::InvalidMetricName => InvalidMetricNameError.fmt(f),
             Self::IllegalMetricName => IllegalMetricNameError.fmt(f),
-            Self::InvalidTimeSpecifier => InvalidTimeSpecifierError.fmt(f),
+            Self::InvalidTimestamp => InvalidTimestampError.fmt(f),
             Self::InvalidTimeDuration => InvalidTimeDurationError.fmt(f),
-            Self::IllegalVectorSelector => IllegalVectorSelectorError.fmt(f),
-            Self::IllegalRangeVectorSelector => IllegalRangeVectorSelectorError.fmt(f),
+            Self::IllegalTimeSeriesSelector => IllegalTimeSeriesSelectorError.fmt(f),
             Self::EmptyRange => EmptyRangeError.fmt(f),
+            Self::Reqwest(e) => e.fmt(f),
         }
     }
 }
 
-impl Error for BuilderError {}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct InvalidMetricNameError;
-
-impl fmt::Display for InvalidMetricNameError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "the provided metric name is a reserved PromQL keyword")
-    }
-}
+impl StdError for Error {}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct IllegalMetricNameError;
@@ -47,9 +36,9 @@ impl fmt::Display for IllegalMetricNameError {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct InvalidTimeSpecifierError;
+pub struct InvalidTimestampError;
 
-impl fmt::Display for InvalidTimeSpecifierError {
+impl fmt::Display for InvalidTimestampError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "a time parameter to the Prometheus API must be either a UNIX timestamp in seconds (with optional decimal places) or a RFC3339-compatible string")
     }
@@ -65,22 +54,12 @@ impl fmt::Display for InvalidTimeDurationError {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub struct IllegalVectorSelectorError;
+pub struct IllegalTimeSeriesSelectorError;
 
 // error message was shamelessly copied from the PromQL documentation.
-impl fmt::Display for IllegalVectorSelectorError {
+impl fmt::Display for IllegalTimeSeriesSelectorError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "vector selectors must either specify a name or at least one label matcher that does not match the empty string")
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct IllegalRangeVectorSelectorError;
-
-// error message was shamelessly copied from the PromQL documentation.
-impl fmt::Display for IllegalRangeVectorSelectorError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "a range query must have start, end and step parameters")
     }
 }
 
