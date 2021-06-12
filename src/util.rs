@@ -1,6 +1,18 @@
 use std::fmt;
 
-// TODO: count_values, bottomk, topk, quantile
+#[derive(Debug, PartialEq)]
+pub struct InstantVector(pub(crate) String);
+
+impl fmt::Display for InstantVector {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let InstantVector(s) = self;
+        write!(f, "{}", s)
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct RangeVector(pub(crate) String);
+
 #[derive(Debug)]
 pub(crate) enum Aggregation<'a> {
     Sum(Option<LabelList<'a>>),
@@ -87,7 +99,7 @@ impl<'a> fmt::Display for LabelList<'a> {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Label<'c> {
     With((&'c str, &'c str)),
     Without((&'c str, &'c str)),

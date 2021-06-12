@@ -57,8 +57,10 @@
 pub mod builder;
 pub mod client;
 pub mod error;
+pub mod operators;
 pub mod query;
 pub mod response;
+pub mod selector;
 mod util;
 pub use self::builder::QueryBuilder;
 pub use self::client::Client;
@@ -67,4 +69,5 @@ pub use self::error::BuilderError;
 pub use self::query::InstantQuery;
 pub use self::query::Query;
 pub use self::query::RangeQuery;
+pub use self::selector::Selector;
 pub use self::util::LabelList;

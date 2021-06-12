@@ -462,7 +462,7 @@ impl<'a> InstantQueryBuilder<'a> {
         }
         Ok(self)
     }
-
+    /*
     /// Calculate sum over dimensions.
     ///
     /// ```rust
@@ -786,6 +786,7 @@ impl<'a> InstantQueryBuilder<'a> {
         self.aggregation = Some(Aggregation::Quantile(labels, parameter));
         self
     }
+     */
 }
 
 #[derive(Debug)]
