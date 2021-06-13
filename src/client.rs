@@ -1,7 +1,7 @@
 use crate::error::Error;
 use crate::response::instant::InstantQueryResponse;
 use crate::response::range::RangeQueryResponse;
-use crate::util::validate_timestamp;
+use crate::util::validate_duration;
 
 /// A helper enum that is passed to the `Client::new` function in
 /// order to avoid errors on unsupported connection schemes.
@@ -62,29 +62,26 @@ impl Client {
         }
     }
 
-    pub async fn execute_instant(
+    pub async fn query(
         &self,
         query: String,
-        time: Option<&str>,
+        time: Option<i64>,
         timeout: Option<&str>,
     ) -> Result<InstantQueryResponse, Error> {
-        if let Some(t) = time {
-            if !validate_timestamp(t) {
-                return Err(Error::InvalidTimestamp);
-            }
-        }
-
         let mut url = self.base_url.clone();
 
         url.push_str("/query");
 
         let mut params = vec![("query", query.as_str())];
 
-        if let Some(t) = time {
-            params.push(("time", t));
+        let time = time.map(|t| t.to_string());
+
+        if let Some(t) = &time {
+            params.push(("time", t.as_str()));
         }
 
         if let Some(t) = timeout {
+            validate_duration(t)?;
             params.push(("timeout", t));
         }
 
@@ -107,34 +104,32 @@ impl Client {
         }
     }
 
-    pub async fn execute_range(
+    pub async fn query_range(
         &self,
         query: String,
-        start: &str,
-        end: &str,
+        start: i64,
+        end: i64,
         step: &str,
         timeout: Option<&str>,
     ) -> Result<InstantQueryResponse, Error> {
-        if !validate_timestamp(start) {
-            return Err(Error::InvalidTimestamp);
-        }
-
-        if !validate_timestamp(end) {
-            return Err(Error::InvalidTimestamp);
-        }
-
         let mut url = self.base_url.clone();
 
         url.push_str("/query");
 
+        validate_duration(step)?;
+
+        let start = start.to_string();
+        let end = end.to_string();
+
         let mut params = vec![
             ("query", query.as_str()),
-            ("start", start),
-            ("end", end),
+            ("start", start.as_str()),
+            ("end", end.as_str()),
             ("step", step),
         ];
 
         if let Some(t) = timeout {
+            validate_duration(t)?;
             params.push(("timeout", t));
         }
 
