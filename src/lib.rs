@@ -60,6 +60,7 @@ pub mod operators;
 pub mod response;
 pub mod selector;
 mod util;
+pub mod vector;
 pub use self::client::Client;
 pub use self::client::Scheme;
 pub use self::error::Error;

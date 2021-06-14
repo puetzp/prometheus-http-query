@@ -1,5 +1,6 @@
 use crate::error::Error;
 use crate::util::*;
+use crate::vector::*;
 
 /// A time series selector that is built from a metric name and/or
 /// a set of label matchers using various methods documented below.

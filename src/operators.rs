@@ -1,4 +1,5 @@
 use crate::util::*;
+use crate::vector::*;
 
 /// Use the `sum` aggregation operator on an instant vector.
 ///
