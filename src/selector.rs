@@ -74,8 +74,10 @@ impl<'a> Selector<'a> {
 
     pub fn to_range_selector(self, duration: &'a str) -> Result<RangeVector, Error> {
         if duration.is_empty() {
-            return Err(Error::EmptyRange);
+            return Err(Error::InvalidTimeDuration);
         }
+
+        validate_duration(&duration)?;
 
         let dur = format!("[{}]", duration);
         let mut selector_str = build_selector_string(self)?;
