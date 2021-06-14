@@ -8,8 +8,8 @@ use crate::util::*;
 ///
 /// let vector = Selector::new()
 ///     .metric("http_requests_total")
-///     .with_label("job", "apiserver")
-///     .to_instant_selector()
+///     .with("job", "apiserver")
+///     .to_instant_vector()
 ///     .unwrap();
 ///
 /// let result = sum(vector, Some(LabelList::By(&["code"])));
@@ -35,7 +35,7 @@ pub fn sum<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantV
 ///
 /// let vector = Selector::new()
 ///     .metric("node_cpu_seconds_total")
-///     .to_instant_selector()
+///     .to_instant_vector()
 ///     .unwrap();
 ///
 /// let result = min(vector, Some(LabelList::By(&["cpu"])));
@@ -61,7 +61,7 @@ pub fn min<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantV
 ///
 /// let vector = Selector::new()
 ///     .metric("node_cpu_seconds_total")
-///     .to_instant_selector()
+///     .to_instant_vector()
 ///     .unwrap();
 ///
 /// let result = max(vector, Some(LabelList::By(&["cpu"])));
@@ -87,7 +87,7 @@ pub fn max<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantV
 ///
 /// let vector = Selector::new()
 ///     .metric("node_memory_Active_bytes")
-///     .to_instant_selector()
+///     .to_instant_vector()
 ///     .unwrap();
 ///
 /// let result = avg(vector, None);
@@ -113,7 +113,7 @@ pub fn avg<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantV
 ///
 /// let vector = Selector::new()
 ///     .metric("node_cpu_seconds_total")
-///     .to_instant_selector()
+///     .to_instant_vector()
 ///     .unwrap();
 ///
 /// let result = group(vector, Some(LabelList::Without(&["mode"])));
@@ -139,7 +139,7 @@ pub fn group<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> Instan
 ///
 /// let vector = Selector::new()
 ///     .metric("promhttp_metric_handler_requests_total")
-///     .to_instant_selector()
+///     .to_instant_vector()
 ///     .unwrap();
 ///
 /// let result = stddev(vector, Some(LabelList::By(&["code"])));
@@ -165,7 +165,7 @@ pub fn stddev<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> Insta
 ///
 /// let vector = Selector::new()
 ///     .metric("promhttp_metric_handler_requests_total")
-///     .to_instant_selector()
+///     .to_instant_vector()
 ///     .unwrap();
 ///
 /// let result = stdvar(vector, Some(LabelList::By(&["code"])));
@@ -191,7 +191,7 @@ pub fn stdvar<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> Insta
 ///
 /// let vector = Selector::new()
 ///     .metric("node_cpu_seconds_total")
-///     .to_instant_selector()
+///     .to_instant_vector()
 ///     .unwrap();
 ///
 /// let result = count(vector, None);
@@ -217,7 +217,7 @@ pub fn count<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> Instan
 ///
 /// let vector = Selector::new()
 ///     .metric("promhttp_metric_handler_requests_total")
-///     .to_instant_selector()
+///     .to_instant_vector()
 ///     .unwrap();
 ///
 /// let result = count_values(vector, None, "http_code");
@@ -252,7 +252,7 @@ pub fn count_values<'a>(
 ///
 /// let vector = Selector::new()
 ///     .metric("node_cpu_seconds_total")
-///     .to_instant_selector()
+///     .to_instant_vector()
 ///     .unwrap();
 ///
 /// let result = bottomk(vector, None, 2);
@@ -282,7 +282,7 @@ pub fn bottomk<'a>(
 ///
 /// let vector = Selector::new()
 ///     .metric("node_cpu_seconds_total")
-///     .to_instant_selector()
+///     .to_instant_vector()
 ///     .unwrap();
 ///
 /// let result = topk(vector, None, 2);
@@ -312,7 +312,7 @@ pub fn topk<'a>(
 ///
 /// let vector = Selector::new()
 ///     .metric("node_cpu_seconds_total")
-///     .to_instant_selector()
+///     .to_instant_vector()
 ///     .unwrap();
 ///
 /// let result = quantile(vector, Some(LabelList::By(&["cpu", "mode"])), 0.1);
