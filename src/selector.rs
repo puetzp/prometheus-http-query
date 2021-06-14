@@ -170,33 +170,7 @@ mod tests {
 
         assert_eq!(build_selector_string(s).unwrap(), result);
     }
-    /*
-    #[test]
-    fn test_build_selector_string_for_error_1() {
-        let s = Selector {
-            metric: None,
-            labels: None,
-        };
 
-        assert_eq!(
-            build_selector_string(s).unwrap_err(),
-            Error::IllegalTimeSeriesSelector
-        );
-    }
-
-    #[test]
-    fn test_build_selector_string_for_error_2() {
-        let s = Selector {
-            metric: Some("group_left"),
-            labels: None,
-        };
-
-        assert_eq!(
-            build_selector_string(s).unwrap_err(),
-            Error::IllegalMetricName
-        );
-    }
-    */
     #[test]
     fn test_instant_vector_creation() {
         let s = Selector::new()
@@ -228,19 +202,4 @@ mod tests {
 
         assert_eq!(s, result);
     }
-    /*
-    #[test]
-    fn test_range_vector_creation_for_error() {
-        let s = Selector::new()
-            .metric("http_requests_total")
-            .with_label("handler", "/api/comments")
-            .match_label("job", ".*server")
-            .no_match_label("status", "4..")
-            .without_label("env", "test")
-            .to_range_selector("")
-            .unwrap_err();
-
-        assert_eq!(s, Error::EmptyRange);
-    }
-     */
 }
