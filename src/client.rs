@@ -171,11 +171,7 @@ fn parse_response(response: HashMap<String, serde_json::Value>) -> Result<Respon
                     let mut result: Vec<Vector> = vec![];
 
                     for datum in data {
-                        let mut metric: HashMap<String, String> = HashMap::new();
-
-                        for item in datum["metric"].as_object().unwrap() {
-                            metric.insert(item.0.to_string(), item.1.as_str().unwrap().to_string());
-                        }
+                        let metric = parse_metric(datum["metric"].as_object().unwrap());
 
                         let raw_value = datum["value"].as_array().unwrap();
 
@@ -193,11 +189,7 @@ fn parse_response(response: HashMap<String, serde_json::Value>) -> Result<Respon
                     let mut result: Vec<Matrix> = vec![];
 
                     for datum in data {
-                        let mut metric: HashMap<String, String> = HashMap::new();
-
-                        for item in datum["metric"].as_object().unwrap() {
-                            metric.insert(item.0.to_string(), item.1.as_str().unwrap().to_string());
-                        }
+                        let metric = parse_metric(datum["metric"].as_object().unwrap());
 
                         let mut samples: Vec<Sample> = vec![];
 
@@ -232,4 +224,16 @@ fn parse_response(response: HashMap<String, serde_json::Value>) -> Result<Respon
             )))
         }
     }
+}
+
+fn parse_metric(metric: &serde_json::Map<String, serde_json::Value>) -> HashMap<String, String> {
+    let mut result: HashMap<String, String> = HashMap::new();
+
+    for item in metric {
+        let key = item.0.to_string();
+        let val = item.1.as_str().unwrap().to_string();
+        result.insert(key, val);
+    }
+
+    result
 }
