@@ -168,7 +168,7 @@ fn parse_response(response: HashMap<String, serde_json::Value>) -> Result<Respon
 
             match data_type {
                 "vector" => {
-                    let mut result: Vec<VectorSample> = vec![];
+                    let mut result: Vec<Vector> = vec![];
 
                     for datum in data {
                         let mut labels: HashMap<String, String> = HashMap::new();
@@ -182,18 +182,18 @@ fn parse_response(response: HashMap<String, serde_json::Value>) -> Result<Respon
 
                         let raw_value = datum["value"].as_array().unwrap();
 
-                        let value = Value {
+                        let sample = Sample {
                             timestamp: raw_value[0].as_f64().unwrap(),
                             value: raw_value[1].as_str().unwrap().to_string(),
                         };
 
-                        result.push(VectorSample { labels, value });
+                        result.push(Vector { labels, sample });
                     }
 
                     Ok(Response::Vector(result))
                 }
                 "matrix" => {
-                    let mut result: Vec<MatrixSample> = vec![];
+                    let mut result: Vec<Matrix> = vec![];
 
                     for datum in data {
                         let mut labels: HashMap<String, String> = HashMap::new();
@@ -205,16 +205,16 @@ fn parse_response(response: HashMap<String, serde_json::Value>) -> Result<Respon
                             );
                         }
 
-                        let mut values: Vec<Value> = vec![];
+                        let mut samples: Vec<Sample> = vec![];
 
-                        for value in datum["values"].as_array().unwrap() {
-                            values.push(Value {
-                                timestamp: value[0].as_f64().unwrap(),
-                                value: value[1].as_str().unwrap().to_string(),
+                        for sample in datum["values"].as_array().unwrap() {
+                            samples.push(Sample {
+                                timestamp: sample[0].as_f64().unwrap(),
+                                value: sample[1].as_str().unwrap().to_string(),
                             });
                         }
 
-                        result.push(MatrixSample { labels, values });
+                        result.push(Matrix { labels, samples });
                     }
 
                     Ok(Response::Matrix(result))

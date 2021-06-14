@@ -1,24 +1,30 @@
 use std::collections::HashMap;
 
 pub enum Response {
-    Vector(Vec<VectorSample>),
-    Matrix(Vec<MatrixSample>),
+    Vector(Vec<Vector>),
+    Matrix(Vec<Matrix>),
 }
 
 #[derive(Debug, PartialEq)]
-pub struct VectorSample {
-    pub labels: HashMap<String, String>,
-    pub value: Value,
+pub struct Vector {
+    pub(crate) labels: HashMap<String, String>,
+    pub(crate) sample: Sample,
+}
+
+impl Vector {
+    pub fn labels(&self) -> &HashMap<String, String> {
+        &self.labels
+    }
 }
 
 #[derive(Debug, PartialEq)]
-pub struct MatrixSample {
-    pub labels: HashMap<String, String>,
-    pub values: Vec<Value>,
+pub struct Matrix {
+    pub(crate) labels: HashMap<String, String>,
+    pub(crate) samples: Vec<Sample>,
 }
 
 #[derive(Debug, PartialEq)]
-pub struct Value {
-    pub timestamp: f64,
-    pub value: String,
+pub struct Sample {
+    pub(crate) timestamp: f64,
+    pub(crate) value: String,
 }
