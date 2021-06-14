@@ -9,6 +9,9 @@ pub enum Error {
     IllegalTimeSeriesSelector,
     EmptyRange,
     Reqwest(reqwest::Error),
+    ResponseError(ResponseError),
+    UnsupportedResponseDataType(UnsupportedResponseDataType),
+    UnknownResponseStatus(UnknownResponseStatus),
 }
 
 impl fmt::Display for Error {
@@ -20,6 +23,9 @@ impl fmt::Display for Error {
             Self::IllegalTimeSeriesSelector => IllegalTimeSeriesSelectorError.fmt(f),
             Self::EmptyRange => EmptyRangeError.fmt(f),
             Self::Reqwest(e) => e.fmt(f),
+            Self::ResponseError(e) => e.fmt(f),
+            Self::UnsupportedResponseDataType(e) => e.fmt(f),
+            Self::UnknownResponseStatus(e) => e.fmt(f),
         }
     }
 }
@@ -69,5 +75,41 @@ pub struct EmptyRangeError;
 impl fmt::Display for EmptyRangeError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "the provided duration must contain a value")
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ResponseError {
+    pub kind: String,
+    pub message: String,
+}
+
+impl fmt::Display for ResponseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(
+            f,
+            "the JSON response contains an error of type {}: {}",
+            self.kind, self.message
+        )
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct UnsupportedResponseDataType(pub String);
+
+impl fmt::Display for UnsupportedResponseDataType {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let UnsupportedResponseDataType(data_type) = self;
+        write!(f, "the API returned an unsupported type of data, is '{}', must be either 'vector' or 'matrix'", data_type)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct UnknownResponseStatus(pub String);
+
+impl fmt::Display for UnknownResponseStatus {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let UnknownResponseStatus(status) = self;
+        write!(f, "the API returned an unknown response status , is '{}', must be either 'success' or 'error'", status)
     }
 }
