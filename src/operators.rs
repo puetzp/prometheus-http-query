@@ -16,7 +16,7 @@ use crate::vector::*;
 ///     .try_into()
 ///     .unwrap();
 ///
-/// let result = sum(vector, Some(LabelList::By(&["code"])));
+/// let result = sum(vector, Some(Aggregate::By(&["code"])));
 ///
 /// assert_eq!(result.to_string(), String::from("sum by (code) (http_requests_total{job=\"apiserver\"})"))
 /// ```

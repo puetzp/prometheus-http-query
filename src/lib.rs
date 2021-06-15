@@ -66,5 +66,7 @@ pub use self::client::Scheme;
 pub use self::error::Error;
 pub use self::selector::Selector;
 pub use self::util::Aggregate;
+pub use self::util::Group;
+pub use self::util::Match;
 pub use self::vector::InstantVector;
 pub use self::vector::RangeVector;
