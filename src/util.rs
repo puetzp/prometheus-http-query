@@ -16,6 +16,36 @@ impl<'a> fmt::Display for Aggregate<'a> {
     }
 }
 
+#[derive(Debug)]
+pub enum Match<'a> {
+    On(&'a [&'a str]),
+    Ignoring(&'a [&'a str]),
+}
+
+impl<'a> fmt::Display for Match<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Match::On(list) => write!(f, "on ({})", list.join(",")),
+            Match::Ignoring(list) => write!(f, "ignoring ({})", list.join(",")),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum Group<'a> {
+    Left(&'a [&'a str]),
+    Right(&'a [&'a str]),
+}
+
+impl<'a> fmt::Display for Group<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Group::Left(list) => write!(f, "group_left ({})", list.join(",")),
+            Group::Right(list) => write!(f, "group_right ({})", list.join(",")),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
 pub enum Label<'c> {
     With((&'c str, &'c str)),
