@@ -70,8 +70,8 @@ impl<'a> Selector<'a> {
     }
 
     /// Append a label matcher to the set of matchers of `Selector` that
-    /// selects labels that match the provided string.
-    /// Corresponding PromQL example: http_requests_total{job="apiserver"}
+    /// selects labels that match the provided string.<br>
+    /// PromQL example: `http_requests_total{job="apiserver"}`
     ///
     /// ```rust
     /// use prometheus_http_query::Selector;
@@ -99,8 +99,8 @@ impl<'a> Selector<'a> {
     }
 
     /// Append a label matcher to the set of matchers of `Selector` that
-    /// selects labels that do not match the provided string.
-    /// Corresponding PromQL example: http_requests_total{job!="apiserver"}
+    /// selects labels that do not match the provided string.<br>
+    /// PromQL example: `http_requests_total{job!="apiserver"}`
     ///
     /// ```rust
     /// use prometheus_http_query::Selector;
@@ -129,7 +129,7 @@ impl<'a> Selector<'a> {
 
     /// Append a label matcher to the set of matchers of `Selector` that
     /// selects labels that regex-match the provided string.
-    /// Corresponding PromQL example: http_requests_total{job=~"apiserver"}
+    /// PromQL example: `http_requests_total{job=~"apiserver"}`
     ///
     /// ```rust
     /// use prometheus_http_query::Selector;
@@ -157,8 +157,8 @@ impl<'a> Selector<'a> {
     }
 
     /// Append a label matcher to the set of matchers of `Selector` that
-    /// selects labels that do not regex-match the provided string.
-    /// Corresponding PromQL example: http_requests_total{job=~"apiserver"}
+    /// selects labels that do not regex-match the provided string.<br>
+    /// PromQL example: `http_requests_total{job!~"apiserver"}`
     ///
     /// ```rust
     /// use prometheus_http_query::Selector;
@@ -185,7 +185,7 @@ impl<'a> Selector<'a> {
         self
     }
 
-    /// Add a time duration to this `Selector`.
+    /// Add a time duration to this `Selector`.<br>
     /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/basics/#time-durations)
     /// for the correct time duration syntax.
     ///

@@ -43,7 +43,7 @@ impl fmt::Display for IllegalMetricNameError {
     }
 }
 
-/// This error is thrown when a time duration is invalidated or empty.
+/// This error is thrown when a time duration is invalidated or empty.<br>
 /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/basics/#time-durations)
 /// for the correct time duration syntax.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -79,7 +79,7 @@ impl fmt::Display for InvalidRangeVectorError {
     }
 }
 
-/// This error is thrown when the JSON response's "status" field contains "error".
+/// This error is thrown when the JSON response's `status` field contains `error`.<br>
 /// The error-related information in the response is included in this error.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ResponseError {
@@ -97,9 +97,9 @@ impl fmt::Display for ResponseError {
     }
 }
 
-/// This error is thrown when the JSON response's "data.resultType" field indicates
-/// an unsupported data format that is not expected for this type of request.
-/// For instant and range queries this must be either "vector" or "matrix".
+/// This error is thrown when the JSON response's `data.resultType` field indicates
+/// an unsupported data format that is not expected for this type of request.<br>
+/// For instant and range queries this must be either `vector` or `matrix`.
 #[derive(Debug, Clone, PartialEq)]
 pub struct UnsupportedResponseDataType(pub String);
 
@@ -110,8 +110,8 @@ impl fmt::Display for UnsupportedResponseDataType {
     }
 }
 
-/// This error is thrown when the JSON response's "status" field contains an
-/// unexpected value. As per the Prometheus reference this must be either "success" or "error".
+/// This error is thrown when the JSON response's `status` field contains an
+/// unexpected value. As per the Prometheus reference this must be either `success` or `error`.
 #[derive(Debug, Clone, PartialEq)]
 pub struct UnknownResponseStatus(pub String);
 
