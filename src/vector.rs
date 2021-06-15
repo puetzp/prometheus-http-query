@@ -382,6 +382,23 @@ impl InstantVector {
 impl std::ops::Add<f64> for InstantVector {
     type Output = Self;
 
+    /// Add a scalar value to every data sample in a vector.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use std::convert::TryInto;
+    ///
+    /// let v: InstantVector = Selector::new()
+    ///     .metric("some_metric")
+    ///     .unwrap()
+    ///     .with("some_label", "some_value")
+    ///     .try_into()
+    ///     .unwrap();
+    ///
+    /// let v = v + 4.0;
+    ///
+    /// assert_eq!(v.to_string(), String::from("some_metric{some_label=\"some_value\"} + 4"));
     fn add(self, scalar: f64) -> Self {
         let InstantVector(mut vec) = self;
         vec.push_str(&format!(" + {}", scalar.to_string()));
@@ -392,6 +409,23 @@ impl std::ops::Add<f64> for InstantVector {
 impl std::ops::Sub<f64> for InstantVector {
     type Output = Self;
 
+    /// Subtract a scalar value from every data sample in a vector.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use std::convert::TryInto;
+    ///
+    /// let v: InstantVector = Selector::new()
+    ///     .metric("some_metric")
+    ///     .unwrap()
+    ///     .with("some_label", "some_value")
+    ///     .try_into()
+    ///     .unwrap();
+    ///
+    /// let v = v - 4.5;
+    ///
+    /// assert_eq!(v.to_string(), String::from("some_metric{some_label=\"some_value\"} - 4.5"));
     fn sub(self, scalar: f64) -> Self {
         let InstantVector(mut vec) = self;
         vec.push_str(&format!(" - {}", scalar.to_string()));
@@ -402,6 +436,23 @@ impl std::ops::Sub<f64> for InstantVector {
 impl std::ops::Mul<f64> for InstantVector {
     type Output = Self;
 
+    /// Multiply each data sample in a vector by a scalar value.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use std::convert::TryInto;
+    ///
+    /// let v: InstantVector = Selector::new()
+    ///     .metric("some_metric")
+    ///     .unwrap()
+    ///     .with("some_label", "some_value")
+    ///     .try_into()
+    ///     .unwrap();
+    ///
+    /// let v = v * 2.0;
+    ///
+    /// assert_eq!(v.to_string(), String::from("some_metric{some_label=\"some_value\"} * 2"));
     fn mul(self, scalar: f64) -> Self {
         let InstantVector(mut vec) = self;
         vec.push_str(&format!(" * {}", scalar.to_string()));
@@ -412,6 +463,23 @@ impl std::ops::Mul<f64> for InstantVector {
 impl std::ops::Div<f64> for InstantVector {
     type Output = Self;
 
+    /// Divide each data sample in a vector by a scalar value.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use std::convert::TryInto;
+    ///
+    /// let v: InstantVector = Selector::new()
+    ///     .metric("some_metric")
+    ///     .unwrap()
+    ///     .with("some_label", "some_value")
+    ///     .try_into()
+    ///     .unwrap();
+    ///
+    /// let v = v / 2.0;
+    ///
+    /// assert_eq!(v.to_string(), String::from("some_metric{some_label=\"some_value\"} / 2"));
     fn div(self, scalar: f64) -> Self {
         let InstantVector(mut vec) = self;
         vec.push_str(&format!(" / {}", scalar.to_string()));
@@ -422,6 +490,24 @@ impl std::ops::Div<f64> for InstantVector {
 impl std::ops::Rem<f64> for InstantVector {
     type Output = Self;
 
+    /// Divide each data sample in a vector by a scalar value
+    /// with remainder.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use std::convert::TryInto;
+    ///
+    /// let v: InstantVector = Selector::new()
+    ///     .metric("some_metric")
+    ///     .unwrap()
+    ///     .with("some_label", "some_value")
+    ///     .try_into()
+    ///     .unwrap();
+    ///
+    /// let v = v % 2.0;
+    ///
+    /// assert_eq!(v.to_string(), String::from("some_metric{some_label=\"some_value\"} % 2"));
     fn rem(self, scalar: f64) -> Self {
         let InstantVector(mut vec) = self;
         vec.push_str(&format!(" % {}", scalar.to_string()));
@@ -432,6 +518,23 @@ impl std::ops::Rem<f64> for InstantVector {
 impl std::ops::BitXor<f64> for InstantVector {
     type Output = Self;
 
+    /// Exponentiate each data sample in a vector by a scalar value.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use std::convert::TryInto;
+    ///
+    /// let v: InstantVector = Selector::new()
+    ///     .metric("some_metric")
+    ///     .unwrap()
+    ///     .with("some_label", "some_value")
+    ///     .try_into()
+    ///     .unwrap();
+    ///
+    /// let v = v ^ 2.0;
+    ///
+    /// assert_eq!(v.to_string(), String::from("some_metric{some_label=\"some_value\"} ^ 2"));
     fn bitxor(self, scalar: f64) -> Self {
         let InstantVector(mut vec) = self;
         vec.push_str(&format!(" ^ {}", scalar.to_string()));
