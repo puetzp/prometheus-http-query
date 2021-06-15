@@ -31,7 +31,7 @@ impl TryFrom<Selector<'_>> for InstantVector {
     ///
     /// assert!(v.is_ok());
     /// ```
-    fn try_from(selector: Selector) -> Result<InstantVector, Self::Error> {
+    fn try_from(selector: Selector) -> Result<Self, Self::Error> {
         if selector.labels.is_none() && selector.metric.is_none() {
             return Err(crate::error::Error::IllegalTimeSeriesSelector);
         }
@@ -79,7 +79,7 @@ impl InstantVector {
         other: InstantVector,
         match_modifier: Option<Match>,
         group_modifier: Option<Group>,
-    ) -> InstantVector {
+    ) -> Self {
         let InstantVector(mut this) = self;
         let InstantVector(other) = other;
 
@@ -135,7 +135,7 @@ impl InstantVector {
         other: InstantVector,
         match_modifier: Option<Match>,
         group_modifier: Option<Group>,
-    ) -> InstantVector {
+    ) -> Self {
         let InstantVector(mut this) = self;
         let InstantVector(other) = other;
 
@@ -191,7 +191,7 @@ impl InstantVector {
         other: InstantVector,
         match_modifier: Option<Match>,
         group_modifier: Option<Group>,
-    ) -> InstantVector {
+    ) -> Self {
         let InstantVector(mut this) = self;
         let InstantVector(other) = other;
 
@@ -247,7 +247,7 @@ impl InstantVector {
         other: InstantVector,
         match_modifier: Option<Match>,
         group_modifier: Option<Group>,
-    ) -> InstantVector {
+    ) -> Self {
         let InstantVector(mut this) = self;
         let InstantVector(other) = other;
 
@@ -303,7 +303,7 @@ impl InstantVector {
         other: InstantVector,
         match_modifier: Option<Match>,
         group_modifier: Option<Group>,
-    ) -> InstantVector {
+    ) -> Self {
         let InstantVector(mut this) = self;
         let InstantVector(other) = other;
 
@@ -359,7 +359,7 @@ impl InstantVector {
         other: InstantVector,
         match_modifier: Option<Match>,
         group_modifier: Option<Group>,
-    ) -> InstantVector {
+    ) -> Self {
         let InstantVector(mut this) = self;
         let InstantVector(other) = other;
 
