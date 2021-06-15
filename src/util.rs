@@ -2,16 +2,16 @@ use crate::error::Error;
 use std::fmt;
 
 #[derive(Debug)]
-pub enum LabelList<'a> {
+pub enum Aggregate<'a> {
     By(&'a [&'a str]),
     Without(&'a [&'a str]),
 }
 
-impl<'a> fmt::Display for LabelList<'a> {
+impl<'a> fmt::Display for Aggregate<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            LabelList::By(list) => write!(f, "by ({})", list.join(",")),
-            LabelList::Without(list) => write!(f, "without ({})", list.join(",")),
+            Aggregate::By(list) => write!(f, "by ({})", list.join(",")),
+            Aggregate::Without(list) => write!(f, "without ({})", list.join(",")),
         }
     }
 }

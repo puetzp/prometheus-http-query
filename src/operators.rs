@@ -4,7 +4,7 @@ use crate::vector::*;
 /// Use the `sum` aggregation operator on an instant vector.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, LabelList};
+/// use prometheus_http_query::{Selector, Aggregate};
 /// use prometheus_http_query::operators::sum;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
@@ -20,7 +20,7 @@ use crate::vector::*;
 ///
 /// assert_eq!(result.to_string(), String::from("sum by (code) (http_requests_total{job=\"apiserver\"})"))
 /// ```
-pub fn sum<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantVector {
+pub fn sum<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantVector {
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
@@ -34,7 +34,7 @@ pub fn sum<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantV
 /// Use the `min` aggregation operator on an instant vector.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, LabelList};
+/// use prometheus_http_query::{Selector, Aggregate};
 /// use prometheus_http_query::operators::min;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
@@ -45,11 +45,11 @@ pub fn sum<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantV
 ///     .try_into()
 ///     .unwrap();
 ///
-/// let result = min(vector, Some(LabelList::By(&["cpu"])));
+/// let result = min(vector, Some(Aggregate::By(&["cpu"])));
 ///
 /// assert_eq!(result.to_string(), String::from("min by (cpu) (node_cpu_seconds_total)"))
 /// ```
-pub fn min<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantVector {
+pub fn min<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantVector {
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
@@ -63,7 +63,7 @@ pub fn min<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantV
 /// Use the `max` aggregation operator on an instant vector.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, LabelList};
+/// use prometheus_http_query::{Selector, Aggregate};
 /// use prometheus_http_query::operators::max;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
@@ -74,11 +74,11 @@ pub fn min<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantV
 ///     .try_into()
 ///     .unwrap();
 ///
-/// let result = max(vector, Some(LabelList::By(&["cpu"])));
+/// let result = max(vector, Some(Aggregate::By(&["cpu"])));
 ///
 /// assert_eq!(result.to_string(), String::from("max by (cpu) (node_cpu_seconds_total)"))
 /// ```
-pub fn max<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantVector {
+pub fn max<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantVector {
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
@@ -92,7 +92,7 @@ pub fn max<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantV
 /// Use the `avg` aggregation operator on an instant vector.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, LabelList};
+/// use prometheus_http_query::{Selector, Aggregate};
 /// use prometheus_http_query::operators::avg;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
@@ -107,7 +107,7 @@ pub fn max<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantV
 ///
 /// assert_eq!(result.to_string(), String::from("avg (node_memory_Active_bytes)"))
 /// ```
-pub fn avg<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantVector {
+pub fn avg<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantVector {
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
@@ -121,7 +121,7 @@ pub fn avg<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantV
 /// Use the `group` aggregation operator on an instant vector.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, LabelList};
+/// use prometheus_http_query::{Selector, Aggregate};
 /// use prometheus_http_query::operators::group;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
@@ -132,11 +132,11 @@ pub fn avg<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantV
 ///     .try_into()
 ///     .unwrap();
 ///
-/// let result = group(vector, Some(LabelList::Without(&["mode"])));
+/// let result = group(vector, Some(Aggregate::Without(&["mode"])));
 ///
 /// assert_eq!(result.to_string(), String::from("group without (mode) (node_cpu_seconds_total)"))
 /// ```
-pub fn group<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantVector {
+pub fn group<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantVector {
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
@@ -150,7 +150,7 @@ pub fn group<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> Instan
 /// Use the `stddev` aggregation operator on an instant vector.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, LabelList};
+/// use prometheus_http_query::{Selector, Aggregate};
 /// use prometheus_http_query::operators::stddev;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
@@ -161,11 +161,11 @@ pub fn group<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> Instan
 ///     .try_into()
 ///     .unwrap();
 ///
-/// let result = stddev(vector, Some(LabelList::By(&["code"])));
+/// let result = stddev(vector, Some(Aggregate::By(&["code"])));
 ///
 /// assert_eq!(result.to_string(), String::from("stddev by (code) (promhttp_metric_handler_requests_total)"))
 /// ```
-pub fn stddev<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantVector {
+pub fn stddev<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantVector {
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
@@ -179,7 +179,7 @@ pub fn stddev<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> Insta
 /// Use the `stdvar` aggregation operator on an instant vector.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, LabelList};
+/// use prometheus_http_query::{Selector, Aggregate};
 /// use prometheus_http_query::operators::stdvar;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
@@ -190,11 +190,11 @@ pub fn stddev<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> Insta
 ///     .try_into()
 ///     .unwrap();
 ///
-/// let result = stdvar(vector, Some(LabelList::By(&["code"])));
+/// let result = stdvar(vector, Some(Aggregate::By(&["code"])));
 ///
 /// assert_eq!(result.to_string(), String::from("stdvar by (code) (promhttp_metric_handler_requests_total)"))
 /// ```
-pub fn stdvar<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantVector {
+pub fn stdvar<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantVector {
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
@@ -208,7 +208,7 @@ pub fn stdvar<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> Insta
 /// Use the `count` aggregation operator on an instant vector.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, LabelList};
+/// use prometheus_http_query::{Selector, Aggregate};
 /// use prometheus_http_query::operators::count;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
@@ -223,7 +223,7 @@ pub fn stdvar<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> Insta
 ///
 /// assert_eq!(result.to_string(), String::from("count (node_cpu_seconds_total)"))
 /// ```
-pub fn count<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantVector {
+pub fn count<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantVector {
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
@@ -237,7 +237,7 @@ pub fn count<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> Instan
 /// Use the `count_values` aggregation operator on an instant vector.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, LabelList};
+/// use prometheus_http_query::{Selector, Aggregate};
 /// use prometheus_http_query::operators::count_values;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
@@ -254,7 +254,7 @@ pub fn count<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> Instan
 /// ```
 pub fn count_values<'a>(
     vector: InstantVector,
-    labels: Option<LabelList<'a>>,
+    labels: Option<Aggregate<'a>>,
     parameter: &'a str,
 ) -> InstantVector {
     let InstantVector(old_vec) = vector;
@@ -275,7 +275,7 @@ pub fn count_values<'a>(
 /// Use the `bottomk` aggregation operator on an instant vector.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, LabelList};
+/// use prometheus_http_query::{Selector, Aggregate};
 /// use prometheus_http_query::operators::bottomk;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
@@ -292,7 +292,7 @@ pub fn count_values<'a>(
 /// ```
 pub fn bottomk<'a>(
     vector: InstantVector,
-    labels: Option<LabelList<'a>>,
+    labels: Option<Aggregate<'a>>,
     parameter: u64,
 ) -> InstantVector {
     let InstantVector(old_vec) = vector;
@@ -308,7 +308,7 @@ pub fn bottomk<'a>(
 /// Use the `topk` aggregation operator on an instant vector.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, LabelList};
+/// use prometheus_http_query::{Selector, Aggregate};
 /// use prometheus_http_query::operators::topk;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
@@ -325,7 +325,7 @@ pub fn bottomk<'a>(
 /// ```
 pub fn topk<'a>(
     vector: InstantVector,
-    labels: Option<LabelList<'a>>,
+    labels: Option<Aggregate<'a>>,
     parameter: u64,
 ) -> InstantVector {
     let InstantVector(old_vec) = vector;
@@ -341,7 +341,7 @@ pub fn topk<'a>(
 /// Use the `quantile` aggregation operator on an instant vector.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, LabelList};
+/// use prometheus_http_query::{Selector, Aggregate};
 /// use prometheus_http_query::operators::quantile;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
@@ -352,13 +352,13 @@ pub fn topk<'a>(
 ///     .try_into()
 ///     .unwrap();
 ///
-/// let result = quantile(vector, Some(LabelList::By(&["cpu", "mode"])), 0.1);
+/// let result = quantile(vector, Some(Aggregate::By(&["cpu", "mode"])), 0.1);
 ///
 /// assert_eq!(result.to_string(), String::from("quantile by (cpu,mode) (0.1, node_cpu_seconds_total)"))
 /// ```
 pub fn quantile<'a>(
     vector: InstantVector,
-    labels: Option<LabelList<'a>>,
+    labels: Option<Aggregate<'a>>,
     parameter: f64,
 ) -> InstantVector {
     let InstantVector(old_vec) = vector;
