@@ -54,16 +54,18 @@
 //! instance (breaking)
 //! * The best way of preventing issues with the query format would be to provide a builder type to
 //! build a query and translate it to a query string to be sent to Prometheus (breaking)
-pub mod client;
-pub mod error;
+mod client;
+mod error;
+pub mod functions;
 pub mod operators;
-pub mod response;
-pub mod selector;
+mod response;
+mod selector;
 mod util;
-pub mod vector;
+mod vector;
 pub use self::client::Client;
 pub use self::client::Scheme;
 pub use self::error::Error;
+pub use self::response::*;
 pub use self::selector::Selector;
 pub use self::util::Aggregate;
 pub use self::util::Group;

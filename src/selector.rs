@@ -2,8 +2,8 @@ use crate::error::Error;
 use crate::util::*;
 use std::fmt;
 
-/// A time series selector that is built from a metric name and/or
-/// a set of label matchers using various methods documented below.
+/// A time series selector that is gradually built from a metric name and/or
+/// a set of label matchers.
 ///
 /// For final validation and further processing the selector is then
 /// converted to either a `InstantVector` or `RangeVector`.
