@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+#[derive(Debug)]
 pub enum Response {
     Vector(Vec<Vector>),
     Matrix(Vec<Matrix>),

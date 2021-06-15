@@ -62,9 +62,29 @@ impl Client {
         }
     }
 
+    /// Perform an instant query using a `RangeVector` or `InstantVector`.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Scheme, InstantVector, Selector, Aggregate};
+    /// use prometheus_http_query::operators::sum;
+    /// use std::convert::TryInto;
+    ///
+    /// let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///
+    /// let v: InstantVector = Selector::new()
+    ///     .metric("cpu_seconds_total")
+    ///     .unwrap()
+    ///     .try_into()
+    ///     .unwrap();
+    ///
+    /// let s = sum(v, Some(Aggregate::By(&["cpu"])));
+    ///
+    /// let response = tokio_test::block_on( async { client.query(s, None, None).await });
+    /// println!("{:?}", response);
+    /// assert!(response.is_ok());
     pub async fn query(
         &self,
-        query: String,
+        vector: impl std::fmt::Display,
         time: Option<i64>,
         timeout: Option<&str>,
     ) -> Result<Response, Error> {
@@ -72,6 +92,7 @@ impl Client {
 
         url.push_str("/query");
 
+        let query = vector.to_string();
         let mut params = vec![("query", query.as_str())];
 
         let time = time.map(|t| t.to_string());
@@ -108,7 +129,7 @@ impl Client {
 
     pub async fn query_range(
         &self,
-        query: String,
+        vector: impl std::fmt::Display,
         start: i64,
         end: i64,
         step: &str,
@@ -120,6 +141,7 @@ impl Client {
 
         validate_duration(step)?;
 
+        let query = vector.to_string();
         let start = start.to_string();
         let end = end.to_string();
 
