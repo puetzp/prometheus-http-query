@@ -377,6 +377,135 @@ impl InstantVector {
 
         InstantVector(this)
     }
+
+    /// Intersect two vectors so that the result vector consists of all elements of vector1
+    /// for which there are matching elements in vector2.
+    /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#logical-set-binary-operators)
+    /// for details on this topic.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use prometheus_http_query::Match;
+    /// use std::convert::TryInto;
+    ///
+    /// let one: InstantVector = Selector::new()
+    ///     .metric("some_metric")
+    ///     .unwrap()
+    ///     .with("some_label", "some_value")
+    ///     .try_into()
+    ///     .unwrap();
+    ///
+    /// let two: InstantVector = Selector::new()
+    ///     .metric("other_metric")
+    ///     .unwrap()
+    ///     .with("some_label", "some_value")
+    ///     .with("other_label", "other_value")
+    ///     .try_into()
+    ///     .unwrap();
+    ///
+    /// let new = one.and(two);
+    ///
+    /// let expected = String::from("some_metric{some_label=\"some_value\"} and other_metric{some_label=\"some_value\",other_label=\"other_value\"}");
+    ///
+    /// assert_eq!(new.to_string(), expected);
+    /// ```
+    pub fn and(self, other: InstantVector) -> Self {
+        let InstantVector(mut this) = self;
+        let InstantVector(other) = other;
+
+        this.push_str(" and");
+
+        this.push_str(&format!(" {}", other));
+
+        InstantVector(this)
+    }
+
+    /// Combine two vectors so that the result vector consists of all elements of vector1
+    /// and also all elements of vector2 which do not have matching label sets in vector1.
+    /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#logical-set-binary-operators)
+    /// for details on this topic.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use prometheus_http_query::Match;
+    /// use std::convert::TryInto;
+    ///
+    /// let one: InstantVector = Selector::new()
+    ///     .metric("some_metric")
+    ///     .unwrap()
+    ///     .with("some_label", "some_value")
+    ///     .try_into()
+    ///     .unwrap();
+    ///
+    /// let two: InstantVector = Selector::new()
+    ///     .metric("other_metric")
+    ///     .unwrap()
+    ///     .with("some_label", "some_value")
+    ///     .with("other_label", "other_value")
+    ///     .try_into()
+    ///     .unwrap();
+    ///
+    /// let new = one.or(two);
+    ///
+    /// let expected = String::from("some_metric{some_label=\"some_value\"} or other_metric{some_label=\"some_value\",other_label=\"other_value\"}");
+    ///
+    /// assert_eq!(new.to_string(), expected);
+    /// ```
+    pub fn or(self, other: InstantVector) -> Self {
+        let InstantVector(mut this) = self;
+        let InstantVector(other) = other;
+
+        this.push_str(" or");
+
+        this.push_str(&format!(" {}", other));
+
+        InstantVector(this)
+    }
+
+    /// Combine two vectors so that the result vector consists only of those elements of
+    /// vector1 for which there are no matching elements in vector2.
+    /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#logical-set-binary-operators)
+    /// for details on this topic.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use prometheus_http_query::Match;
+    /// use std::convert::TryInto;
+    ///
+    /// let one: InstantVector = Selector::new()
+    ///     .metric("some_metric")
+    ///     .unwrap()
+    ///     .with("some_label", "some_value")
+    ///     .try_into()
+    ///     .unwrap();
+    ///
+    /// let two: InstantVector = Selector::new()
+    ///     .metric("other_metric")
+    ///     .unwrap()
+    ///     .with("some_label", "some_value")
+    ///     .with("other_label", "other_value")
+    ///     .try_into()
+    ///     .unwrap();
+    ///
+    /// let new = one.unless(two);
+    ///
+    /// let expected = String::from("some_metric{some_label=\"some_value\"} unless other_metric{some_label=\"some_value\",other_label=\"other_value\"}");
+    ///
+    /// assert_eq!(new.to_string(), expected);
+    /// ```
+    pub fn unless(self, other: InstantVector) -> Self {
+        let InstantVector(mut this) = self;
+        let InstantVector(other) = other;
+
+        this.push_str(" unless");
+
+        this.push_str(&format!(" {}", other));
+
+        InstantVector(this)
+    }
 }
 
 impl std::ops::Add<f64> for InstantVector {
