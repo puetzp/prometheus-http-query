@@ -8,6 +8,7 @@ pub enum Error {
     IllegalMetricName,
     InvalidTimeDuration,
     IllegalTimeSeriesSelector,
+    InvalidRangeVector,
     Reqwest(reqwest::Error),
     ResponseError(ResponseError),
     UnsupportedResponseDataType(UnsupportedResponseDataType),
@@ -20,6 +21,7 @@ impl fmt::Display for Error {
             Self::IllegalMetricName => IllegalMetricNameError.fmt(f),
             Self::InvalidTimeDuration => InvalidTimeDurationError.fmt(f),
             Self::IllegalTimeSeriesSelector => IllegalTimeSeriesSelectorError.fmt(f),
+            Self::InvalidRangeVector => InvalidRangeVectorError.fmt(f),
             Self::Reqwest(e) => e.fmt(f),
             Self::ResponseError(e) => e.fmt(f),
             Self::UnsupportedResponseDataType(e) => e.fmt(f),
@@ -62,6 +64,18 @@ pub struct IllegalTimeSeriesSelectorError;
 impl fmt::Display for IllegalTimeSeriesSelectorError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "vector selectors must either specify a name or at least one label matcher that does not match the empty string")
+    }
+}
+
+/// This error is thrown when a `RangeVector` cannot be contructed from a
+/// given `Selector` configuration, e.g. due to a missing time duration.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct InvalidRangeVectorError;
+
+// error message was shamelessly copied from the PromQL documentation.
+impl fmt::Display for InvalidRangeVectorError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "range vectors must contain a time duration")
     }
 }
 

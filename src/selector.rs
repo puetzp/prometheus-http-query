@@ -1,6 +1,6 @@
 use crate::error::Error;
 use crate::util::*;
-use crate::vector::*;
+use std::fmt;
 
 /// A time series selector that is built from a metric name and/or
 /// a set of label matchers using various methods documented below.
@@ -10,8 +10,9 @@ use crate::vector::*;
 ///
 #[derive(Debug, PartialEq)]
 pub struct Selector<'a> {
-    metric: Option<&'a str>,
-    labels: Option<Vec<Label<'a>>>,
+    pub(crate) metric: Option<&'a str>,
+    pub(crate) labels: Option<Vec<Label<'a>>>,
+    pub(crate) duration: Option<&'a str>,
 }
 
 impl<'a> Selector<'a> {
@@ -19,13 +20,19 @@ impl<'a> Selector<'a> {
     ///
     /// ```rust
     /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use prometheus_http_query::Error;
+    /// use std::convert::TryInto;
     ///
-    /// assert!(Selector::new().to_instant_vector().is_err());
+    /// let v: Result<InstantVector, Error> = Selector::new().try_into();
+    ///
+    /// assert!(v.is_err());
     /// ```
     pub fn new() -> Self {
         Selector {
             metric: None,
             labels: None,
+            duration: None,
         }
     }
 
@@ -34,7 +41,7 @@ impl<'a> Selector<'a> {
     /// ```rust
     /// use prometheus_http_query::Selector;
     ///
-    /// let s = Selector::new().metric("http_requests_total").to_instant_vector();
+    /// let s = Selector::new().metric("http_requests_total");
     ///
     /// assert!(s.is_ok());
     /// ```
@@ -44,16 +51,22 @@ impl<'a> Selector<'a> {
     /// ```rust
     /// use prometheus_http_query::Selector;
     ///
-    /// let s = Selector::new().metric("group_left").to_instant_vector();
+    /// let s = Selector::new().metric("group_left");
     ///
     /// assert!(s.is_err());
     /// ```
-    pub fn metric(mut self, metric: &'a str) -> Self
+    pub fn metric(mut self, metric: &'a str) -> Result<Self, Error>
     where
         Self: Sized,
     {
-        self.metric = Some(metric);
-        self
+        match metric {
+            "bool" | "on" | "ignoring" | "group_left" | "group_right" => {
+                return Err(Error::IllegalMetricName)
+            }
+            _ => self.metric = Some(metric),
+        }
+
+        Ok(self)
     }
 
     /// Append a label matcher to the set of matchers of `Selector` that
@@ -62,13 +75,17 @@ impl<'a> Selector<'a> {
     ///
     /// ```rust
     /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use prometheus_http_query::Error;
+    /// use std::convert::TryInto;
     ///
-    /// let s = Selector::new()
+    /// let v: Result<InstantVector, Error> = Selector::new()
     ///     .metric("http_requests_total")
+    ///     .unwrap()
     ///     .with("job", "apiserver")
-    ///     .to_instant_vector();
+    ///     .try_into();
     ///
-    /// assert!(s.is_ok());
+    /// assert!(v.is_ok());
     /// ```
     pub fn with(mut self, label: &'a str, value: &'a str) -> Self
     where
@@ -87,13 +104,17 @@ impl<'a> Selector<'a> {
     ///
     /// ```rust
     /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use prometheus_http_query::Error;
+    /// use std::convert::TryInto;
     ///
-    /// let s = Selector::new()
+    /// let v: Result<InstantVector, Error> = Selector::new()
     ///     .metric("http_requests_total")
+    ///     .unwrap()
     ///     .without("job", "apiserver")
-    ///     .to_instant_vector();
+    ///     .try_into();
     ///
-    /// assert!(s.is_ok());
+    /// assert!(v.is_ok());
     /// ```
     pub fn without(mut self, label: &'a str, value: &'a str) -> Self
     where
@@ -112,13 +133,17 @@ impl<'a> Selector<'a> {
     ///
     /// ```rust
     /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use prometheus_http_query::Error;
+    /// use std::convert::TryInto;
     ///
-    /// let s = Selector::new()
+    /// let v: Result<InstantVector, Error> = Selector::new()
     ///     .metric("http_requests_total")
+    ///     .unwrap()
     ///     .regex_match("job", "apiserver")
-    ///     .to_instant_vector();
+    ///     .try_into();
     ///
-    /// assert!(s.is_ok());
+    /// assert!(v.is_ok());
     /// ```
     pub fn regex_match(mut self, label: &'a str, value: &'a str) -> Self
     where
@@ -137,13 +162,17 @@ impl<'a> Selector<'a> {
     ///
     /// ```rust
     /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use prometheus_http_query::Error;
+    /// use std::convert::TryInto;
     ///
-    /// let s = Selector::new()
+    /// let v: Result<InstantVector, Error> = Selector::new()
     ///     .metric("http_requests_total")
+    ///     .unwrap()
     ///     .no_regex_match("job", "apiserver")
-    ///     .to_instant_vector();
+    ///     .try_into();
     ///
-    /// assert!(s.is_ok());
+    /// assert!(v.is_ok());
     /// ```
     pub fn no_regex_match(mut self, label: &'a str, value: &'a str) -> Self
     where
@@ -156,58 +185,47 @@ impl<'a> Selector<'a> {
         self
     }
 
-    /// Convert this `Selector` to an `InstantVector`.
+    /// Add a time duration to this `Selector`.
+    /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/basics/#time-durations)
+    /// for the correct time duration syntax.
     ///
     /// ```rust
     /// use prometheus_http_query::Selector;
     ///
-    /// let s = Selector::new().metric("some_metric").to_instant_vector();
-    ///
-    /// assert!(s.is_ok());
-    /// ```
-    pub fn to_instant_vector(self) -> Result<InstantVector, Error> {
-        let selector_str = build_selector_string(self)?;
-        Ok(InstantVector(selector_str))
-    }
-
-    /// Convert this `Selector` to a `RangeVector`.
-    ///
-    /// ```rust
-    /// use prometheus_http_query::Selector;
-    ///
-    /// let s = Selector::new().metric("some_metric").to_range_vector("1m30s");
+    /// let s = Selector::new().metric("some_metric").unwrap().range("1m30s");
     ///
     /// assert!(s.is_ok());
     /// ```
     ///
-    /// ... while invalid time durations will lead to an error.
+    /// Providing invalid time durations will lead to an error.
     ///
     /// ```rust
     /// use prometheus_http_query::Selector;
     ///
-    /// let s = Selector::new().metric("some_metric").to_range_vector("30s1m");
+    /// let s = Selector::new().metric("some_metric").unwrap().range("30s1m");
     ///
     /// assert!(s.is_err());
     /// ```
     ///
-    pub fn to_range_vector(self, duration: &'a str) -> Result<RangeVector, Error> {
+    pub fn range(mut self, duration: &'a str) -> Result<Self, Error> {
         if duration.is_empty() {
             return Err(Error::InvalidTimeDuration);
         }
 
         validate_duration(&duration)?;
 
-        let dur = format!("[{}]", duration);
-        let mut selector_str = build_selector_string(self)?;
-        selector_str.push_str(&dur);
-        Ok(RangeVector(selector_str))
+        self.duration = Some(duration);
+
+        Ok(self)
     }
 }
 
-fn build_selector_string(selector: Selector) -> Result<String, Error> {
-    let labels = match selector.labels {
-        Some(l) => {
-            let joined = l
+impl<'a> fmt::Display for Selector<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
+        let mut result = String::new();
+
+        if let Some(l) = &self.labels {
+            let label_str = l
                 .iter()
                 .map(|x| match x {
                     Label::With(pair) => format!("{}=\"{}\"", pair.0, pair.1),
@@ -219,29 +237,21 @@ fn build_selector_string(selector: Selector) -> Result<String, Error> {
                 .as_slice()
                 .join(",");
 
-            Some(joined)
+            result.push_str(&label_str);
+            result.insert(0, '{');
+            result.push('}');
         }
-        None => None,
-    };
 
-    match selector.metric {
-        Some(m) => {
-            match m {
-                "bool" | "on" | "ignoring" | "group_left" | "group_right" => {
-                    return Err(Error::IllegalMetricName)
-                }
-                _ => {}
-            }
-
-            match labels {
-                Some(l) => Ok(format!("{}{{{}}}", m, l)),
-                None => Ok(m.to_string()),
-            }
+        if let Some(m) = self.metric {
+            result.insert_str(0, &m);
         }
-        None => match labels {
-            Some(l) => Ok(format!("{{{}}}", l)),
-            None => return Err(Error::IllegalTimeSeriesSelector),
-        },
+
+        if let Some(d) = self.duration {
+            let duration = format!("[{}]", d);
+            result.push_str(&duration);
+        }
+
+        write!(f, "{}", result)
     }
 }
 
@@ -249,11 +259,14 @@ fn build_selector_string(selector: Selector) -> Result<String, Error> {
 mod tests {
     use super::*;
     use crate::util::Label;
+    use crate::vector::*;
+    use std::convert::TryInto;
 
     #[test]
     fn test_selector_creation() {
         let s = Selector::new()
             .metric("http_requests_total")
+            .unwrap()
             .with("handler", "/api/comments")
             .regex_match("job", ".*server")
             .no_regex_match("status", "4..")
@@ -267,13 +280,14 @@ mod tests {
                 Label::Clashes(("status", "4..")),
                 Label::Without(("env", "test")),
             ]),
+            duration: None,
         };
 
         assert_eq!(s, result);
     }
 
     #[test]
-    fn test_build_selector_string() {
+    fn test_selector_display_implementation_1() {
         let s = Selector {
             metric: Some("http_requests_total"),
             labels: Some(vec![
@@ -282,74 +296,78 @@ mod tests {
                 Label::Clashes(("status", "4..")),
                 Label::Without(("env", "test")),
             ]),
+            duration: None,
         };
 
         let result = String::from("http_requests_total{handler=\"/api/comments\",job=~\".*server\",status!~\"4..\",env!=\"test\"}");
 
-        assert_eq!(build_selector_string(s).unwrap(), result);
+        assert_eq!(s.to_string(), result);
     }
 
     #[test]
-    fn test_build_selector_string_for_error_1() {
+    fn test_selector_display_implementation_2() {
         let s = Selector {
-            metric: None,
-            labels: None,
+            metric: Some("http_requests_total"),
+            labels: Some(vec![
+                Label::With(("handler", "/api/comments")),
+                Label::Matches(("job", ".*server")),
+                Label::Clashes(("status", "4..")),
+                Label::Without(("env", "test")),
+            ]),
+            duration: Some("1m30s"),
         };
 
-        assert!(build_selector_string(s).is_err());
-    }
+        let result = String::from("http_requests_total{handler=\"/api/comments\",job=~\".*server\",status!~\"4..\",env!=\"test\"}[1m30s]");
 
-    #[test]
-    fn test_build_selector_string_for_error_2() {
-        let s = Selector {
-            metric: Some("group_left"),
-            labels: None,
-        };
-
-        assert!(build_selector_string(s).is_err());
+        assert_eq!(s.to_string(), result);
     }
 
     #[test]
     fn test_instant_vector_creation() {
-        let s = Selector::new()
+        let v: InstantVector = Selector::new()
             .metric("http_requests_total")
+            .unwrap()
             .with("handler", "/api/comments")
             .regex_match("job", ".*server")
             .no_regex_match("status", "4..")
             .without("env", "test")
-            .to_instant_vector()
+            .try_into()
             .unwrap();
 
         let result = InstantVector("http_requests_total{handler=\"/api/comments\",job=~\".*server\",status!~\"4..\",env!=\"test\"}".to_string());
 
-        assert_eq!(s, result);
+        assert_eq!(v, result);
     }
 
     #[test]
     fn test_range_vector_creation() {
-        let s = Selector::new()
+        let v: RangeVector = Selector::new()
             .metric("http_requests_total")
+            .unwrap()
             .with("handler", "/api/comments")
             .regex_match("job", ".*server")
             .no_regex_match("status", "4..")
             .without("env", "test")
-            .to_range_vector("5m")
+            .range("5m")
+            .unwrap()
+            .try_into()
             .unwrap();
 
         let result = RangeVector("http_requests_total{handler=\"/api/comments\",job=~\".*server\",status!~\"4..\",env!=\"test\"}[5m]".to_string());
 
-        assert_eq!(s, result);
+        assert_eq!(v, result);
     }
 
     #[test]
-    fn test_range_vector_creation_for_error() {
+    fn test_selector_range_for_error() {
         let s = Selector::new()
             .metric("http_requests_total")
+            .unwrap()
             .with("handler", "/api/comments")
             .regex_match("job", ".*server")
             .no_regex_match("status", "4..")
             .without("env", "test")
-            .to_range_vector("");
+            .range("");
 
         assert!(s.is_err());
     }

@@ -66,3 +66,5 @@ pub use self::client::Scheme;
 pub use self::error::Error;
 pub use self::selector::Selector;
 pub use self::util::LabelList;
+pub use self::vector::InstantVector;
+pub use self::vector::RangeVector;
