@@ -6,11 +6,14 @@ use crate::vector::*;
 /// ```rust
 /// use prometheus_http_query::{Selector, LabelList};
 /// use prometheus_http_query::operators::sum;
+/// use prometheus_http_query::InstantVector;
+/// use std::convert::TryInto;
 ///
-/// let vector = Selector::new()
+/// let vector: InstantVector = Selector::new()
 ///     .metric("http_requests_total")
+///     .unwrap()
 ///     .with("job", "apiserver")
-///     .to_instant_vector()
+///     .try_into()
 ///     .unwrap();
 ///
 /// let result = sum(vector, Some(LabelList::By(&["code"])));
@@ -33,10 +36,13 @@ pub fn sum<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantV
 /// ```rust
 /// use prometheus_http_query::{Selector, LabelList};
 /// use prometheus_http_query::operators::min;
+/// use prometheus_http_query::InstantVector;
+/// use std::convert::TryInto;
 ///
-/// let vector = Selector::new()
+/// let vector: InstantVector = Selector::new()
 ///     .metric("node_cpu_seconds_total")
-///     .to_instant_vector()
+///     .unwrap()
+///     .try_into()
 ///     .unwrap();
 ///
 /// let result = min(vector, Some(LabelList::By(&["cpu"])));
@@ -59,10 +65,13 @@ pub fn min<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantV
 /// ```rust
 /// use prometheus_http_query::{Selector, LabelList};
 /// use prometheus_http_query::operators::max;
+/// use prometheus_http_query::InstantVector;
+/// use std::convert::TryInto;
 ///
-/// let vector = Selector::new()
+/// let vector: InstantVector = Selector::new()
 ///     .metric("node_cpu_seconds_total")
-///     .to_instant_vector()
+///     .unwrap()
+///     .try_into()
 ///     .unwrap();
 ///
 /// let result = max(vector, Some(LabelList::By(&["cpu"])));
@@ -85,10 +94,13 @@ pub fn max<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantV
 /// ```rust
 /// use prometheus_http_query::{Selector, LabelList};
 /// use prometheus_http_query::operators::avg;
+/// use prometheus_http_query::InstantVector;
+/// use std::convert::TryInto;
 ///
-/// let vector = Selector::new()
+/// let vector: InstantVector = Selector::new()
 ///     .metric("node_memory_Active_bytes")
-///     .to_instant_vector()
+///     .unwrap()
+///     .try_into()
 ///     .unwrap();
 ///
 /// let result = avg(vector, None);
@@ -111,10 +123,13 @@ pub fn avg<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> InstantV
 /// ```rust
 /// use prometheus_http_query::{Selector, LabelList};
 /// use prometheus_http_query::operators::group;
+/// use prometheus_http_query::InstantVector;
+/// use std::convert::TryInto;
 ///
-/// let vector = Selector::new()
+/// let vector: InstantVector = Selector::new()
 ///     .metric("node_cpu_seconds_total")
-///     .to_instant_vector()
+///     .unwrap()
+///     .try_into()
 ///     .unwrap();
 ///
 /// let result = group(vector, Some(LabelList::Without(&["mode"])));
@@ -137,10 +152,13 @@ pub fn group<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> Instan
 /// ```rust
 /// use prometheus_http_query::{Selector, LabelList};
 /// use prometheus_http_query::operators::stddev;
+/// use prometheus_http_query::InstantVector;
+/// use std::convert::TryInto;
 ///
-/// let vector = Selector::new()
+/// let vector: InstantVector = Selector::new()
 ///     .metric("promhttp_metric_handler_requests_total")
-///     .to_instant_vector()
+///     .unwrap()
+///     .try_into()
 ///     .unwrap();
 ///
 /// let result = stddev(vector, Some(LabelList::By(&["code"])));
@@ -163,10 +181,13 @@ pub fn stddev<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> Insta
 /// ```rust
 /// use prometheus_http_query::{Selector, LabelList};
 /// use prometheus_http_query::operators::stdvar;
+/// use prometheus_http_query::InstantVector;
+/// use std::convert::TryInto;
 ///
-/// let vector = Selector::new()
+/// let vector: InstantVector = Selector::new()
 ///     .metric("promhttp_metric_handler_requests_total")
-///     .to_instant_vector()
+///     .unwrap()
+///     .try_into()
 ///     .unwrap();
 ///
 /// let result = stdvar(vector, Some(LabelList::By(&["code"])));
@@ -189,10 +210,13 @@ pub fn stdvar<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> Insta
 /// ```rust
 /// use prometheus_http_query::{Selector, LabelList};
 /// use prometheus_http_query::operators::count;
+/// use prometheus_http_query::InstantVector;
+/// use std::convert::TryInto;
 ///
-/// let vector = Selector::new()
+/// let vector: InstantVector = Selector::new()
 ///     .metric("node_cpu_seconds_total")
-///     .to_instant_vector()
+///     .unwrap()
+///     .try_into()
 ///     .unwrap();
 ///
 /// let result = count(vector, None);
@@ -215,10 +239,13 @@ pub fn count<'a>(vector: InstantVector, labels: Option<LabelList<'a>>) -> Instan
 /// ```rust
 /// use prometheus_http_query::{Selector, LabelList};
 /// use prometheus_http_query::operators::count_values;
+/// use prometheus_http_query::InstantVector;
+/// use std::convert::TryInto;
 ///
-/// let vector = Selector::new()
+/// let vector: InstantVector = Selector::new()
 ///     .metric("promhttp_metric_handler_requests_total")
-///     .to_instant_vector()
+///     .unwrap()
+///     .try_into()
 ///     .unwrap();
 ///
 /// let result = count_values(vector, None, "http_code");
@@ -250,10 +277,13 @@ pub fn count_values<'a>(
 /// ```rust
 /// use prometheus_http_query::{Selector, LabelList};
 /// use prometheus_http_query::operators::bottomk;
+/// use prometheus_http_query::InstantVector;
+/// use std::convert::TryInto;
 ///
-/// let vector = Selector::new()
+/// let vector: InstantVector = Selector::new()
 ///     .metric("node_cpu_seconds_total")
-///     .to_instant_vector()
+///     .unwrap()
+///     .try_into()
 ///     .unwrap();
 ///
 /// let result = bottomk(vector, None, 2);
@@ -280,10 +310,13 @@ pub fn bottomk<'a>(
 /// ```rust
 /// use prometheus_http_query::{Selector, LabelList};
 /// use prometheus_http_query::operators::topk;
+/// use prometheus_http_query::InstantVector;
+/// use std::convert::TryInto;
 ///
-/// let vector = Selector::new()
+/// let vector: InstantVector = Selector::new()
 ///     .metric("node_cpu_seconds_total")
-///     .to_instant_vector()
+///     .unwrap()
+///     .try_into()
 ///     .unwrap();
 ///
 /// let result = topk(vector, None, 2);
@@ -310,10 +343,13 @@ pub fn topk<'a>(
 /// ```rust
 /// use prometheus_http_query::{Selector, LabelList};
 /// use prometheus_http_query::operators::quantile;
+/// use prometheus_http_query::InstantVector;
+/// use std::convert::TryInto;
 ///
-/// let vector = Selector::new()
+/// let vector: InstantVector = Selector::new()
 ///     .metric("node_cpu_seconds_total")
-///     .to_instant_vector()
+///     .unwrap()
+///     .try_into()
 ///     .unwrap();
 ///
 /// let result = quantile(vector, Some(LabelList::By(&["cpu", "mode"])), 0.1);
