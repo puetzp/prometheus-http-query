@@ -14,6 +14,7 @@ pub struct Selector<'a> {
     pub(crate) labels: Option<Vec<Label<'a>>>,
     pub(crate) range: Option<&'a str>,
     pub(crate) offset: Option<&'a str>,
+    pub(crate) at_modifier: Option<i64>,
 }
 
 impl<'a> Selector<'a> {
@@ -35,6 +36,7 @@ impl<'a> Selector<'a> {
             labels: None,
             range: None,
             offset: None,
+            at_modifier: None,
         }
     }
 
@@ -187,7 +189,7 @@ impl<'a> Selector<'a> {
         self
     }
 
-    /// Add a time duration to this `Selector`.<br>
+    /// Add a time range to this `Selector` (effectively priming this Selector to be converted to a `RangeVector`).<br>
     /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/basics/#time-durations)
     /// for the correct time duration syntax.
     ///
@@ -221,6 +223,29 @@ impl<'a> Selector<'a> {
         Ok(self)
     }
 
+    /// Add a time offset to this `Selector`.<br>
+    /// See the Prometheus reference regarding [time durations](https://prometheus.io/docs/prometheus/latest/querying/basics/#time-durations)
+    /// and [offsets](https://prometheus.io/docs/prometheus/latest/querying/basics/#offset-modifier)
+    /// for the correct time duration syntax.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    ///
+    /// let s = Selector::new().metric("some_metric").unwrap().offset("1m30s");
+    ///
+    /// assert!(s.is_ok());
+    /// ```
+    ///
+    /// Providing invalid time durations will lead to an error.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    ///
+    /// let s = Selector::new().metric("some_metric").unwrap().offset("30s1m");
+    ///
+    /// assert!(s.is_err());
+    /// ```
+    ///
     pub fn offset(mut self, duration: &'a str) -> Result<Self, Error> {
         if duration.is_empty() {
             return Err(Error::InvalidTimeDuration);
@@ -231,6 +256,24 @@ impl<'a> Selector<'a> {
         self.offset = Some(duration);
 
         Ok(self)
+    }
+
+    /// Add a @ modifier to this `Selector`.<br>
+    /// See the Prometheus reference regarding [time durations](https://prometheus.io/docs/prometheus/latest/querying/basics/#time-durations)
+    /// and [@ modifiers](https://prometheus.io/docs/prometheus/latest/querying/basics/#modifier)
+    /// for details.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use std::convert::TryInto;
+    ///
+    /// let s: Result<InstantVector, _> = Selector::new().metric("some_metric").unwrap().at(1623855855).try_into();
+    ///
+    /// assert!(s.is_ok());
+    /// ```
+    pub fn at(mut self, time: i64) -> Self {
+        self.at_modifier = Some(time);
+        self
     }
 }
 
@@ -270,6 +313,11 @@ impl<'a> fmt::Display for Selector<'a> {
             result.push_str(&offset);
         }
 
+        if let Some(a) = self.at_modifier {
+            let at_mod = format!(" @ {}", a);
+            result.push_str(&at_mod);
+        }
+
         write!(f, "{}", result)
     }
 }
@@ -301,6 +349,7 @@ mod tests {
             ]),
             range: None,
             offset: None,
+            at_modifier: None,
         };
 
         assert_eq!(s, result);
@@ -318,6 +367,7 @@ mod tests {
             ]),
             range: None,
             offset: None,
+            at_modifier: None,
         };
 
         let result = String::from("http_requests_total{handler=\"/api/comments\",job=~\".*server\",status!~\"4..\",env!=\"test\"}");
@@ -337,6 +387,7 @@ mod tests {
             ]),
             range: Some("1m30s"),
             offset: None,
+            at_modifier: None,
         };
 
         let result = String::from("http_requests_total{handler=\"/api/comments\",job=~\".*server\",status!~\"4..\",env!=\"test\"}[1m30s]");
@@ -376,6 +427,26 @@ mod tests {
             .unwrap();
 
         let result = InstantVector("http_requests_total{handler=\"/api/comments\",job=~\".*server\",status!~\"4..\",env!=\"test\"} offset 1w".to_string());
+
+        assert_eq!(v, result);
+    }
+
+    #[test]
+    fn test_instant_vector_creation_with_offset_and_at_modifier() {
+        let v: InstantVector = Selector::new()
+            .metric("http_requests_total")
+            .unwrap()
+            .with("handler", "/api/comments")
+            .regex_match("job", ".*server")
+            .no_regex_match("status", "4..")
+            .without("env", "test")
+            .offset("1w")
+            .unwrap()
+            .at(1623855625)
+            .try_into()
+            .unwrap();
+
+        let result = InstantVector("http_requests_total{handler=\"/api/comments\",job=~\".*server\",status!~\"4..\",env!=\"test\"} offset 1w @ 1623855625".to_string());
 
         assert_eq!(v, result);
     }
