@@ -73,10 +73,10 @@ pub fn absent(vector: InstantVector) -> InstantVector {
 ///     Ok(())
 /// }
 /// ```
-pub fn absent_over_time(vector: RangeVector) -> RangeVector {
+pub fn absent_over_time(vector: RangeVector) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("absent_over_time({})", query);
-    RangeVector(new)
+    InstantVector(new)
 }
 
 /// Apply the PromQL `ceil` function.
@@ -126,10 +126,10 @@ pub fn ceil(vector: InstantVector) -> InstantVector {
 ///     Ok(())
 /// }
 /// ```
-pub fn changes(vector: RangeVector) -> RangeVector {
+pub fn changes(vector: RangeVector) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("changes({})", query);
-    RangeVector(new)
+    InstantVector(new)
 }
 
 /// Apply the PromQL `clamp` function.
@@ -309,10 +309,10 @@ pub fn days_in_month(vector: InstantVector) -> InstantVector {
 ///     Ok(())
 /// }
 /// ```
-pub fn delta(vector: RangeVector) -> RangeVector {
+pub fn delta(vector: RangeVector) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("delta({})", query);
-    RangeVector(new)
+    InstantVector(new)
 }
 
 /// Apply the PromQL `deriv` function.
@@ -336,10 +336,10 @@ pub fn delta(vector: RangeVector) -> RangeVector {
 ///     Ok(())
 /// }
 /// ```
-pub fn deriv(vector: RangeVector) -> RangeVector {
+pub fn deriv(vector: RangeVector) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("deriv({})", query);
-    RangeVector(new)
+    InstantVector(new)
 }
 
 /// Apply the PromQL `exp` function.
@@ -441,10 +441,10 @@ pub fn histogram_quantile(quantile: f64, vector: InstantVector) -> InstantVector
 ///     Ok(())
 /// }
 /// ```
-pub fn holt_winters(vector: RangeVector, sf: f64, tf: f64) -> RangeVector {
+pub fn holt_winters(vector: RangeVector, sf: f64, tf: f64) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("holt_winters({}, {}, {})", query, sf, tf);
-    RangeVector(new)
+    InstantVector(new)
 }
 
 /// Apply the PromQL `hour` function.
@@ -494,10 +494,10 @@ pub fn hour(vector: InstantVector) -> InstantVector {
 ///     Ok(())
 /// }
 /// ```
-pub fn idelta(vector: RangeVector) -> RangeVector {
+pub fn idelta(vector: RangeVector) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("idelta({})", query);
-    RangeVector(new)
+    InstantVector(new)
 }
 
 /// Apply the PromQL `increase` function.
@@ -521,10 +521,10 @@ pub fn idelta(vector: RangeVector) -> RangeVector {
 ///     Ok(())
 /// }
 /// ```
-pub fn increase(vector: RangeVector) -> RangeVector {
+pub fn increase(vector: RangeVector) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("increase({})", query);
-    RangeVector(new)
+    InstantVector(new)
 }
 
 /// Apply the PromQL `irate` function.
@@ -548,10 +548,10 @@ pub fn increase(vector: RangeVector) -> RangeVector {
 ///     Ok(())
 /// }
 /// ```
-pub fn irate(vector: RangeVector) -> RangeVector {
+pub fn irate(vector: RangeVector) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("irate({})", query);
-    RangeVector(new)
+    InstantVector(new)
 }
 
 /// Apply the PromQL `label_join` function.
@@ -787,10 +787,10 @@ pub fn month(vector: InstantVector) -> InstantVector {
 ///     Ok(())
 /// }
 /// ```
-pub fn predict_linear(vector: RangeVector, seconds: f64) -> RangeVector {
+pub fn predict_linear(vector: RangeVector, seconds: f64) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("predict_linear({}, {})", query, seconds);
-    RangeVector(new)
+    InstantVector(new)
 }
 
 /// Apply the PromQL `rate` function.
@@ -814,10 +814,10 @@ pub fn predict_linear(vector: RangeVector, seconds: f64) -> RangeVector {
 ///     Ok(())
 /// }
 /// ```
-pub fn rate(vector: RangeVector) -> RangeVector {
+pub fn rate(vector: RangeVector) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("rate({})", query);
-    RangeVector(new)
+    InstantVector(new)
 }
 
 /// Apply the PromQL `resets` function.
@@ -841,10 +841,10 @@ pub fn rate(vector: RangeVector) -> RangeVector {
 ///     Ok(())
 /// }
 /// ```
-pub fn resets(vector: RangeVector) -> RangeVector {
+pub fn resets(vector: RangeVector) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("resets({})", query);
-    RangeVector(new)
+    InstantVector(new)
 }
 
 /// Apply the PromQL `round` function.
@@ -1054,10 +1054,10 @@ pub fn year(vector: InstantVector) -> InstantVector {
 ///     Ok(())
 /// }
 /// ```
-pub fn avg_over_time(vector: RangeVector) -> RangeVector {
+pub fn avg_over_time(vector: RangeVector) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("avg_over_time({})", query);
-    RangeVector(new)
+    InstantVector(new)
 }
 
 /// Apply the PromQL `min_over_time` function.
@@ -1081,10 +1081,10 @@ pub fn avg_over_time(vector: RangeVector) -> RangeVector {
 ///     Ok(())
 /// }
 /// ```
-pub fn min_over_time(vector: RangeVector) -> RangeVector {
+pub fn min_over_time(vector: RangeVector) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("min_over_time({})", query);
-    RangeVector(new)
+    InstantVector(new)
 }
 
 /// Apply the PromQL `max_over_time` function.
@@ -1108,10 +1108,10 @@ pub fn min_over_time(vector: RangeVector) -> RangeVector {
 ///     Ok(())
 /// }
 /// ```
-pub fn max_over_time(vector: RangeVector) -> RangeVector {
+pub fn max_over_time(vector: RangeVector) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("max_over_time({})", query);
-    RangeVector(new)
+    InstantVector(new)
 }
 
 /// Apply the PromQL `sum_over_time` function.
@@ -1135,10 +1135,10 @@ pub fn max_over_time(vector: RangeVector) -> RangeVector {
 ///     Ok(())
 /// }
 /// ```
-pub fn sum_over_time(vector: RangeVector) -> RangeVector {
+pub fn sum_over_time(vector: RangeVector) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("sum_over_time({})", query);
-    RangeVector(new)
+    InstantVector(new)
 }
 
 /// Apply the PromQL `count_over_time` function.
@@ -1162,10 +1162,10 @@ pub fn sum_over_time(vector: RangeVector) -> RangeVector {
 ///     Ok(())
 /// }
 /// ```
-pub fn count_over_time(vector: RangeVector) -> RangeVector {
+pub fn count_over_time(vector: RangeVector) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("count_over_time({})", query);
-    RangeVector(new)
+    InstantVector(new)
 }
 
 /// Apply the PromQL `quantile_over_time` function.
@@ -1189,10 +1189,10 @@ pub fn count_over_time(vector: RangeVector) -> RangeVector {
 ///     Ok(())
 /// }
 /// ```
-pub fn quantile_over_time(quantile: f64, vector: RangeVector) -> RangeVector {
+pub fn quantile_over_time(quantile: f64, vector: RangeVector) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("quantile_over_time({}, {})", quantile, query);
-    RangeVector(new)
+    InstantVector(new)
 }
 
 /// Apply the PromQL `stddev_over_time` function.
@@ -1216,10 +1216,10 @@ pub fn quantile_over_time(quantile: f64, vector: RangeVector) -> RangeVector {
 ///     Ok(())
 /// }
 /// ```
-pub fn stddev_over_time(vector: RangeVector) -> RangeVector {
+pub fn stddev_over_time(vector: RangeVector) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("stddev_over_time({})", query);
-    RangeVector(new)
+    InstantVector(new)
 }
 
 /// Apply the PromQL `stdvar_over_time` function.
@@ -1243,10 +1243,10 @@ pub fn stddev_over_time(vector: RangeVector) -> RangeVector {
 ///     Ok(())
 /// }
 /// ```
-pub fn stdvar_over_time(vector: RangeVector) -> RangeVector {
+pub fn stdvar_over_time(vector: RangeVector) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("stdvar_over_time({})", query);
-    RangeVector(new)
+    InstantVector(new)
 }
 
 /// Apply the PromQL `last_over_time` function.
@@ -1270,8 +1270,8 @@ pub fn stdvar_over_time(vector: RangeVector) -> RangeVector {
 ///     Ok(())
 /// }
 /// ```
-pub fn last_over_time(vector: RangeVector) -> RangeVector {
+pub fn last_over_time(vector: RangeVector) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("last_over_time({})", query);
-    RangeVector(new)
+    InstantVector(new)
 }
