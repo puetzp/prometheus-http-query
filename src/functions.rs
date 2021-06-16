@@ -1,3 +1,4 @@
+use crate::error::{Error, InvalidFunctionArgument};
 use crate::vector::*;
 
 /// Apply the PromQL `abs` function.
@@ -434,17 +435,25 @@ pub fn histogram_quantile(quantile: f64, vector: InstantVector) -> InstantVector
 ///         .range("5m")?
 ///         .try_into()?;
 ///
-///     let result = holt_winters(vector, 0.9, 1.0);
+///     let result = holt_winters(vector, 0.5, 0.9)?;
 ///
-///     assert_eq!(&result.to_string(), "holt_winters(some_metric{some_label=\"some_value\"}[5m], 0.9, 1)");
+///     assert_eq!(&result.to_string(), "holt_winters(some_metric{some_label=\"some_value\"}[5m], 0.5, 0.9)");
 ///
 ///     Ok(())
 /// }
 /// ```
-pub fn holt_winters(vector: RangeVector, sf: f64, tf: f64) -> InstantVector {
+pub fn holt_winters(vector: RangeVector, sf: f64, tf: f64) -> Result<InstantVector, Error> {
+    if sf <= 0.0 || tf <= 0.0 || sf >= 1.0 || tf >= 1.0 {
+        return Err(Error::InvalidFunctionArgument(InvalidFunctionArgument {
+            message: String::from(
+                "smoothing factors in holt_winters() must be between 0.0 (excl.) and 1.0 (excl.)",
+            ),
+        }));
+    }
+
     let RangeVector(query) = vector;
     let new = format!("holt_winters({}, {}, {})", query, sf, tf);
-    InstantVector(new)
+    Ok(InstantVector(new))
 }
 
 /// Apply the PromQL `hour` function.
@@ -568,7 +577,7 @@ pub fn irate(vector: RangeVector) -> InstantVector {
 ///         .with("label2", "value2")
 ///         .try_into()?;
 ///
-///     let result = label_join(vector, "new_label", ":", &["label1", "label2"]);
+///     let result = label_join(vector, "new_label", ":", &["label1", "label2"])?;
 ///
 ///     let promql = r#"label_join(some_metric{label1="value1",label2="value2"}, "new_label", ":", "label1", "label2")"#;
 ///
@@ -582,7 +591,19 @@ pub fn label_join(
     dst_label: &str,
     separator: &str,
     src_labels: &[&str],
-) -> InstantVector {
+) -> Result<InstantVector, Error> {
+    if dst_label.is_empty() {
+        return Err(Error::InvalidFunctionArgument(InvalidFunctionArgument {
+            message: String::from("destination label name in label_join() cannot be empty"),
+        }));
+    }
+
+    if src_labels.is_empty() {
+        return Err(Error::InvalidFunctionArgument(InvalidFunctionArgument {
+            message: String::from("list of source label names in label_join() cannot be empty"),
+        }));
+    }
+
     let InstantVector(query) = vector;
 
     let src_labels = src_labels
@@ -596,7 +617,7 @@ pub fn label_join(
         query, dst_label, separator, src_labels
     );
 
-    InstantVector(new)
+    Ok(InstantVector(new))
 }
 
 /// Apply the PromQL `label_replace` function.
@@ -612,7 +633,7 @@ pub fn label_join(
 ///         .with("some_label", "some_value")
 ///         .try_into()?;
 ///
-///     let result = label_replace(vector, "new_label", "$1", "some_label", "(.*):.*");
+///     let result = label_replace(vector, "new_label", "$1", "some_label", "(.*):.*")?;
 ///
 ///     let promql = r#"label_replace(some_metric{some_label="some_value"}, "new_label", "$1", "some_label", "(.*):.*")"#;
 ///
@@ -627,13 +648,19 @@ pub fn label_replace(
     replacement: &str,
     src_label: &str,
     regex: &str,
-) -> InstantVector {
+) -> Result<InstantVector, Error> {
+    if dst_label.is_empty() {
+        return Err(Error::InvalidFunctionArgument(InvalidFunctionArgument {
+            message: String::from("destination label name in label_replace() cannot be empty"),
+        }));
+    }
+
     let InstantVector(query) = vector;
     let new = format!(
         "label_replace({}, \"{}\", \"{}\", \"{}\", \"{}\")",
         query, dst_label, replacement, src_label, regex
     );
-    InstantVector(new)
+    Ok(InstantVector(new))
 }
 
 /// Apply the PromQL `ln` function.

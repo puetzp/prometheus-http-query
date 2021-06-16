@@ -13,6 +13,7 @@ pub enum Error {
     ResponseError(ResponseError),
     UnsupportedResponseDataType(UnsupportedResponseDataType),
     UnknownResponseStatus(UnknownResponseStatus),
+    InvalidFunctionArgument(InvalidFunctionArgument),
 }
 
 impl fmt::Display for Error {
@@ -26,6 +27,7 @@ impl fmt::Display for Error {
             Self::ResponseError(e) => e.fmt(f),
             Self::UnsupportedResponseDataType(e) => e.fmt(f),
             Self::UnknownResponseStatus(e) => e.fmt(f),
+            Self::InvalidFunctionArgument(e) => e.fmt(f),
         }
     }
 }
@@ -119,5 +121,19 @@ impl fmt::Display for UnknownResponseStatus {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let UnknownResponseStatus(status) = self;
         write!(f, "the API returned an unknown response status , is '{}', must be either 'success' or 'error'", status)
+    }
+}
+
+/// This error is thrown when both smoothing factors supplied to
+/// the `hold_winters` function are out of range.
+#[derive(Debug, Clone, PartialEq)]
+pub struct InvalidFunctionArgument {
+    pub message: String,
+}
+
+// error message was shamelessly copied from the PromQL documentation.
+impl fmt::Display for InvalidFunctionArgument {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.message)
     }
 }
