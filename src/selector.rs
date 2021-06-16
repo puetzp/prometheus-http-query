@@ -12,7 +12,8 @@ use std::fmt;
 pub struct Selector<'a> {
     pub(crate) metric: Option<&'a str>,
     pub(crate) labels: Option<Vec<Label<'a>>>,
-    pub(crate) duration: Option<&'a str>,
+    pub(crate) range: Option<&'a str>,
+    pub(crate) offset: Option<&'a str>,
 }
 
 impl<'a> Selector<'a> {
@@ -32,7 +33,8 @@ impl<'a> Selector<'a> {
         Selector {
             metric: None,
             labels: None,
-            duration: None,
+            range: None,
+            offset: None,
         }
     }
 
@@ -214,7 +216,19 @@ impl<'a> Selector<'a> {
 
         validate_duration(&duration)?;
 
-        self.duration = Some(duration);
+        self.range = Some(duration);
+
+        Ok(self)
+    }
+
+    pub fn offset(mut self, duration: &'a str) -> Result<Self, Error> {
+        if duration.is_empty() {
+            return Err(Error::InvalidTimeDuration);
+        }
+
+        validate_duration(&duration)?;
+
+        self.offset = Some(duration);
 
         Ok(self)
     }
@@ -246,9 +260,14 @@ impl<'a> fmt::Display for Selector<'a> {
             result.insert_str(0, &m);
         }
 
-        if let Some(d) = self.duration {
-            let duration = format!("[{}]", d);
-            result.push_str(&duration);
+        if let Some(r) = self.range {
+            let range = format!("[{}]", r);
+            result.push_str(&range);
+        }
+
+        if let Some(o) = self.offset {
+            let offset = format!(" offset {}", o);
+            result.push_str(&offset);
         }
 
         write!(f, "{}", result)
@@ -280,7 +299,8 @@ mod tests {
                 Label::Clashes(("status", "4..")),
                 Label::Without(("env", "test")),
             ]),
-            duration: None,
+            range: None,
+            offset: None,
         };
 
         assert_eq!(s, result);
@@ -296,7 +316,8 @@ mod tests {
                 Label::Clashes(("status", "4..")),
                 Label::Without(("env", "test")),
             ]),
-            duration: None,
+            range: None,
+            offset: None,
         };
 
         let result = String::from("http_requests_total{handler=\"/api/comments\",job=~\".*server\",status!~\"4..\",env!=\"test\"}");
@@ -314,7 +335,8 @@ mod tests {
                 Label::Clashes(("status", "4..")),
                 Label::Without(("env", "test")),
             ]),
-            duration: Some("1m30s"),
+            range: Some("1m30s"),
+            offset: None,
         };
 
         let result = String::from("http_requests_total{handler=\"/api/comments\",job=~\".*server\",status!~\"4..\",env!=\"test\"}[1m30s]");
@@ -340,6 +362,25 @@ mod tests {
     }
 
     #[test]
+    fn test_instant_vector_creation_with_offset() {
+        let v: InstantVector = Selector::new()
+            .metric("http_requests_total")
+            .unwrap()
+            .with("handler", "/api/comments")
+            .regex_match("job", ".*server")
+            .no_regex_match("status", "4..")
+            .without("env", "test")
+            .offset("1w")
+            .unwrap()
+            .try_into()
+            .unwrap();
+
+        let result = InstantVector("http_requests_total{handler=\"/api/comments\",job=~\".*server\",status!~\"4..\",env!=\"test\"} offset 1w".to_string());
+
+        assert_eq!(v, result);
+    }
+
+    #[test]
     fn test_range_vector_creation() {
         let v: RangeVector = Selector::new()
             .metric("http_requests_total")
@@ -354,6 +395,27 @@ mod tests {
             .unwrap();
 
         let result = RangeVector("http_requests_total{handler=\"/api/comments\",job=~\".*server\",status!~\"4..\",env!=\"test\"}[5m]".to_string());
+
+        assert_eq!(v, result);
+    }
+
+    #[test]
+    fn test_range_vector_creation_with_offset() {
+        let v: RangeVector = Selector::new()
+            .metric("http_requests_total")
+            .unwrap()
+            .with("handler", "/api/comments")
+            .regex_match("job", ".*server")
+            .no_regex_match("status", "4..")
+            .without("env", "test")
+            .range("5m")
+            .unwrap()
+            .offset("-1y")
+            .unwrap()
+            .try_into()
+            .unwrap();
+
+        let result = RangeVector("http_requests_total{handler=\"/api/comments\",job=~\".*server\",status!~\"4..\",env!=\"test\"}[5m] offset -1y".to_string());
 
         assert_eq!(v, result);
     }

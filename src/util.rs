@@ -80,9 +80,11 @@ impl fmt::Display for Duration {
 }
 
 pub(crate) fn validate_duration(duration: &str) -> Result<(), Error> {
+    let raw_duration = duration.trim_start_matches('-');
+
     let chars = ['s', 'm', 'h', 'd', 'w', 'y'];
 
-    let raw_durations: Vec<&str> = duration
+    let raw_durations: Vec<&str> = raw_duration
         .split_inclusive(chars.as_ref())
         .map(|s| s.split_inclusive("ms"))
         .flatten()

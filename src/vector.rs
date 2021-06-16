@@ -706,7 +706,7 @@ impl TryFrom<Selector<'_>> for RangeVector {
             return Err(crate::error::Error::IllegalTimeSeriesSelector);
         }
 
-        if selector.duration.is_none() {
+        if selector.range.is_none() {
             return Err(crate::error::Error::InvalidRangeVector);
         };
 
