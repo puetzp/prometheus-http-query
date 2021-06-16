@@ -5,7 +5,7 @@ use crate::vector::*;
 ///
 /// ```rust
 /// use prometheus_http_query::{Selector, Aggregate};
-/// use prometheus_http_query::operators::sum;
+/// use prometheus_http_query::aggregations::sum;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
 ///
@@ -35,7 +35,7 @@ pub fn sum<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantV
 ///
 /// ```rust
 /// use prometheus_http_query::{Selector, Aggregate};
-/// use prometheus_http_query::operators::min;
+/// use prometheus_http_query::aggregations::min;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
 ///
@@ -64,7 +64,7 @@ pub fn min<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantV
 ///
 /// ```rust
 /// use prometheus_http_query::{Selector, Aggregate};
-/// use prometheus_http_query::operators::max;
+/// use prometheus_http_query::aggregations::max;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
 ///
@@ -93,7 +93,7 @@ pub fn max<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantV
 ///
 /// ```rust
 /// use prometheus_http_query::{Selector, Aggregate};
-/// use prometheus_http_query::operators::avg;
+/// use prometheus_http_query::aggregations::avg;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
 ///
@@ -122,7 +122,7 @@ pub fn avg<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantV
 ///
 /// ```rust
 /// use prometheus_http_query::{Selector, Aggregate};
-/// use prometheus_http_query::operators::group;
+/// use prometheus_http_query::aggregations::group;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
 ///
@@ -151,7 +151,7 @@ pub fn group<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> Instan
 ///
 /// ```rust
 /// use prometheus_http_query::{Selector, Aggregate};
-/// use prometheus_http_query::operators::stddev;
+/// use prometheus_http_query::aggregations::stddev;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
 ///
@@ -180,7 +180,7 @@ pub fn stddev<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> Insta
 ///
 /// ```rust
 /// use prometheus_http_query::{Selector, Aggregate};
-/// use prometheus_http_query::operators::stdvar;
+/// use prometheus_http_query::aggregations::stdvar;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
 ///
@@ -209,7 +209,7 @@ pub fn stdvar<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> Insta
 ///
 /// ```rust
 /// use prometheus_http_query::{Selector, Aggregate};
-/// use prometheus_http_query::operators::count;
+/// use prometheus_http_query::aggregations::count;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
 ///
@@ -238,7 +238,7 @@ pub fn count<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> Instan
 ///
 /// ```rust
 /// use prometheus_http_query::{Selector, Aggregate};
-/// use prometheus_http_query::operators::count_values;
+/// use prometheus_http_query::aggregations::count_values;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
 ///
@@ -276,7 +276,7 @@ pub fn count_values<'a>(
 ///
 /// ```rust
 /// use prometheus_http_query::{Selector, Aggregate};
-/// use prometheus_http_query::operators::bottomk;
+/// use prometheus_http_query::aggregations::bottomk;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
 ///
@@ -309,7 +309,7 @@ pub fn bottomk<'a>(
 ///
 /// ```rust
 /// use prometheus_http_query::{Selector, Aggregate};
-/// use prometheus_http_query::operators::topk;
+/// use prometheus_http_query::aggregations::topk;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
 ///
@@ -342,7 +342,7 @@ pub fn topk<'a>(
 ///
 /// ```rust
 /// use prometheus_http_query::{Selector, Aggregate};
-/// use prometheus_http_query::operators::quantile;
+/// use prometheus_http_query::aggregations::quantile;
 /// use prometheus_http_query::InstantVector;
 /// use std::convert::TryInto;
 ///

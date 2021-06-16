@@ -66,7 +66,7 @@ impl Client {
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Scheme, InstantVector, Selector, Aggregate};
-    /// use prometheus_http_query::operators::sum;
+    /// use prometheus_http_query::aggregations::sum;
     /// use std::convert::TryInto;
     ///
     /// let client = Client::new(Scheme::Http, "localhost", 9090);
@@ -80,8 +80,9 @@ impl Client {
     /// let s = sum(v, Some(Aggregate::By(&["cpu"])));
     ///
     /// let response = tokio_test::block_on( async { client.query(s, None, None).await });
-    /// println!("{:?}", response);
+    ///
     /// assert!(response.is_ok());
+    /// ```
     pub async fn query(
         &self,
         vector: impl std::fmt::Display,
