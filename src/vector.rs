@@ -3,6 +3,8 @@ use crate::util::{Group, Match};
 use std::convert::TryFrom;
 use std::fmt;
 
+/// An instant vector expression that can be further operated on with functions/aggregations
+/// or passed to a `Client` in order to evaluate.
 #[derive(Debug, PartialEq)]
 pub struct InstantVector(pub String);
 
@@ -671,6 +673,8 @@ impl std::ops::BitXor<f64> for InstantVector {
     }
 }
 
+/// An range vector expression that can be further operated on with functions/aggregations
+/// or passed to a `Client` in order to evaluate.
 #[derive(Debug, PartialEq)]
 pub struct RangeVector(pub String);
 

@@ -1,6 +1,9 @@
 use crate::error::Error;
 use std::fmt;
 
+/// A helper type that provides label matching logic for e.g. aggregations like `sum`.<br>
+///
+/// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/) for details.
 #[derive(Debug)]
 pub enum Aggregate<'a> {
     By(&'a [&'a str]),
@@ -16,6 +19,9 @@ impl<'a> fmt::Display for Aggregate<'a> {
     }
 }
 
+/// A helper type that provides label matching logic for e.g. binary operations (between instant vectors).<br>
+///
+/// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/) for details.
 #[derive(Debug)]
 pub enum Match<'a> {
     On(&'a [&'a str]),
@@ -31,6 +37,9 @@ impl<'a> fmt::Display for Match<'a> {
     }
 }
 
+/// A helper type that provides grouping logic for e.g. vector matching.<br>
+///
+/// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/) for details.
 #[derive(Debug)]
 pub enum Group<'a> {
     Left(&'a [&'a str]),

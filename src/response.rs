@@ -1,11 +1,15 @@
 use std::collections::HashMap;
 
+/// A response wrapper for vector and matrix return types.
+/// The `Vector` and `Matrix` types encapsulate a set of time series with a single sample
+/// and a set of time series containing a range of sample data respectively.
 #[derive(Debug)]
 pub enum Response {
     Vector(Vec<Vector>),
     Matrix(Vec<Matrix>),
 }
 
+/// A single time series containing a single data point (value + timestamp).
 #[derive(Debug, PartialEq)]
 pub struct Vector {
     pub(crate) metric: HashMap<String, String>,
@@ -25,6 +29,7 @@ impl Vector {
     }
 }
 
+/// A single time series containing a range of data points (value + timestamp each).
 #[derive(Debug, PartialEq)]
 pub struct Matrix {
     pub(crate) metric: HashMap<String, String>,
@@ -44,6 +49,7 @@ impl Matrix {
     }
 }
 
+/// A single data point.
 #[derive(Debug, PartialEq)]
 pub struct Sample {
     pub(crate) timestamp: f64,
