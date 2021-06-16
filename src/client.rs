@@ -180,6 +180,10 @@ impl Client {
     }
 }
 
+// Parses the API response from a loosely typed Hashmap to a Response that
+// encapsulates a vector of samples of type "vector" or "matrix"
+// "Value"s are rigorously "unwrapped" in the process as each of these
+// is expected to be part of the JSON response.
 fn parse_response(response: HashMap<String, serde_json::Value>) -> Result<Response, Error> {
     let status = response["status"].as_str().unwrap();
 
