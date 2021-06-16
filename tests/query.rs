@@ -8,7 +8,7 @@ fn test_query_1() {
     let client = Client::new(Scheme::Http, "localhost", 9090);
 
     let v: InstantVector = Selector::new()
-        .metric("cpu_seconds_total")
+        .metric("node_cpu_seconds_total")
         .unwrap()
         .try_into()
         .unwrap();
@@ -25,7 +25,7 @@ fn test_query_2() {
     let client = Client::new(Scheme::Http, "localhost", 9090);
 
     let v: RangeVector = Selector::new()
-        .metric("cpu_seconds_total")
+        .metric("node_cpu_seconds_total")
         .unwrap()
         .with("mode", "user")
         .range("5m")
@@ -45,7 +45,7 @@ fn test_query_3() {
     let client = Client::new(Scheme::Http, "localhost", 9090);
 
     let v: RangeVector = Selector::new()
-        .metric("cpu_seconds_total")
+        .metric("node_node_cpu_seconds_total")
         .unwrap()
         .with("mode", "user")
         .range("5m")
@@ -69,7 +69,7 @@ fn test_query_4() {
     let client = Client::new(Scheme::Http, "localhost", 9090);
 
     let v: RangeVector = Selector::new()
-        .metric("cpu_seconds_total")
+        .metric("node_node_cpu_seconds_total")
         .unwrap()
         .with("mode", "user")
         .range("5m")
@@ -89,7 +89,7 @@ fn test_query_5() {
     let client = Client::new(Scheme::Http, "localhost", 9090);
 
     let v: RangeVector = Selector::new()
-        .metric("cpu_seconds_total")
+        .metric("node_cpu_seconds_total")
         .unwrap()
         .range("20m")
         .unwrap()
@@ -108,7 +108,7 @@ fn test_query_6() {
     let client = Client::new(Scheme::Http, "localhost", 9090);
 
     let v: InstantVector = Selector::new()
-        .metric("cpu_seconds_total")
+        .metric("node_cpu_seconds_total")
         .unwrap()
         .try_into()
         .unwrap();
@@ -125,7 +125,7 @@ fn test_query_7() {
     let client = Client::new(Scheme::Http, "localhost", 9090);
 
     let v: InstantVector = Selector::new()
-        .metric("cpu_seconds_total")
+        .metric("node_cpu_seconds_total")
         .unwrap()
         .try_into()
         .unwrap();

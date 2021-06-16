@@ -4,7 +4,7 @@ use std::convert::TryFrom;
 use std::fmt;
 
 #[derive(Debug, PartialEq)]
-pub struct InstantVector(pub(crate) String);
+pub struct InstantVector(pub String);
 
 impl fmt::Display for InstantVector {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -672,7 +672,7 @@ impl std::ops::BitXor<f64> for InstantVector {
 }
 
 #[derive(Debug, PartialEq)]
-pub struct RangeVector(pub(crate) String);
+pub struct RangeVector(pub String);
 
 impl fmt::Display for RangeVector {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
