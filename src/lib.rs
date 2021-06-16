@@ -45,7 +45,7 @@
 //!
 //! # Notes
 //!
-//! If the JSON response from the Prometheus HTTP API indicates an error (field `status` == "error"),
+//! If the JSON response from the Prometheus HTTP API indicates an error (field `status` == `"error"`),
 //! then the contents of both fields `errorType` and `error` are captured and then returned by the client
 //! as a variant of the `Error` enum, just as any HTTP errors (non-200) that may indicate a problem
 //! with the provided query string. Thus any syntax problems etc. that cannot be caught at compile time
@@ -53,8 +53,9 @@
 //!
 //! # Limitations
 //!
-//! * Metadata queries (series/labels) are not supported(yet)
+//! * Metadata queries (series/labels) are not supported (yet)
 //! * reqwest client configuration cannot be customized (yet)
+//! * Subqueries are not supported (only as custom query)
 //! * PromQL functions that do not take a range / instant vector as an argument are not supported (only as custom query)
 pub mod aggregations;
 mod client;
