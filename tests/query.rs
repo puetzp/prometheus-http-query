@@ -102,3 +102,37 @@ fn test_query_5() {
 
     assert!(response.is_ok());
 }
+
+#[test]
+fn test_query_6() {
+    let client = Client::new(Scheme::Http, "localhost", 9090);
+
+    let v: InstantVector = Selector::new()
+        .metric("cpu_seconds_total")
+        .unwrap()
+        .try_into()
+        .unwrap();
+
+    let s = sum(v, Some(Aggregate::By(&["mode"]))) + 5.0;
+
+    let response = tokio_test::block_on(async { client.query(s, None, None).await });
+
+    assert!(response.is_ok());
+}
+
+#[test]
+fn test_query_7() {
+    let client = Client::new(Scheme::Http, "localhost", 9090);
+
+    let v: InstantVector = Selector::new()
+        .metric("cpu_seconds_total")
+        .unwrap()
+        .try_into()
+        .unwrap();
+
+    let s = round(sum(v, Some(Aggregate::By(&["mode"]))), Some(2.0));
+
+    let response = tokio_test::block_on(async { client.query(s, None, None).await });
+
+    assert!(response.is_ok());
+}
