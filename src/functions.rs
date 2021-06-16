@@ -1,3 +1,4 @@
+//! A set of PromQL function equivalents e.g. `abs` and `rate`
 use crate::error::{Error, InvalidFunctionArgument};
 use crate::vector::*;
 

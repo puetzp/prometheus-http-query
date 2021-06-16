@@ -1,3 +1,4 @@
+//! A set of aggregation operators like `sum` and `avg`
 use crate::util::*;
 use crate::vector::*;
 
