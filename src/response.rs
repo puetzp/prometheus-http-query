@@ -1,3 +1,4 @@
+//! Collection of response types, most importantly the [Response] enum
 use std::collections::HashMap;
 
 /// A wrapper for any kind of response the API returns.
@@ -70,12 +71,14 @@ impl Sample {
     }
 }
 
+/// Collection of active and dropped targets as returned by the API.
 #[derive(Debug)]
 pub struct Targets {
     pub(crate) active: Vec<ActiveTarget>,
     pub(crate) dropped: Vec<DroppedTarget>,
 }
 
+/// A single active target.
 #[derive(Debug)]
 pub struct ActiveTarget {
     pub(crate) discovered_labels: HashMap<String, String>,
@@ -89,5 +92,6 @@ pub struct ActiveTarget {
     pub(crate) health: String,
 }
 
+/// A single dropped target.
 #[derive(Debug)]
 pub struct DroppedTarget(pub(crate) HashMap<String, String>);
