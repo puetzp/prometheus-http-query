@@ -23,7 +23,7 @@
 //!         .range("5m")?
 //!         .try_into()?;
 //!
-//!     let q = sum(rate(v), Some(Aggregate::By(&["cpu"]))) ;
+//!     let q = sum(rate(v), Some(Aggregate::By(&["cpu"])));
 //!
 //!     let response = client.query(q, None, None).await;
 //!
