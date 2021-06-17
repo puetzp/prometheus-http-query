@@ -3,7 +3,7 @@ use crate::response::*;
 use crate::util::validate_duration;
 use std::collections::HashMap;
 
-/// A helper enum that is passed to the `Client::new` function in
+/// A helper enum that is passed to the [Client::new] function in
 /// order to avoid errors on unsupported connection schemes.
 pub enum Scheme {
     Http,
@@ -19,7 +19,7 @@ impl Scheme {
     }
 }
 
-/// A client used to execute queries. It uses a `reqwest::Client` internally
+/// A client used to execute queries. It uses a [reqwest::Client] internally
 /// that manages connections for us.
 pub struct Client {
     pub(crate) client: reqwest::Client,
@@ -48,7 +48,7 @@ impl Client {
     ///
     /// Note that possible errors regarding domain name resolution or
     /// connection establishment will only be propagated from the underlying
-    /// `reqwest::Client` when a query is executed.
+    /// [reqwest::Client] when a query is executed.
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Scheme};
@@ -62,7 +62,7 @@ impl Client {
         }
     }
 
-    /// Perform an instant query using a `RangeVector` or `InstantVector`.
+    /// Perform an instant query using a [crate::RangeVector] or [crate::InstantVector].
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Scheme, InstantVector, Selector, Aggregate};

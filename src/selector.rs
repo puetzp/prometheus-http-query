@@ -6,7 +6,7 @@ use std::fmt;
 /// a set of label matchers.
 ///
 /// For final validation and further processing the selector is then
-/// converted to either a `InstantVector` or `RangeVector`.
+/// converted to either a [crate::InstantVector] or [crate::RangeVector].
 ///
 #[derive(Debug, PartialEq)]
 pub struct Selector<'a> {
@@ -18,7 +18,7 @@ pub struct Selector<'a> {
 }
 
 impl<'a> Selector<'a> {
-    /// Simply return an empty `Selector`.
+    /// Simply return an empty [Selector] to build on.
     ///
     /// ```rust
     /// use prometheus_http_query::Selector;
@@ -40,7 +40,7 @@ impl<'a> Selector<'a> {
         }
     }
 
-    /// Select a metric name for this `Selector`.
+    /// Select a metric name for this [Selector].
     ///
     /// ```rust
     /// use prometheus_http_query::Selector;
@@ -73,9 +73,9 @@ impl<'a> Selector<'a> {
         Ok(self)
     }
 
-    /// Append a label matcher to the set of matchers of `Selector` that
+    /// Append a label matcher to the set of matchers of [Selector] that
     /// selects labels that match the provided string.<br>
-    /// PromQL example: `http_requests_total{job="apiserver"}`
+    /// PromQL equivalent: `http_requests_total{job="apiserver"}`
     ///
     /// ```rust
     /// use prometheus_http_query::Selector;
@@ -102,9 +102,9 @@ impl<'a> Selector<'a> {
         self
     }
 
-    /// Append a label matcher to the set of matchers of `Selector` that
+    /// Append a label matcher to the set of matchers of [Selector] that
     /// selects labels that do not match the provided string.<br>
-    /// PromQL example: `http_requests_total{job!="apiserver"}`
+    /// PromQL equivalent: `http_requests_total{job!="apiserver"}`
     ///
     /// ```rust
     /// use prometheus_http_query::Selector;
@@ -131,9 +131,9 @@ impl<'a> Selector<'a> {
         self
     }
 
-    /// Append a label matcher to the set of matchers of `Selector` that
+    /// Append a label matcher to the set of matchers of [Selector] that
     /// selects labels that regex-match the provided string.
-    /// PromQL example: `http_requests_total{job=~"apiserver"}`
+    /// PromQL equivalent: `http_requests_total{job=~"apiserver"}`
     ///
     /// ```rust
     /// use prometheus_http_query::Selector;
@@ -160,9 +160,9 @@ impl<'a> Selector<'a> {
         self
     }
 
-    /// Append a label matcher to the set of matchers of `Selector` that
+    /// Append a label matcher to the set of matchers of [Selector] that
     /// selects labels that do not regex-match the provided string.<br>
-    /// PromQL example: `http_requests_total{job!~"apiserver"}`
+    /// PromQL equivalent: `http_requests_total{job!~"apiserver"}`
     ///
     /// ```rust
     /// use prometheus_http_query::Selector;
@@ -189,7 +189,7 @@ impl<'a> Selector<'a> {
         self
     }
 
-    /// Add a time range to this `Selector` (effectively priming this Selector to be converted to a `RangeVector`).<br>
+    /// Add a time range to this [Selector] (effectively priming this [Selector] to be converted to a [crate::RangeVector]).<br>
     /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/basics/#time-durations)
     /// for the correct time duration syntax.
     ///
@@ -223,7 +223,7 @@ impl<'a> Selector<'a> {
         Ok(self)
     }
 
-    /// Add a time offset to this `Selector`.<br>
+    /// Add a time offset to this [Selector].<br>
     /// See the Prometheus reference regarding [time durations](https://prometheus.io/docs/prometheus/latest/querying/basics/#time-durations)
     /// and [offsets](https://prometheus.io/docs/prometheus/latest/querying/basics/#offset-modifier)
     /// for the correct time duration syntax.
@@ -258,7 +258,7 @@ impl<'a> Selector<'a> {
         Ok(self)
     }
 
-    /// Add a @ modifier to this `Selector`.<br>
+    /// Add a @ modifier to this [Selector].<br>
     /// See the Prometheus reference regarding [time durations](https://prometheus.io/docs/prometheus/latest/querying/basics/#time-durations)
     /// and [@ modifiers](https://prometheus.io/docs/prometheus/latest/querying/basics/#modifier)
     /// for details.

@@ -2,7 +2,7 @@
 //! At this point only instant and range queries are supported. Queries are gradually built from time series selectors, aggregations
 //! and functions and then passed to an HTTP client to execute.
 //!
-//! Behind the scenes this library uses `reqwest` as a HTTP client. Thus its features and limitations also
+//! Behind the scenes this library uses the [reqwest] crate as a HTTP client. Thus its features and limitations also
 //! apply to this library.
 //!
 //! # Usage
@@ -47,7 +47,7 @@
 //!
 //! If the JSON response from the Prometheus HTTP API indicates an error (field `status` == `"error"`),
 //! then the contents of both fields `errorType` and `error` are captured and then returned by the client
-//! as a variant of the `Error` enum, just as any HTTP errors (non-200) that may indicate a problem
+//! as a variant of the [Error] enum, just as any HTTP errors (non-200) that may indicate a problem
 //! with the provided query string. Thus any syntax problems etc. that cannot be caught at compile time
 //! or before executing the query will at least be propagated in the same manner.
 //!

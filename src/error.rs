@@ -57,7 +57,7 @@ impl fmt::Display for InvalidTimeDurationError {
     }
 }
 
-/// This error is thrown when a `Selector` cannot be contructed from the
+/// This error is thrown when a [Selector] cannot be contructed from the
 /// provided metric name and/or the list of labels.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct IllegalTimeSeriesSelectorError;
@@ -69,12 +69,11 @@ impl fmt::Display for IllegalTimeSeriesSelectorError {
     }
 }
 
-/// This error is thrown when a `RangeVector` cannot be contructed from a
-/// given `Selector` configuration, e.g. due to a missing time duration.
+/// This error is thrown when a [RangeVector] cannot be contructed from a
+/// given [Selector] configuration, e.g. due to a missing time duration.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct InvalidRangeVectorError;
 
-// error message was shamelessly copied from the PromQL documentation.
 impl fmt::Display for InvalidRangeVectorError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "range vectors must contain a time duration")
@@ -124,14 +123,13 @@ impl fmt::Display for UnknownResponseStatus {
     }
 }
 
-/// This error is thrown when both smoothing factors supplied to
-/// the `hold_winters` function are out of range.
+/// This error is thrown whenever arguments supplied to [functions] have
+/// invalid values and would result in an API error.
 #[derive(Debug, Clone, PartialEq)]
 pub struct InvalidFunctionArgument {
     pub message: String,
 }
 
-// error message was shamelessly copied from the PromQL documentation.
 impl fmt::Display for InvalidFunctionArgument {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{}", self.message)

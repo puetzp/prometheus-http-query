@@ -4,7 +4,7 @@ use std::convert::TryFrom;
 use std::fmt;
 
 /// An instant vector expression that can be further operated on with functions/aggregations
-/// or passed to a `Client` in order to evaluate.
+/// or passed to a [crate::Client] in order to evaluate.
 #[derive(Debug, PartialEq)]
 pub struct InstantVector(pub String);
 
@@ -18,7 +18,7 @@ impl fmt::Display for InstantVector {
 impl TryFrom<Selector<'_>> for InstantVector {
     type Error = crate::error::Error;
 
-    /// Convert a `Selector` to an `InstantVector`.
+    /// Convert a [Selector] to an [InstantVector].
     ///
     /// ```rust
     /// use prometheus_http_query::Selector;
@@ -44,7 +44,7 @@ impl TryFrom<Selector<'_>> for InstantVector {
 }
 
 impl InstantVector {
-    /// Add one instant vector to another. Additional modifiers (`Match` and `Group`)
+    /// Add one instant vector to another. Additional modifiers ([Match] and [Group])
     /// can be used to alter the matching behaviour between two instant vectors.
     /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#arithmetic-binary-operators)
     /// for details on this topic.
@@ -100,7 +100,7 @@ impl InstantVector {
         InstantVector(this)
     }
 
-    /// Subtract one instant vector from another. Additional modifiers (`Match` and `Group`)
+    /// Subtract one instant vector from another. Additional modifiers ([Match] and [Group])
     /// can be used to alter the matching behaviour between two instant vectors.
     /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#arithmetic-binary-operators)
     /// for details on this topic.
@@ -156,7 +156,7 @@ impl InstantVector {
         InstantVector(this)
     }
 
-    /// Multiply one instant vector by another. Additional modifiers (`Match` and `Group`)
+    /// Multiply one instant vector by another. Additional modifiers ([Match] and [Group])
     /// can be used to alter the matching behaviour between two instant vectors.
     /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#arithmetic-binary-operators)
     /// for details on this topic.
@@ -212,7 +212,7 @@ impl InstantVector {
         InstantVector(this)
     }
 
-    /// Divide one instant vector by another. Additional modifiers (`Match` and `Group`)
+    /// Divide one instant vector by another. Additional modifiers ([Match] and [Group])
     /// can be used to alter the matching behaviour between two instant vectors.
     /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#arithmetic-binary-operators)
     /// for details on this topic.
@@ -268,7 +268,7 @@ impl InstantVector {
         InstantVector(this)
     }
 
-    /// Divide one instant vector by another with remainder. Additional modifiers (`Match` and `Group`)
+    /// Divide one instant vector by another with remainder. Additional modifiers ([Match] and [Group])
     /// can be used to alter the matching behaviour between two instant vectors.
     /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#arithmetic-binary-operators)
     /// for details on this topic.
@@ -324,7 +324,7 @@ impl InstantVector {
         InstantVector(this)
     }
 
-    /// Exponentiate one instant vector by another. Additional modifiers (`Match` and `Group`)
+    /// Exponentiate one instant vector by another. Additional modifiers ([Match] and [Group])
     /// can be used to alter the matching behaviour between two instant vectors.
     /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#arithmetic-binary-operators)
     /// for details on this topic.
@@ -688,7 +688,7 @@ impl fmt::Display for RangeVector {
 impl TryFrom<Selector<'_>> for RangeVector {
     type Error = crate::error::Error;
 
-    /// Convert a `Selector` to an `RangeVector`.
+    /// Convert a [Selector] to a [RangeVector].
     ///
     /// ```rust
     /// use prometheus_http_query::Selector;
