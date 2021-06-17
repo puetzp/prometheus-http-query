@@ -508,6 +508,528 @@ impl InstantVector {
 
         InstantVector(this)
     }
+
+    /// Apply the `==` operator to two vectors. Optionally set the `bool` parameter
+    /// to modify the query result as per the PromQL documentation.
+    /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#comparison-binary-operators)
+    /// for details on comparison binary operators.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let two: InstantVector = Selector::new()
+    ///         .metric("other_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .with("other_label", "other_value")
+    ///         .try_into()?;
+    ///
+    ///     let new = one.eq_vector(two, false);
+    ///
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} == other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///
+    ///     assert_eq!(new.to_string(), expected.to_string());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn eq_vector(self, other: InstantVector, return_bool: bool) -> Self {
+        let InstantVector(mut this) = self;
+        let InstantVector(other) = other;
+
+        this.push_str(" ==");
+
+        if return_bool {
+            this.push_str(" bool");
+        }
+
+        this.push_str(&format!(" {}", other));
+
+        InstantVector(this)
+    }
+
+    /// Apply the `!=` operator to two vectors. Optionally set the `bool` parameter
+    /// to modify the query result as per the PromQL documentation.
+    /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#comparison-binary-operators)
+    /// for details on comparison binary operators.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let two: InstantVector = Selector::new()
+    ///         .metric("other_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .with("other_label", "other_value")
+    ///         .try_into()?;
+    ///
+    ///     let new = one.ne_vector(two, true);
+    ///
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} != bool other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///
+    ///     assert_eq!(new.to_string(), expected.to_string());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn ne_vector(self, other: InstantVector, return_bool: bool) -> Self {
+        let InstantVector(mut this) = self;
+        let InstantVector(other) = other;
+
+        this.push_str(" !=");
+
+        if return_bool {
+            this.push_str(" bool");
+        }
+
+        this.push_str(&format!(" {}", other));
+
+        InstantVector(this)
+    }
+
+    /// Apply the `>` operator to two vectors. Optionally set the `bool` parameter
+    /// to modify the query result as per the PromQL documentation.
+    /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#comparison-binary-operators)
+    /// for details on comparison binary operators.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let two: InstantVector = Selector::new()
+    ///         .metric("other_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .with("other_label", "other_value")
+    ///         .try_into()?;
+    ///
+    ///     let new = one.gt_vector(two, false);
+    ///
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} > other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///
+    ///     assert_eq!(new.to_string(), expected.to_string());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn gt_vector(self, other: InstantVector, return_bool: bool) -> Self {
+        let InstantVector(mut this) = self;
+        let InstantVector(other) = other;
+
+        this.push_str(" >");
+
+        if return_bool {
+            this.push_str(" bool");
+        }
+
+        this.push_str(&format!(" {}", other));
+
+        InstantVector(this)
+    }
+
+    /// Apply the `<` operator to two vectors. Optionally set the `bool` parameter
+    /// to modify the query result as per the PromQL documentation.
+    /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#comparison-binary-operators)
+    /// for details on comparison binary operators.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let two: InstantVector = Selector::new()
+    ///         .metric("other_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .with("other_label", "other_value")
+    ///         .try_into()?;
+    ///
+    ///     let new = one.lt_vector(two, false);
+    ///
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} < other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///
+    ///     assert_eq!(new.to_string(), expected.to_string());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn lt_vector(self, other: InstantVector, return_bool: bool) -> Self {
+        let InstantVector(mut this) = self;
+        let InstantVector(other) = other;
+
+        this.push_str(" <");
+
+        if return_bool {
+            this.push_str(" bool");
+        }
+
+        this.push_str(&format!(" {}", other));
+
+        InstantVector(this)
+    }
+
+    /// Apply the `>=` operator to two vectors. Optionally set the `bool` parameter
+    /// to modify the query result as per the PromQL documentation.
+    /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#comparison-binary-operators)
+    /// for details on comparison binary operators.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let two: InstantVector = Selector::new()
+    ///         .metric("other_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .with("other_label", "other_value")
+    ///         .try_into()?;
+    ///
+    ///     let new = one.ge_vector(two, false);
+    ///
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} >= other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///
+    ///     assert_eq!(new.to_string(), expected.to_string());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn ge_vector(self, other: InstantVector, return_bool: bool) -> Self {
+        let InstantVector(mut this) = self;
+        let InstantVector(other) = other;
+
+        this.push_str(" >=");
+
+        if return_bool {
+            this.push_str(" bool");
+        }
+
+        this.push_str(&format!(" {}", other));
+
+        InstantVector(this)
+    }
+
+    /// Apply the `<=` operator to two vectors. Optionally set the `bool` parameter
+    /// to modify the query result as per the PromQL documentation.
+    /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#comparison-binary-operators)
+    /// for details on comparison binary operators.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let two: InstantVector = Selector::new()
+    ///         .metric("other_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .with("other_label", "other_value")
+    ///         .try_into()?;
+    ///
+    ///     let new = one.le_vector(two, false);
+    ///
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} <= other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///
+    ///     assert_eq!(new.to_string(), expected.to_string());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn le_vector(self, other: InstantVector, return_bool: bool) -> Self {
+        let InstantVector(mut this) = self;
+        let InstantVector(other) = other;
+
+        this.push_str(" <=");
+
+        if return_bool {
+            this.push_str(" bool");
+        }
+
+        this.push_str(&format!(" {}", other));
+
+        InstantVector(this)
+    }
+
+    /// Apply the `==` operator to a vector and a scalar. Optionally set the `bool` parameter
+    /// to modify the query result as per the PromQL documentation.
+    /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#comparison-binary-operators)
+    /// for details on comparison binary operators.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let new = one.eq_scalar(8.5, true);
+    ///
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} == bool 8.5"#;
+    ///
+    ///     assert_eq!(new.to_string(), expected.to_string());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn eq_scalar(self, scalar: f64, return_bool: bool) -> Self {
+        let InstantVector(mut this) = self;
+
+        this.push_str(" ==");
+
+        if return_bool {
+            this.push_str(" bool");
+        }
+
+        this.push_str(&format!(" {}", scalar));
+
+        InstantVector(this)
+    }
+
+    /// Apply the `!=` operator to a vector and a scalar. Optionally set the `bool` parameter
+    /// to modify the query result as per the PromQL documentation.
+    /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#comparison-binary-operators)
+    /// for details on comparison binary operators.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let new = one.ne_scalar(8.5, true);
+    ///
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} != bool 8.5"#;
+    ///
+    ///     assert_eq!(new.to_string(), expected.to_string());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn ne_scalar(self, scalar: f64, return_bool: bool) -> Self {
+        let InstantVector(mut this) = self;
+
+        this.push_str(" !=");
+
+        if return_bool {
+            this.push_str(" bool");
+        }
+
+        this.push_str(&format!(" {}", scalar));
+
+        InstantVector(this)
+    }
+
+    /// Apply the `>` operator to a vector and a scalar. Optionally set the `bool` parameter
+    /// to modify the query result as per the PromQL documentation.
+    /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#comparison-binary-operators)
+    /// for details on comparison binary operators.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let new = one.gt_scalar(8.5, false);
+    ///
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} > 8.5"#;
+    ///
+    ///     assert_eq!(new.to_string(), expected.to_string());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn gt_scalar(self, scalar: f64, return_bool: bool) -> Self {
+        let InstantVector(mut this) = self;
+
+        this.push_str(" >");
+
+        if return_bool {
+            this.push_str(" bool");
+        }
+
+        this.push_str(&format!(" {}", scalar));
+
+        InstantVector(this)
+    }
+
+    /// Apply the `<` operator to a vector and a scalar. Optionally set the `bool` parameter
+    /// to modify the query result as per the PromQL documentation.
+    /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#comparison-binary-operators)
+    /// for details on comparison binary operators.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let new = one.lt_scalar(8.5, false);
+    ///
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} < 8.5"#;
+    ///
+    ///     assert_eq!(new.to_string(), expected.to_string());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn lt_scalar(self, scalar: f64, return_bool: bool) -> Self {
+        let InstantVector(mut this) = self;
+
+        this.push_str(" <");
+
+        if return_bool {
+            this.push_str(" bool");
+        }
+
+        this.push_str(&format!(" {}", scalar));
+
+        InstantVector(this)
+    }
+
+    /// Apply the `>=` operator to a vector and a scalar. Optionally set the `bool` parameter
+    /// to modify the query result as per the PromQL documentation.
+    /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#comparison-binary-operators)
+    /// for details on comparison binary operators.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let new = one.ge_scalar(8.5, false);
+    ///
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} >= 8.5"#;
+    ///
+    ///     assert_eq!(new.to_string(), expected.to_string());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn ge_scalar(self, scalar: f64, return_bool: bool) -> Self {
+        let InstantVector(mut this) = self;
+
+        this.push_str(" >=");
+
+        if return_bool {
+            this.push_str(" bool");
+        }
+
+        this.push_str(&format!(" {}", scalar));
+
+        InstantVector(this)
+    }
+
+    /// Apply the `<=` operator to a vector and a scalar. Optionally set the `bool` parameter
+    /// to modify the query result as per the PromQL documentation.
+    /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/#comparison-binary-operators)
+    /// for details on comparison binary operators.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Selector;
+    /// use prometheus_http_query::InstantVector;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let new = one.le_scalar(8.5, false);
+    ///
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} <= 8.5"#;
+    ///
+    ///     assert_eq!(new.to_string(), expected.to_string());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn le_scalar(self, scalar: f64, return_bool: bool) -> Self {
+        let InstantVector(mut this) = self;
+
+        this.push_str(" <=");
+
+        if return_bool {
+            this.push_str(" bool");
+        }
+
+        this.push_str(&format!(" {}", scalar));
+
+        InstantVector(this)
+    }
 }
 
 impl std::ops::Add<f64> for InstantVector {
