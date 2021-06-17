@@ -1217,19 +1217,19 @@ impl TryFrom<Selector<'_>> for RangeVector {
     /// Convert a [Selector] to a [RangeVector].
     ///
     /// ```rust
-    /// use prometheus_http_query::Selector;
-    /// use prometheus_http_query::RangeVector;
-    /// use prometheus_http_query::Error;
+    /// use prometheus_http_query::{Selector, RangeVector, Error};
     /// use std::convert::TryInto;
     ///
-    /// let v: Result<RangeVector, Error> = Selector::new()
-    ///     .metric("some_metric")
-    ///     .unwrap()
-    ///     .range("1m30s")
-    ///     .unwrap()
-    ///     .try_into();
+    /// fn main() -> Result<(), Error> {
+    ///     let v: Result<RangeVector, Error> = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .range("1m30s")?
+    ///         .try_into();
     ///
-    /// assert!(v.is_ok());
+    ///     assert!(v.is_ok());
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     fn try_from(selector: Selector) -> Result<RangeVector, Self::Error> {
         if selector.labels.is_none() && selector.metric.is_none() {
