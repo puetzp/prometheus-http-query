@@ -4,7 +4,7 @@ use crate::error::{
 };
 use crate::response::*;
 use crate::selector::Selector;
-use crate::util::validate_duration;
+use crate::util::{validate_duration, TargetState};
 use std::collections::HashMap;
 
 /// A helper enum that is passed to the [Client::new] function in
@@ -462,6 +462,61 @@ impl Client {
 
         parse_label_value_response(mapped_response)
     }
+
+    /// Query the current state of target discovery.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Scheme, Error, TargetState};
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), Error> {
+    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///
+    ///     let response = tokio_test::block_on( async { client.targets(None).await });
+    ///
+    ///     assert!(response.is_ok());
+    ///
+    ///     // Filter targets by type:
+    ///     let response = tokio_test::block_on( async { client.targets(Some(TargetState::Active)).await });
+    ///
+    ///     assert!(response.is_ok());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn targets(&self, state: Option<TargetState>) -> Result<Response, Error> {
+        let mut url = self.base_url.clone();
+
+        url.push_str("/targets");
+
+        let mut params = vec![];
+
+        let state = state.map(|s| s.to_string());
+
+        if let Some(s) = &state {
+            params.push(("state", s.as_str()))
+        }
+
+        let raw_response = self
+            .client
+            .get(&url)
+            .query(params.as_slice())
+            .send()
+            .await
+            .map_err(Error::Reqwest)?;
+
+        // NOTE: Can be changed to .map(async |resp| resp.json ...)
+        // when async closures are stable.
+        let mapped_response = match raw_response.error_for_status() {
+            Ok(res) => res
+                .json::<HashMap<String, serde_json::Value>>()
+                .await
+                .map_err(Error::Reqwest)?,
+            Err(err) => return Err(Error::Reqwest(err)),
+        };
+
+        parse_target_response(mapped_response)
+    }
 }
 
 // Parses the API response from a loosely typed Hashmap to a Response that
@@ -482,6 +537,69 @@ fn parse_series_response(response: HashMap<String, serde_json::Value>) -> Result
             }
 
             Ok(Response::Series(result))
+        }
+        "error" => {
+            return Err(Error::ResponseError(ResponseError {
+                kind: response["errorType"].as_str().unwrap().to_string(),
+                message: response["error"].as_str().unwrap().to_string(),
+            }))
+        }
+        _ => {
+            return Err(Error::UnknownResponseStatus(UnknownResponseStatus(
+                status.to_string(),
+            )))
+        }
+    }
+}
+
+// Parses the API response from a loosely typed Hashmap to a Response that
+// holds information about active and dropped targets.
+// "Value"s are rigorously "unwrapped" in the process as each of these
+// is expected to be part of the JSON response.
+fn parse_target_response(response: HashMap<String, serde_json::Value>) -> Result<Response, Error> {
+    let status = response["status"].as_str().unwrap();
+
+    match status {
+        "success" => {
+            let data_obj = response["data"].as_object().unwrap();
+            let mut active = vec![];
+            let mut dropped = vec![];
+
+            for target in data_obj["activeTargets"].as_array().unwrap() {
+                let target_obj = target.as_object().unwrap();
+                let discovered_labels =
+                    parse_metric(target_obj["discoveredLabels"].as_object().unwrap());
+                let labels = parse_metric(target_obj["labels"].as_object().unwrap());
+                let scrape_pool = target_obj["scrapePool"].as_str().unwrap().to_string();
+                let scrape_url = target_obj["scrapeUrl"].as_str().unwrap().to_string();
+                let global_url = target_obj["globalUrl"].as_str().unwrap().to_string();
+                let last_error = target_obj["lastError"].as_str().unwrap().to_string();
+                let last_scrape = target_obj["lastScrape"].as_str().unwrap().to_string();
+                let last_scrape_duration = target_obj["lastScrapeDuration"].as_f64().unwrap();
+                let health = target_obj["health"].as_str().unwrap().to_string();
+                active.push(ActiveTarget {
+                    discovered_labels,
+                    labels,
+                    scrape_pool,
+                    scrape_url,
+                    global_url,
+                    last_error,
+                    last_scrape,
+                    last_scrape_duration,
+                    health,
+                });
+            }
+
+            for target in data_obj["droppedTargets"].as_array().unwrap() {
+                let target_obj = target.as_object().unwrap();
+                let discovered_labels =
+                    parse_metric(target_obj["discoveredLabels"].as_object().unwrap());
+                dropped.push(DroppedTarget(discovered_labels));
+            }
+
+            let result = Targets { active, dropped };
+
+            Ok(Response::Targets(result))
         }
         "error" => {
             return Err(Error::ResponseError(ResponseError {

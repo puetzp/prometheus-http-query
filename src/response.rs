@@ -78,7 +78,7 @@ pub struct Targets {
     pub(crate) dropped: Vec<DroppedTarget>,
 }
 
-/// A single active target.
+/// A single active target.v
 #[derive(Debug)]
 pub struct ActiveTarget {
     pub(crate) discovered_labels: HashMap<String, String>,

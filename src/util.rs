@@ -55,6 +55,24 @@ impl<'a> fmt::Display for Group<'a> {
     }
 }
 
+/// A helper type to filter targets by state.
+#[derive(Debug)]
+pub enum TargetState {
+    Active,
+    Dropped,
+    Any,
+}
+
+impl fmt::Display for TargetState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            TargetState::Active => write!(f, "active"),
+            TargetState::Dropped => write!(f, "dropped"),
+            TargetState::Any => write!(f, "any"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum Label<'c> {
     With((&'c str, &'c str)),
