@@ -185,7 +185,7 @@ impl Client {
         parse_query_response(mapped_response)
     }
 
-    /// Find time series by label matchers ([Selector]s).
+    /// Find time series by series selectors.
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Scheme, Selector, Error};
@@ -275,6 +275,99 @@ impl Client {
 
         parse_series_response(mapped_response)
     }
+
+    /// Find label names by series selectors.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Scheme, Selector, Error};
+    ///
+    /// fn main() -> Result<(), Error> {
+    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///
+    ///     let s1 = Selector::new()
+    ///         .with("handler", "/api/v1/query");
+    ///
+    ///     let s2 = Selector::new()
+    ///         .with("job", "node")
+    ///         .regex_match("mode", ".+");
+    ///
+    ///     let set = Some(vec![s1, s2]);
+    ///
+    ///     let response = tokio_test::block_on( async { client.labels(set, None, None).await });
+    ///
+    ///     assert!(response.is_ok());
+    ///
+    ///     // To retrieve a list of all labels instead:
+    ///     let response = tokio_test::block_on( async { client.labels(None, None, None).await });
+    ///
+    ///     assert!(response.is_ok());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn labels(
+        &self,
+        selectors: Option<Vec<Selector<'_>>>,
+        start: Option<i64>,
+        end: Option<i64>,
+    ) -> Result<Response, Error> {
+        let mut url = self.base_url.clone();
+
+        url.push_str("/labels");
+
+        let mut params = vec![];
+
+        let start = start.map(|t| t.to_string());
+
+        if let Some(s) = &start {
+            params.push(("start", s.as_str()));
+        }
+
+        let end = end.map(|t| t.to_string());
+
+        if let Some(e) = &end {
+            params.push(("end", e.as_str()));
+        }
+
+        let selectors: Option<Vec<String>> = selectors.map(|vec| {
+            vec.iter()
+                .map(|s| match s.to_string().as_str().split_once('}') {
+                    Some(split) => {
+                        let mut s = split.0.to_owned();
+                        s.push('}');
+                        s
+                    }
+                    None => s.to_string(),
+                })
+                .collect()
+        });
+
+        if let Some(ref selector_vec) = selectors {
+            for selector in selector_vec {
+                params.push(("match[]", &selector));
+            }
+        }
+
+        let raw_response = self
+            .client
+            .get(&url)
+            .query(params.as_slice())
+            .send()
+            .await
+            .map_err(Error::Reqwest)?;
+
+        // NOTE: Can be changed to .map(async |resp| resp.json ...)
+        // when async closures are stable.
+        let mapped_response = match raw_response.error_for_status() {
+            Ok(res) => res
+                .json::<HashMap<String, serde_json::Value>>()
+                .await
+                .map_err(Error::Reqwest)?,
+            Err(err) => return Err(Error::Reqwest(err)),
+        };
+
+        parse_labels_response(mapped_response)
+    }
 }
 
 // Parses the API response from a loosely typed Hashmap to a Response that
@@ -295,6 +388,39 @@ fn parse_series_response(response: HashMap<String, serde_json::Value>) -> Result
             }
 
             Ok(Response::Series(result))
+        }
+        "error" => {
+            return Err(Error::ResponseError(ResponseError {
+                kind: response["errorType"].as_str().unwrap().to_string(),
+                message: response["error"].as_str().unwrap().to_string(),
+            }))
+        }
+        _ => {
+            return Err(Error::UnknownResponseStatus(UnknownResponseStatus(
+                status.to_string(),
+            )))
+        }
+    }
+}
+
+// Parses the API response from a loosely typed Hashmap to a Response that
+// encapsulates a vector of label names.
+// "Value"s are rigorously "unwrapped" in the process as each of these
+// is expected to be part of the JSON response.
+fn parse_labels_response(response: HashMap<String, serde_json::Value>) -> Result<Response, Error> {
+    let status = response["status"].as_str().unwrap();
+
+    match status {
+        "success" => {
+            let data = response["data"].as_array().unwrap();
+
+            let mut result = vec![];
+
+            for datum in data {
+                result.push(datum.as_str().unwrap().to_owned());
+            }
+
+            Ok(Response::Labels(result))
         }
         "error" => {
             return Err(Error::ResponseError(ResponseError {
