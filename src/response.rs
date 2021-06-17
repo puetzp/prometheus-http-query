@@ -8,7 +8,8 @@ pub enum Response {
     Vector(Vec<Vector>),
     Matrix(Vec<Matrix>),
     Series(Vec<HashMap<String, String>>),
-    Labels(Vec<String>),
+    LabelNames(Vec<String>),
+    LabelValues(Vec<String>),
 }
 
 /// A single time series containing a single data point ([Sample]).
