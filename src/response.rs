@@ -1,8 +1,6 @@
 use std::collections::HashMap;
 
-/// A response wrapper for vector and matrix return types.
-/// The [Vector] and [Matrix] types encapsulate a set of time series with a single sample
-/// and a set of time series containing a range of sample data respectively.
+/// A wrapper for any kind of response the API returns.
 #[derive(Debug)]
 pub enum Response {
     Vector(Vec<Vector>),
@@ -10,6 +8,7 @@ pub enum Response {
     Series(Vec<HashMap<String, String>>),
     LabelNames(Vec<String>),
     LabelValues(Vec<String>),
+    Targets(Targets),
 }
 
 /// A single time series containing a single data point ([Sample]).
@@ -70,3 +69,25 @@ impl Sample {
         &self.value
     }
 }
+
+#[derive(Debug)]
+pub struct Targets {
+    pub(crate) active: Vec<ActiveTarget>,
+    pub(crate) dropped: Vec<DroppedTarget>,
+}
+
+#[derive(Debug)]
+pub struct ActiveTarget {
+    pub(crate) discovered_labels: HashMap<String, String>,
+    pub(crate) labels: HashMap<String, String>,
+    pub(crate) scrape_pool: String,
+    pub(crate) scrape_url: String,
+    pub(crate) global_url: String,
+    pub(crate) last_error: String,
+    pub(crate) last_scrape: String,
+    pub(crate) last_scrape_duration: f64,
+    pub(crate) health: String,
+}
+
+#[derive(Debug)]
+pub struct DroppedTarget(pub(crate) HashMap<String, String>);
