@@ -7,6 +7,7 @@ use std::collections::HashMap;
 pub enum Response {
     Vector(Vec<Vector>),
     Matrix(Vec<Matrix>),
+    Series(Vec<HashMap<String, String>>),
 }
 
 /// A single time series containing a single data point ([Sample]).

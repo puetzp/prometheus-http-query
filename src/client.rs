@@ -1,5 +1,9 @@
-use crate::error::{Error, ResponseError, UnknownResponseStatus, UnsupportedResponseDataType};
+use crate::error::{
+    Error, InvalidFunctionArgument, ResponseError, UnknownResponseStatus,
+    UnsupportedResponseDataType,
+};
 use crate::response::*;
+use crate::selector::Selector;
 use crate::util::validate_duration;
 use std::collections::HashMap;
 
@@ -65,23 +69,25 @@ impl Client {
     /// Perform an instant query using a [crate::RangeVector] or [crate::InstantVector].
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Scheme, InstantVector, Selector, Aggregate};
+    /// use prometheus_http_query::{Client, Scheme, InstantVector, Selector, Aggregate, Error};
     /// use prometheus_http_query::aggregations::sum;
     /// use std::convert::TryInto;
     ///
-    /// let client = Client::new(Scheme::Http, "localhost", 9090);
+    /// fn main() -> Result<(), Error> {
+    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
     ///
-    /// let v: InstantVector = Selector::new()
-    ///     .metric("cpu_seconds_total")
-    ///     .unwrap()
-    ///     .try_into()
-    ///     .unwrap();
+    ///     let v: InstantVector = Selector::new()
+    ///         .metric("node_cpu_seconds_total")?
+    ///         .try_into()?;
     ///
-    /// let s = sum(v, Some(Aggregate::By(&["cpu"])));
+    ///     let s = sum(v, Some(Aggregate::By(&["cpu"])));
     ///
-    /// let response = tokio_test::block_on( async { client.query(s, None, None).await });
+    ///     let response = tokio_test::block_on( async { client.query(s, None, None).await });
     ///
-    /// assert!(response.is_ok());
+    ///     assert!(response.is_ok());
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     pub async fn query(
         &self,
@@ -125,7 +131,7 @@ impl Client {
             Err(err) => return Err(Error::Reqwest(err)),
         };
 
-        parse_response(mapped_response)
+        parse_query_response(mapped_response)
     }
 
     pub async fn query_range(
@@ -176,7 +182,131 @@ impl Client {
             Err(err) => return Err(Error::Reqwest(err)),
         };
 
-        parse_response(mapped_response)
+        parse_query_response(mapped_response)
+    }
+
+    /// Find time series by label matchers ([Selector]s).
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Scheme, Selector, Error};
+    ///
+    /// fn main() -> Result<(), Error> {
+    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///
+    ///     let s1 = Selector::new()
+    ///         .with("handler", "/api/v1/query");
+    ///
+    ///     let s2 = Selector::new()
+    ///         .with("job", "node")
+    ///         .regex_match("mode", ".+");
+    ///
+    ///     let set = vec![s1, s2];
+    ///
+    ///     let response = tokio_test::block_on( async { client.series(&set, None, None).await });
+    ///
+    ///     assert!(response.is_ok());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn series(
+        &self,
+        selectors: &[Selector<'_>],
+        start: Option<i64>,
+        end: Option<i64>,
+    ) -> Result<Response, Error> {
+        let mut url = self.base_url.clone();
+
+        url.push_str("/series");
+
+        let mut params = vec![];
+
+        let start = start.map(|t| t.to_string());
+
+        if let Some(s) = &start {
+            params.push(("start", s.as_str()));
+        }
+
+        let end = end.map(|t| t.to_string());
+
+        if let Some(e) = &end {
+            params.push(("end", e.as_str()));
+        }
+
+        if selectors.is_empty() {
+            return Err(Error::InvalidFunctionArgument(InvalidFunctionArgument {
+                message: String::from("at least one match[] argument (Selector) must be provided in order to query the series endpoint")
+            }));
+        }
+
+        let selectors: Vec<String> = selectors
+            .iter()
+            .map(|s| match s.to_string().as_str().split_once('}') {
+                Some(split) => {
+                    let mut s = split.0.to_owned();
+                    s.push('}');
+                    s
+                }
+                None => s.to_string(),
+            })
+            .collect();
+
+        for selector in &selectors {
+            params.push(("match[]", &selector));
+        }
+
+        let raw_response = self
+            .client
+            .get(&url)
+            .query(params.as_slice())
+            .send()
+            .await
+            .map_err(Error::Reqwest)?;
+
+        // NOTE: Can be changed to .map(async |resp| resp.json ...)
+        // when async closures are stable.
+        let mapped_response = match raw_response.error_for_status() {
+            Ok(res) => res
+                .json::<HashMap<String, serde_json::Value>>()
+                .await
+                .map_err(Error::Reqwest)?,
+            Err(err) => return Err(Error::Reqwest(err)),
+        };
+
+        parse_series_response(mapped_response)
+    }
+}
+
+// Parses the API response from a loosely typed Hashmap to a Response that
+// encapsulates a vector of Hashmaps that hold label names and values.
+// "Value"s are rigorously "unwrapped" in the process as each of these
+// is expected to be part of the JSON response.
+fn parse_series_response(response: HashMap<String, serde_json::Value>) -> Result<Response, Error> {
+    let status = response["status"].as_str().unwrap();
+
+    match status {
+        "success" => {
+            let data = response["data"].as_array().unwrap();
+
+            let mut result = vec![];
+
+            for datum in data {
+                result.push(parse_metric(datum.as_object().unwrap()));
+            }
+
+            Ok(Response::Series(result))
+        }
+        "error" => {
+            return Err(Error::ResponseError(ResponseError {
+                kind: response["errorType"].as_str().unwrap().to_string(),
+                message: response["error"].as_str().unwrap().to_string(),
+            }))
+        }
+        _ => {
+            return Err(Error::UnknownResponseStatus(UnknownResponseStatus(
+                status.to_string(),
+            )))
+        }
     }
 }
 
@@ -184,7 +314,7 @@ impl Client {
 // encapsulates a vector of samples of type "vector" or "matrix"
 // "Value"s are rigorously "unwrapped" in the process as each of these
 // is expected to be part of the JSON response.
-fn parse_response(response: HashMap<String, serde_json::Value>) -> Result<Response, Error> {
+fn parse_query_response(response: HashMap<String, serde_json::Value>) -> Result<Response, Error> {
     let status = response["status"].as_str().unwrap();
 
     match status {

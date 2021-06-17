@@ -8,7 +8,7 @@ use std::fmt;
 /// For final validation and further processing the selector is then
 /// converted to either a [crate::InstantVector] or [crate::RangeVector].
 ///
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Selector<'a> {
     pub(crate) metric: Option<&'a str>,
     pub(crate) labels: Option<Vec<Label<'a>>>,

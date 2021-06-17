@@ -55,7 +55,7 @@ impl<'a> fmt::Display for Group<'a> {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) enum Label<'c> {
     With((&'c str, &'c str)),
     Without((&'c str, &'c str)),
