@@ -56,7 +56,7 @@ impl<'a> fmt::Display for Group<'a> {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum Label<'c> {
+pub(crate) enum Label<'c> {
     With((&'c str, &'c str)),
     Without((&'c str, &'c str)),
     Matches((&'c str, &'c str)),
@@ -64,7 +64,7 @@ pub enum Label<'c> {
 }
 
 #[derive(Debug, Clone, Copy, Ord, PartialOrd, Eq, PartialEq)]
-pub enum Duration {
+pub(crate) enum Duration {
     Years(usize),
     Weeks(usize),
     Days(usize),
