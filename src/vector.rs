@@ -21,17 +21,18 @@ impl TryFrom<Selector<'_>> for InstantVector {
     /// Convert a [Selector] to an [InstantVector].
     ///
     /// ```rust
-    /// use prometheus_http_query::Selector;
-    /// use prometheus_http_query::InstantVector;
-    /// use prometheus_http_query::Error;
+    /// use prometheus_http_query::{Selector, InstantVector, Error};
     /// use std::convert::TryInto;
     ///
-    /// let v: Result<InstantVector, Error> = Selector::new()
-    ///     .metric("some_metric")
-    ///     .unwrap()
-    ///     .try_into();
+    /// fn main() -> Result<(), Error> {
+    ///     let v: Result<InstantVector, Error> = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .try_into();
     ///
-    /// assert!(v.is_ok());
+    ///     assert!(v.is_ok());
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     fn try_from(selector: Selector) -> Result<Self, Self::Error> {
         if selector.labels.is_none() && selector.metric.is_none() {
@@ -50,31 +51,30 @@ impl InstantVector {
     /// for details on this topic.
     ///
     /// ```rust
-    /// use prometheus_http_query::Selector;
-    /// use prometheus_http_query::InstantVector;
-    /// use prometheus_http_query::Match;
+    /// use prometheus_http_query::{Selector, InstantVector, Match, Error};
     /// use std::convert::TryInto;
     ///
-    /// let one: InstantVector = Selector::new()
-    ///     .metric("some_metric")
-    ///     .unwrap()
-    ///     .with("some_label", "some_value")
-    ///     .try_into()
-    ///     .unwrap();
+    /// fn main() -> Result<(), Error> {
+    ///     let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
     ///
-    /// let two: InstantVector = Selector::new()
-    ///     .metric("other_metric")
-    ///     .unwrap()
-    ///     .with("some_label", "some_value")
-    ///     .with("other_label", "other_value")
-    ///     .try_into()
-    ///     .unwrap();
+    ///     let two: InstantVector = Selector::new()
+    ///         .metric("other_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .with("other_label", "other_value")
+    ///         .try_into()?;
     ///
-    /// let new = one.add(two, Some(Match::On(&["some_label"])), None);
+    ///     let new = one.add(two, Some(Match::On(&["some_label"])), None);
     ///
-    /// let expected = String::from("some_metric{some_label=\"some_value\"} + on (some_label) other_metric{some_label=\"some_value\",other_label=\"other_value\"}");
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} + on (some_label) other_metric{some_label="some_value",other_label="other_value"}"#;
     ///
-    /// assert_eq!(new.to_string(), expected);
+    ///     assert_eq!(new.to_string(), expected.to_string());
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     pub fn add(
         self,
@@ -106,31 +106,30 @@ impl InstantVector {
     /// for details on this topic.
     ///
     /// ```rust
-    /// use prometheus_http_query::Selector;
-    /// use prometheus_http_query::InstantVector;
-    /// use prometheus_http_query::Match;
+    /// use prometheus_http_query::{Selector, InstantVector, Match, Error};
     /// use std::convert::TryInto;
     ///
-    /// let one: InstantVector = Selector::new()
-    ///     .metric("some_metric")
-    ///     .unwrap()
-    ///     .with("some_label", "some_value")
-    ///     .try_into()
-    ///     .unwrap();
+    /// fn main() -> Result<(), Error> {
+    ///      let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
     ///
-    /// let two: InstantVector = Selector::new()
-    ///     .metric("other_metric")
-    ///     .unwrap()
-    ///     .with("some_label", "some_value")
-    ///     .with("other_label", "other_value")
-    ///     .try_into()
-    ///     .unwrap();
+    ///     let two: InstantVector = Selector::new()
+    ///         .metric("other_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .with("other_label", "other_value")
+    ///         .try_into()?;
     ///
-    /// let new = one.subtract(two, Some(Match::Ignoring(&["other_label"])), None);
+    ///     let new = one.subtract(two, Some(Match::Ignoring(&["other_label"])), None);
     ///
-    /// let expected = String::from("some_metric{some_label=\"some_value\"} - ignoring (other_label) other_metric{some_label=\"some_value\",other_label=\"other_value\"}");
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} - ignoring (other_label) other_metric{some_label="some_value",other_label="other_value"}"#;
     ///
-    /// assert_eq!(new.to_string(), expected);
+    ///     assert_eq!(new.to_string(), expected.to_string());
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     pub fn subtract(
         self,
@@ -162,31 +161,30 @@ impl InstantVector {
     /// for details on this topic.
     ///
     /// ```rust
-    /// use prometheus_http_query::Selector;
-    /// use prometheus_http_query::InstantVector;
-    /// use prometheus_http_query::Match;
+    /// use prometheus_http_query::{Selector, InstantVector, Match, Error};
     /// use std::convert::TryInto;
     ///
-    /// let one: InstantVector = Selector::new()
-    ///     .metric("some_metric")
-    ///     .unwrap()
-    ///     .with("some_label", "some_value")
-    ///     .try_into()
-    ///     .unwrap();
+    /// fn main() -> Result<(), Error> {
+    ///     let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
     ///
-    /// let two: InstantVector = Selector::new()
-    ///     .metric("other_metric")
-    ///     .unwrap()
-    ///     .with("some_label", "some_value")
-    ///     .with("other_label", "other_value")
-    ///     .try_into()
-    ///     .unwrap();
+    ///     let two: InstantVector = Selector::new()
+    ///         .metric("other_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .with("other_label", "other_value")
+    ///         .try_into()?;
     ///
-    /// let new = one.multiply(two, Some(Match::On(&["some_label"])), None);
+    ///     let new = one.multiply(two, Some(Match::On(&["some_label"])), None);
     ///
-    /// let expected = String::from("some_metric{some_label=\"some_value\"} * on (some_label) other_metric{some_label=\"some_value\",other_label=\"other_value\"}");
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} * on (some_label) other_metric{some_label="some_value",other_label="other_value"}"#;
     ///
-    /// assert_eq!(new.to_string(), expected);
+    ///     assert_eq!(new.to_string(), expected.to_string());
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     pub fn multiply(
         self,
@@ -218,31 +216,30 @@ impl InstantVector {
     /// for details on this topic.
     ///
     /// ```rust
-    /// use prometheus_http_query::Selector;
-    /// use prometheus_http_query::InstantVector;
-    /// use prometheus_http_query::Match;
+    /// use prometheus_http_query::{Selector, InstantVector, Match, Error};
     /// use std::convert::TryInto;
     ///
-    /// let one: InstantVector = Selector::new()
-    ///     .metric("some_metric")
-    ///     .unwrap()
-    ///     .with("some_label", "some_value")
-    ///     .try_into()
-    ///     .unwrap();
+    /// fn main() -> Result<(), Error> {
+    ///     let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
     ///
-    /// let two: InstantVector = Selector::new()
-    ///     .metric("other_metric")
-    ///     .unwrap()
-    ///     .with("some_label", "some_value")
-    ///     .with("other_label", "other_value")
-    ///     .try_into()
-    ///     .unwrap();
+    ///     let two: InstantVector = Selector::new()
+    ///         .metric("other_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .with("other_label", "other_value")
+    ///         .try_into()?;
     ///
-    /// let new = one.divide(two, Some(Match::Ignoring(&["other_label"])), None);
+    ///     let new = one.divide(two, Some(Match::Ignoring(&["other_label"])), None);
     ///
-    /// let expected = String::from("some_metric{some_label=\"some_value\"} / ignoring (other_label) other_metric{some_label=\"some_value\",other_label=\"other_value\"}");
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} / ignoring (other_label) other_metric{some_label="some_value",other_label="other_value"}"#;
     ///
-    /// assert_eq!(new.to_string(), expected);
+    ///     assert_eq!(new.to_string(), expected.to_string());
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     pub fn divide(
         self,
@@ -274,31 +271,30 @@ impl InstantVector {
     /// for details on this topic.
     ///
     /// ```rust
-    /// use prometheus_http_query::Selector;
-    /// use prometheus_http_query::InstantVector;
-    /// use prometheus_http_query::Match;
+    /// use prometheus_http_query::{Selector, InstantVector, Match, Error};
     /// use std::convert::TryInto;
     ///
-    /// let one: InstantVector = Selector::new()
-    ///     .metric("some_metric")
-    ///     .unwrap()
-    ///     .with("some_label", "some_value")
-    ///     .try_into()
-    ///     .unwrap();
+    /// fn main() -> Result<(), Error> {
+    ///     let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
     ///
-    /// let two: InstantVector = Selector::new()
-    ///     .metric("other_metric")
-    ///     .unwrap()
-    ///     .with("some_label", "some_value")
-    ///     .with("other_label", "other_value")
-    ///     .try_into()
-    ///     .unwrap();
+    ///     let two: InstantVector = Selector::new()
+    ///         .metric("other_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .with("other_label", "other_value")
+    ///         .try_into()?;
     ///
-    /// let new = one.modulo(two, Some(Match::Ignoring(&["other_label"])), None);
+    ///     let new = one.modulo(two, Some(Match::Ignoring(&["other_label"])), None);
     ///
-    /// let expected = String::from("some_metric{some_label=\"some_value\"} % ignoring (other_label) other_metric{some_label=\"some_value\",other_label=\"other_value\"}");
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} % ignoring (other_label) other_metric{some_label="some_value",other_label="other_value"}"#;
     ///
-    /// assert_eq!(new.to_string(), expected);
+    ///     assert_eq!(new.to_string(), expected.to_string());
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     pub fn modulo(
         self,
@@ -330,31 +326,30 @@ impl InstantVector {
     /// for details on this topic.
     ///
     /// ```rust
-    /// use prometheus_http_query::Selector;
-    /// use prometheus_http_query::InstantVector;
-    /// use prometheus_http_query::Match;
+    /// use prometheus_http_query::{Selector, InstantVector, Match, Error};
     /// use std::convert::TryInto;
     ///
-    /// let one: InstantVector = Selector::new()
-    ///     .metric("some_metric")
-    ///     .unwrap()
-    ///     .with("some_label", "some_value")
-    ///     .try_into()
-    ///     .unwrap();
+    /// fn main() -> Result<(), Error> {
+    ///     let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
     ///
-    /// let two: InstantVector = Selector::new()
-    ///     .metric("other_metric")
-    ///     .unwrap()
-    ///     .with("some_label", "some_value")
-    ///     .with("other_label", "other_value")
-    ///     .try_into()
-    ///     .unwrap();
+    ///     let two: InstantVector = Selector::new()
+    ///         .metric("other_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .with("other_label", "other_value")
+    ///         .try_into()?;
     ///
-    /// let new = one.power(two, Some(Match::Ignoring(&["other_label"])), None);
+    ///     let new = one.power(two, Some(Match::Ignoring(&["other_label"])), None);
     ///
-    /// let expected = String::from("some_metric{some_label=\"some_value\"} ^ ignoring (other_label) other_metric{some_label=\"some_value\",other_label=\"other_value\"}");
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} ^ ignoring (other_label) other_metric{some_label="some_value",other_label="other_value"}"#;
     ///
-    /// assert_eq!(new.to_string(), expected);
+    ///     assert_eq!(new.to_string(), expected);
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     pub fn power(
         self,
@@ -386,31 +381,30 @@ impl InstantVector {
     /// for details on this topic.
     ///
     /// ```rust
-    /// use prometheus_http_query::Selector;
-    /// use prometheus_http_query::InstantVector;
-    /// use prometheus_http_query::Match;
+    /// use prometheus_http_query::{Selector, InstantVector, Error};
     /// use std::convert::TryInto;
     ///
-    /// let one: InstantVector = Selector::new()
-    ///     .metric("some_metric")
-    ///     .unwrap()
-    ///     .with("some_label", "some_value")
-    ///     .try_into()
-    ///     .unwrap();
+    /// fn main() -> Result<(), Error> {
+    ///     let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
     ///
-    /// let two: InstantVector = Selector::new()
-    ///     .metric("other_metric")
-    ///     .unwrap()
-    ///     .with("some_label", "some_value")
-    ///     .with("other_label", "other_value")
-    ///     .try_into()
-    ///     .unwrap();
+    ///     let two: InstantVector = Selector::new()
+    ///         .metric("other_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .with("other_label", "other_value")
+    ///         .try_into()?;
     ///
-    /// let new = one.and(two);
+    ///     let new = one.and(two);
     ///
-    /// let expected = String::from("some_metric{some_label=\"some_value\"} and other_metric{some_label=\"some_value\",other_label=\"other_value\"}");
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} and other_metric{some_label="some_value",other_label="other_value"}"#;
     ///
-    /// assert_eq!(new.to_string(), expected);
+    ///     assert_eq!(new.to_string(), expected.to_string());
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     pub fn and(self, other: InstantVector) -> Self {
         let InstantVector(mut this) = self;
@@ -429,31 +423,30 @@ impl InstantVector {
     /// for details on this topic.
     ///
     /// ```rust
-    /// use prometheus_http_query::Selector;
-    /// use prometheus_http_query::InstantVector;
-    /// use prometheus_http_query::Match;
+    /// use prometheus_http_query::{Selector, InstantVector, Error};
     /// use std::convert::TryInto;
     ///
-    /// let one: InstantVector = Selector::new()
-    ///     .metric("some_metric")
-    ///     .unwrap()
-    ///     .with("some_label", "some_value")
-    ///     .try_into()
-    ///     .unwrap();
+    /// fn main() -> Result<(), Error> {
+    ///     let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
     ///
-    /// let two: InstantVector = Selector::new()
-    ///     .metric("other_metric")
-    ///     .unwrap()
-    ///     .with("some_label", "some_value")
-    ///     .with("other_label", "other_value")
-    ///     .try_into()
-    ///     .unwrap();
+    ///     let two: InstantVector = Selector::new()
+    ///         .metric("other_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .with("other_label", "other_value")
+    ///         .try_into()?;
     ///
-    /// let new = one.or(two);
+    ///     let new = one.or(two);
     ///
-    /// let expected = String::from("some_metric{some_label=\"some_value\"} or other_metric{some_label=\"some_value\",other_label=\"other_value\"}");
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} or other_metric{some_label="some_value",other_label="other_value"}"#;
     ///
-    /// assert_eq!(new.to_string(), expected);
+    ///     assert_eq!(new.to_string(), expected.to_string());
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     pub fn or(self, other: InstantVector) -> Self {
         let InstantVector(mut this) = self;
@@ -472,31 +465,30 @@ impl InstantVector {
     /// for details on this topic.
     ///
     /// ```rust
-    /// use prometheus_http_query::Selector;
-    /// use prometheus_http_query::InstantVector;
-    /// use prometheus_http_query::Match;
+    /// use prometheus_http_query::{Selector, InstantVector, Error};
     /// use std::convert::TryInto;
     ///
-    /// let one: InstantVector = Selector::new()
-    ///     .metric("some_metric")
-    ///     .unwrap()
-    ///     .with("some_label", "some_value")
-    ///     .try_into()
-    ///     .unwrap();
+    /// fn main() -> Result<(), Error> {
+    ///     let one: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
     ///
-    /// let two: InstantVector = Selector::new()
-    ///     .metric("other_metric")
-    ///     .unwrap()
-    ///     .with("some_label", "some_value")
-    ///     .with("other_label", "other_value")
-    ///     .try_into()
-    ///     .unwrap();
+    ///     let two: InstantVector = Selector::new()
+    ///         .metric("other_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .with("other_label", "other_value")
+    ///         .try_into()?;
     ///
-    /// let new = one.unless(two);
+    ///     let new = one.unless(two);
     ///
-    /// let expected = String::from("some_metric{some_label=\"some_value\"} unless other_metric{some_label=\"some_value\",other_label=\"other_value\"}");
+    ///     // This would ultimately be the query string posted to the HTTP API.
+    ///     let expected = r#"some_metric{some_label="some_value"} unless other_metric{some_label="some_value",other_label="other_value"}"#;
     ///
-    /// assert_eq!(new.to_string(), expected);
+    ///     assert_eq!(new.to_string(), expected.to_string());
+    ///
+    ///     Ok(())
+    /// }
     /// ```
     pub fn unless(self, other: InstantVector) -> Self {
         let InstantVector(mut this) = self;
