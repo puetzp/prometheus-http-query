@@ -54,7 +54,7 @@
 //!
 //! # Limitations
 //!
-//! * Some query types (targets/rules/alerts) are not supported (yet)
+//! * Some query types (rules/alerts) are not supported (yet)
 //! * reqwest client configuration cannot be customized (yet)
 //! * Subqueries are not supported (only as custom query)
 //! * PromQL functions that do not take a range / instant vector as an argument are not supported (only as custom query)
