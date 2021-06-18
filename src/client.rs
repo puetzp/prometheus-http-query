@@ -703,23 +703,15 @@ fn parse_query_response(response: HashMap<String, serde_json::Value>) -> Result<
         "success" => {
             let data_obj = response["data"].as_object().unwrap();
             let data_type = data_obj["resultType"].as_str().unwrap();
-            let data = data_obj["result"].as_array().unwrap();
+            let data = data_obj["result"].as_array().unwrap().to_owned();
 
             match data_type {
                 "vector" => {
                     let mut result: Vec<Vector> = vec![];
 
                     for datum in data {
-                        let metric = parse_metric(datum["metric"].as_object().unwrap());
-
-                        let raw_value = datum["value"].as_array().unwrap();
-
-                        let sample = Sample {
-                            timestamp: raw_value[0].as_f64().unwrap(),
-                            value: raw_value[1].as_str().unwrap().to_string(),
-                        };
-
-                        result.push(Vector { metric, sample });
+                        let vector: Vector = serde_json::from_value(datum).unwrap();
+                        result.push(vector);
                     }
 
                     Ok(Response::Vector(result))
@@ -728,18 +720,8 @@ fn parse_query_response(response: HashMap<String, serde_json::Value>) -> Result<
                     let mut result: Vec<Matrix> = vec![];
 
                     for datum in data {
-                        let metric = parse_metric(datum["metric"].as_object().unwrap());
-
-                        let mut samples: Vec<Sample> = vec![];
-
-                        for sample in datum["values"].as_array().unwrap() {
-                            samples.push(Sample {
-                                timestamp: sample[0].as_f64().unwrap(),
-                                value: sample[1].as_str().unwrap().to_string(),
-                            });
-                        }
-
-                        result.push(Matrix { metric, samples });
+                        let matrix: Matrix = serde_json::from_value(datum).unwrap();
+                        result.push(matrix);
                     }
 
                     Ok(Response::Matrix(result))

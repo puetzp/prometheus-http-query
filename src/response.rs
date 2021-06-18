@@ -1,5 +1,6 @@
 //! Collection of response types, most importantly the [Response] enum
 use crate::util::TargetHealth;
+use serde::Deserialize;
 use std::collections::HashMap;
 
 /// A wrapper for any kind of response the API returns.
@@ -14,9 +15,10 @@ pub enum Response {
 }
 
 /// A single time series containing a single data point ([Sample]).
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct Vector {
     pub(crate) metric: HashMap<String, String>,
+    #[serde(alias = "value")]
     pub(crate) sample: Sample,
 }
 
@@ -34,9 +36,10 @@ impl Vector {
 }
 
 /// A single time series containing a range of data points ([Sample]s).
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct Matrix {
     pub(crate) metric: HashMap<String, String>,
+    #[serde(alias = "values")]
     pub(crate) samples: Vec<Sample>,
 }
 
@@ -54,7 +57,7 @@ impl Matrix {
 }
 
 /// A single data point.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct Sample {
     pub(crate) timestamp: f64,
     pub(crate) value: String,
