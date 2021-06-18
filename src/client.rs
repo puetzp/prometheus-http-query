@@ -533,7 +533,9 @@ fn parse_series_response(response: HashMap<String, serde_json::Value>) -> Result
             let mut result = vec![];
 
             for datum in data {
-                result.push(parse_metric(datum.as_object().unwrap()));
+                let metric: HashMap<String, String> =
+                    serde_json::from_value(datum.to_owned()).unwrap();
+                result.push(metric);
             }
 
             Ok(Response::Series(result))
@@ -702,16 +704,4 @@ fn parse_query_response(response: HashMap<String, serde_json::Value>) -> Result<
             )))
         }
     }
-}
-
-fn parse_metric(metric: &serde_json::Map<String, serde_json::Value>) -> HashMap<String, String> {
-    let mut result: HashMap<String, String> = HashMap::new();
-
-    for item in metric {
-        let key = item.0.to_string();
-        let val = item.1.as_str().unwrap().to_string();
-        result.insert(key, val);
-    }
-
-    result
 }
