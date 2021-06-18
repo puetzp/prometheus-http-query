@@ -4,7 +4,7 @@ use crate::error::{
 };
 use crate::response::*;
 use crate::selector::Selector;
-use crate::util::{validate_duration, TargetHealth, TargetState};
+use crate::util::{validate_duration, TargetState};
 use std::collections::HashMap;
 
 /// A helper enum that is passed to the [Client::new] function in
@@ -561,52 +561,9 @@ fn parse_target_response(response: HashMap<String, serde_json::Value>) -> Result
 
     match status {
         "success" => {
-            let data_obj = response["data"].as_object().unwrap();
-            let mut active = vec![];
-            let mut dropped = vec![];
-
-            for target in data_obj["activeTargets"].as_array().unwrap() {
-                let target_obj = target.as_object().unwrap();
-                let discovered_labels =
-                    parse_metric(target_obj["discoveredLabels"].as_object().unwrap());
-                let labels = parse_metric(target_obj["labels"].as_object().unwrap());
-                let scrape_pool = target_obj["scrapePool"].as_str().unwrap().to_string();
-                let scrape_url = target_obj["scrapeUrl"].as_str().unwrap().to_string();
-                let global_url = target_obj["globalUrl"].as_str().unwrap().to_string();
-                let last_error = target_obj["lastError"].as_str().unwrap().to_string();
-                let last_scrape = target_obj["lastScrape"].as_str().unwrap().to_string();
-                let last_scrape_duration = target_obj["lastScrapeDuration"].as_f64().unwrap();
-
-                let health = match target_obj["health"].as_str().unwrap() {
-                    "up" => TargetHealth::Up,
-                    "down" => TargetHealth::Down,
-                    "unknown" => TargetHealth::Unknown,
-                    _ => unreachable!(),
-                };
-
-                active.push(ActiveTarget {
-                    discovered_labels,
-                    labels,
-                    scrape_pool,
-                    scrape_url,
-                    global_url,
-                    last_error,
-                    last_scrape,
-                    last_scrape_duration,
-                    health,
-                });
-            }
-
-            for target in data_obj["droppedTargets"].as_array().unwrap() {
-                let target_obj = target.as_object().unwrap();
-                let discovered_labels =
-                    parse_metric(target_obj["discoveredLabels"].as_object().unwrap());
-                dropped.push(DroppedTarget(discovered_labels));
-            }
-
-            let result = Targets { active, dropped };
-
-            Ok(Response::Targets(result))
+            let raw_targets = response["data"].to_owned();
+            let targets: Targets = serde_json::from_value(raw_targets).unwrap();
+            Ok(Response::Targets(targets))
         }
         "error" => {
             return Err(Error::ResponseError(ResponseError {

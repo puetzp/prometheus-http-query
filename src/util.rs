@@ -74,10 +74,13 @@ impl fmt::Display for TargetState {
 }
 
 /// A helper type to represent possible target health states.
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, serde::Deserialize)]
 pub enum TargetHealth {
+    #[serde(alias = "up")]
     Up,
+    #[serde(alias = "down")]
     Down,
+    #[serde(alias = "unknown")]
     Unknown,
 }
 

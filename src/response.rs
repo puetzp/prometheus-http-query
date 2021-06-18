@@ -76,9 +76,11 @@ impl Sample {
 }
 
 /// Collection of active and dropped targets as returned by the API.
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct Targets {
+    #[serde(alias = "activeTargets")]
     pub(crate) active: Vec<ActiveTarget>,
+    #[serde(alias = "droppedTargets")]
     pub(crate) dropped: Vec<DroppedTarget>,
 }
 
@@ -95,15 +97,22 @@ impl Targets {
 }
 
 /// A single active target.v
-#[derive(Debug)]
+#[derive(Debug, Deserialize)]
 pub struct ActiveTarget {
+    #[serde(alias = "discoveredLabels")]
     pub(crate) discovered_labels: HashMap<String, String>,
     pub(crate) labels: HashMap<String, String>,
+    #[serde(alias = "scrapePool")]
     pub(crate) scrape_pool: String,
+    #[serde(alias = "scrapeUrl")]
     pub(crate) scrape_url: String,
+    #[serde(alias = "globalUrl")]
     pub(crate) global_url: String,
+    #[serde(alias = "lastError")]
     pub(crate) last_error: String,
+    #[serde(alias = "lastScrape")]
     pub(crate) last_scrape: String,
+    #[serde(alias = "lastScrapeDuration")]
     pub(crate) last_scrape_duration: f64,
     pub(crate) health: TargetHealth,
 }
@@ -156,13 +165,15 @@ impl ActiveTarget {
 }
 
 /// A single dropped target.
-#[derive(Debug)]
-pub struct DroppedTarget(pub(crate) HashMap<String, String>);
+#[derive(Debug, Deserialize)]
+pub struct DroppedTarget {
+    #[serde(alias = "discoveredLabels")]
+    pub(crate) discovered_labels: HashMap<String, String>,
+}
 
 impl DroppedTarget {
     /// Get a list of unmodified labels as before relabelling occurred.
     pub fn discovered_labels(&self) -> &HashMap<String, String> {
-        let DroppedTarget(discovered_labels) = self;
-        discovered_labels
+        &self.discovered_labels
     }
 }
