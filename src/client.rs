@@ -144,7 +144,7 @@ impl Client {
     ) -> Result<Response, Error> {
         let mut url = self.base_url.clone();
 
-        url.push_str("/query");
+        url.push_str("/query_range");
 
         validate_duration(step)?;
 
