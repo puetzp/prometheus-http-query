@@ -78,6 +78,18 @@ pub struct Targets {
     pub(crate) dropped: Vec<DroppedTarget>,
 }
 
+impl Targets {
+    /// Get a list of currently active targets.
+    pub fn active(&self) -> &[ActiveTarget] {
+        &self.active
+    }
+
+    /// Get a list of dropped targets.
+    pub fn dropped(&self) -> &[DroppedTarget] {
+        &self.dropped
+    }
+}
+
 /// A single active target.v
 #[derive(Debug)]
 pub struct ActiveTarget {
@@ -92,6 +104,61 @@ pub struct ActiveTarget {
     pub(crate) health: String,
 }
 
+impl ActiveTarget {
+    /// Get a list of unmodified labels as before relabelling occurred.
+    pub fn discovered_labels(&self) -> &HashMap<String, String> {
+        &self.discovered_labels
+    }
+
+    /// Get a list of labels after relabelling.
+    pub fn labels(&self) -> &HashMap<String, String> {
+        &self.labels
+    }
+
+    /// Get the scrape pool of this target.
+    pub fn scrape_pool(&self) -> &str {
+        &self.scrape_pool
+    }
+
+    /// Get the scrape URL of this target.
+    pub fn scrape_url(&self) -> &str {
+        &self.scrape_url
+    }
+
+    /// Get the global URL of this target.
+    pub fn global_url(&self) -> &str {
+        &self.global_url
+    }
+
+    /// Get the last error reported for this target.
+    pub fn last_error(&self) -> &str {
+        &self.last_error
+    }
+
+    /// Get the timestamp of the last scrape in RFC3339 format.
+    pub fn last_scrape(&self) -> &str {
+        &self.last_scrape
+    }
+
+    /// Get the duration that the last scrape ran for in seconds.
+    pub fn last_scrape_duration(&self) -> f64 {
+        self.last_scrape_duration
+    }
+
+    /// Get the health status of this target.
+    pub fn health(&self) -> &str {
+        &self.health
+    }
+}
+
 /// A single dropped target.
 #[derive(Debug)]
 pub struct DroppedTarget(pub(crate) HashMap<String, String>);
+
+impl DroppedTarget {
+    /// Get a list of unmodified labels as before relabelling occurred.
+    pub fn discovered_labels(&self) -> &HashMap<String, String> {
+        let DroppedTarget(discovered_labels) = self;
+        discovered_labels
+    }
+}
