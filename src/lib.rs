@@ -7,6 +7,13 @@
 //! apply to this library.
 //!
 //! # Usage
+//!
+//! ## Construct PromQL queries
+//!
+//! Gradually build PromQL expressions using [Selector], turn it into a [RangeVector] or [InstantVector],
+//! apply additional [aggregations] or [functions] on them and evaluate the final expression at an instant ([Client::query])
+//! or a range of time ([Client::query_range]).
+//!
 //! ```rust
 //! use prometheus_http_query::{Client, Selector, RangeVector, Aggregate};
 //! use prometheus_http_query::aggregations::sum;
@@ -28,10 +35,23 @@
 //!     let response = client.query(q, None, None).await;
 //!
 //!     assert!(response.is_ok());
+//!    
+//!     Ok(())
+//! }
+//! ```
 //!
-//!     // It is also possible to bypass every kind of validation by supplying
-//!     // a custom query directly to the InstantVector | RangeVector types.
-//!     // The equivalent of the operation above would be:
+//! ## Custom non-validated PromQL queries
+//!
+//! It is also possible to bypass every kind of validation by supplying
+//! a custom query directly to the [InstantVector] / [RangeVector] types.
+//!
+//! ```rust
+//! use prometheus_http_query::{Client, RangeVector};
+//!
+//! #[tokio::main(flavor = "current_thread")]
+//! async fn main() -> Result<(), prometheus_http_query::Error> {
+//!     let client: Client = Default::default();
+//!
 //!     let q = r#"sum by(cpu) (rate(node_cpu_seconds_total{mode="user"}[5m]))"#;
 //!
 //!     let v = RangeVector(q.to_string());
@@ -43,6 +63,35 @@
 //!     Ok(())
 //! }
 //! ```
+//!
+//! ## Metadata queries
+//!
+//! Retrieve a list of time series that match a certain label set by providing one or more series [Selector]s.
+//!
+//! ```rust
+//! use prometheus_http_query::{Client, Scheme, Selector, Error};
+//!
+//! fn main() -> Result<(), Error> {
+//!     let client = Client::new(Scheme::Http, "localhost", 9090);
+//!
+//!     let s1 = Selector::new()
+//!         .with("handler", "/api/v1/query");
+//!
+//!     let s2 = Selector::new()
+//!         .with("job", "node")
+//!         .regex_match("mode", ".+");
+//!
+//!     let set = vec![s1, s2];
+//!
+//!     let response = tokio_test::block_on( async { client.series(&set, None, None).await });
+//!
+//!     assert!(response.is_ok());
+//!
+//!     Ok(())
+//! }
+//! ```
+//!
+//! This is just one example. See [Client] for examples of other types of metadata queries.
 //!
 //! # Notes
 //!
