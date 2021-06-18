@@ -4,7 +4,7 @@ use crate::error::{
 };
 use crate::response::*;
 use crate::selector::Selector;
-use crate::util::{validate_duration, TargetState};
+use crate::util::{validate_duration, TargetHealth, TargetState};
 use std::collections::HashMap;
 
 /// A helper enum that is passed to the [Client::new] function in
@@ -576,7 +576,14 @@ fn parse_target_response(response: HashMap<String, serde_json::Value>) -> Result
                 let last_error = target_obj["lastError"].as_str().unwrap().to_string();
                 let last_scrape = target_obj["lastScrape"].as_str().unwrap().to_string();
                 let last_scrape_duration = target_obj["lastScrapeDuration"].as_f64().unwrap();
-                let health = target_obj["health"].as_str().unwrap().to_string();
+
+                let health = match target_obj["health"].as_str().unwrap() {
+                    "up" => TargetHealth::Up,
+                    "down" => TargetHealth::Down,
+                    "unknown" => TargetHealth::Unknown,
+                    _ => unreachable!(),
+                };
+
                 active.push(ActiveTarget {
                     discovered_labels,
                     labels,

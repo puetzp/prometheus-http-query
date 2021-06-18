@@ -1,4 +1,5 @@
 //! Collection of response types, most importantly the [Response] enum
+use crate::util::TargetHealth;
 use std::collections::HashMap;
 
 /// A wrapper for any kind of response the API returns.
@@ -101,7 +102,7 @@ pub struct ActiveTarget {
     pub(crate) last_error: String,
     pub(crate) last_scrape: String,
     pub(crate) last_scrape_duration: f64,
-    pub(crate) health: String,
+    pub(crate) health: TargetHealth,
 }
 
 impl ActiveTarget {
@@ -146,8 +147,8 @@ impl ActiveTarget {
     }
 
     /// Get the health status of this target.
-    pub fn health(&self) -> &str {
-        &self.health
+    pub fn health(&self) -> TargetHealth {
+        self.health
     }
 }
 

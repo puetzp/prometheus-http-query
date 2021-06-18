@@ -73,6 +73,24 @@ impl fmt::Display for TargetState {
     }
 }
 
+/// A helper type to represent possible target health states.
+#[derive(Debug, Copy, Clone)]
+pub enum TargetHealth {
+    Up,
+    Down,
+    Unknown,
+}
+
+impl fmt::Display for TargetHealth {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            TargetHealth::Up => write!(f, "up"),
+            TargetHealth::Down => write!(f, "down"),
+            TargetHealth::Unknown => write!(f, "unknown"),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum Label<'c> {
     With((&'c str, &'c str)),
