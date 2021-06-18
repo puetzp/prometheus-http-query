@@ -93,6 +93,21 @@
 //!
 //! This is just one example. See [Client] for examples of other types of metadata queries.
 //!
+//! # Supported operations
+//!
+//! - [x] Building PromQL expressions using time series selectors, functions and operators (aggregation/binary/vector matching ...)
+//! - [x] Evaluating expressions as instant queries
+//! - [x] Evaluating expressions as range queries
+//! - [x] Executing series metadata queries
+//! - [x] Executing label metadata queries (names/values)
+//! - [x] Retrieving target discovery status
+//! - [ ] Alerting + recording rules
+//! - [ ] Active alerts
+//! - [ ] Target metadata
+//! - [ ] Metric metadata
+//! - [ ] Alertmanager service discovery status
+//! - [ ] Prometheus status (config, startup flags ...)
+//!
 //! # Notes
 //!
 //! If the JSON response from the Prometheus HTTP API indicates an error (field `status` == `"error"`),
