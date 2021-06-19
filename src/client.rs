@@ -113,25 +113,19 @@ impl Client {
             params.push(("timeout", t));
         }
 
-        let raw_response = self
+        let response = self
             .client
             .get(&url)
             .query(params.as_slice())
             .send()
             .await
+            .map_err(Error::Reqwest)?
+            .error_for_status()
             .map_err(Error::Reqwest)?;
 
-        // NOTE: Can be changed to .map(async |resp| resp.json ...)
-        // when async closures are stable.
-        let response = match raw_response.error_for_status() {
-            Ok(res) => res
-                .json::<HashMap<String, serde_json::Value>>()
-                .await
-                .map_err(Error::Reqwest)?,
-            Err(err) => return Err(Error::Reqwest(err)),
-        };
-
-        check_json_response(&response).and_then(move |_| convert_query_response(response))
+        check_response(response)
+            .await
+            .and_then(convert_query_response)
     }
 
     pub async fn query_range(
@@ -164,25 +158,19 @@ impl Client {
             params.push(("timeout", t));
         }
 
-        let raw_response = self
+        let response = self
             .client
             .get(&url)
             .query(params.as_slice())
             .send()
             .await
+            .map_err(Error::Reqwest)?
+            .error_for_status()
             .map_err(Error::Reqwest)?;
 
-        // NOTE: Can be changed to .map(async |resp| resp.json ...)
-        // when async closures are stable.
-        let response = match raw_response.error_for_status() {
-            Ok(res) => res
-                .json::<HashMap<String, serde_json::Value>>()
-                .await
-                .map_err(Error::Reqwest)?,
-            Err(err) => return Err(Error::Reqwest(err)),
-        };
-
-        check_json_response(&response).and_then(move |_| convert_query_response(response))
+        check_response(response)
+            .await
+            .and_then(convert_query_response)
     }
 
     /// Find time series by series selectors.
@@ -255,26 +243,18 @@ impl Client {
             params.push(("match[]", &selector));
         }
 
-        let raw_response = self
+        let response = self
             .client
             .get(&url)
             .query(params.as_slice())
             .send()
             .await
+            .map_err(Error::Reqwest)?
+            .error_for_status()
             .map_err(Error::Reqwest)?;
 
-        // NOTE: Can be changed to .map(async |resp| resp.json ...)
-        // when async closures are stable.
-        let response = match raw_response.error_for_status() {
-            Ok(res) => res
-                .json::<HashMap<String, serde_json::Value>>()
-                .await
-                .map_err(Error::Reqwest)?,
-            Err(err) => return Err(Error::Reqwest(err)),
-        };
-
-        check_json_response(&response).and_then(move |_| {
-            let data = response["data"].as_array().unwrap();
+        check_response(response).await.and_then(move |r| {
+            let data = r["data"].as_array().unwrap();
 
             let mut result = vec![];
 
@@ -361,26 +341,18 @@ impl Client {
             }
         }
 
-        let raw_response = self
+        let response = self
             .client
             .get(&url)
             .query(params.as_slice())
             .send()
             .await
+            .map_err(Error::Reqwest)?
+            .error_for_status()
             .map_err(Error::Reqwest)?;
 
-        // NOTE: Can be changed to .map(async |resp| resp.json ...)
-        // when async closures are stable.
-        let response = match raw_response.error_for_status() {
-            Ok(res) => res
-                .json::<HashMap<String, serde_json::Value>>()
-                .await
-                .map_err(Error::Reqwest)?,
-            Err(err) => return Err(Error::Reqwest(err)),
-        };
-
-        check_json_response(&response).and_then(move |_| {
-            let data = response["data"].as_array().unwrap();
+        check_response(response).await.and_then(move |r| {
+            let data = r["data"].as_array().unwrap();
 
             let mut result = vec![];
 
@@ -464,26 +436,18 @@ impl Client {
             }
         }
 
-        let raw_response = self
+        let response = self
             .client
             .get(&url)
             .query(params.as_slice())
             .send()
             .await
+            .map_err(Error::Reqwest)?
+            .error_for_status()
             .map_err(Error::Reqwest)?;
 
-        // NOTE: Can be changed to .map(async |resp| resp.json ...)
-        // when async closures are stable.
-        let response = match raw_response.error_for_status() {
-            Ok(res) => res
-                .json::<HashMap<String, serde_json::Value>>()
-                .await
-                .map_err(Error::Reqwest)?,
-            Err(err) => return Err(Error::Reqwest(err)),
-        };
-
-        check_json_response(&response).and_then(move |_| {
-            let data = response["data"].as_array().unwrap();
+        check_response(response).await.and_then(move |r| {
+            let data = r["data"].as_array().unwrap();
 
             let mut result = vec![];
 
@@ -529,41 +493,41 @@ impl Client {
             params.push(("state", s.as_str()))
         }
 
-        let raw_response = self
+        let response = self
             .client
             .get(&url)
             .query(params.as_slice())
             .send()
             .await
+            .map_err(Error::Reqwest)?
+            .error_for_status()
             .map_err(Error::Reqwest)?;
 
-        // NOTE: Can be changed to .map(async |resp| resp.json ...)
-        // when async closures are stable.
-        let response = match raw_response.error_for_status() {
-            Ok(res) => res
-                .json::<HashMap<String, serde_json::Value>>()
-                .await
-                .map_err(Error::Reqwest)?,
-            Err(err) => return Err(Error::Reqwest(err)),
-        };
-
-        check_json_response(&response).and_then(move |_| {
-            let raw_targets = response["data"].to_owned();
+        check_response(response).await.and_then(move |r| {
+            let raw_targets = r["data"].to_owned();
             let targets: Targets = serde_json::from_value(raw_targets).unwrap();
             Ok(Response::Targets(targets))
         })
     }
 }
 
-/// Check the JSON response's status field and map reported errors (if any).
-fn check_json_response(response: &HashMap<String, serde_json::Value>) -> Result<(), Error> {
-    let status = response["status"].as_str().unwrap();
+// Convert the response object to an intermediary map, check the JSON's status field
+// and map potential errors (if any) to a proper error type. Else return the map.
+async fn check_response(
+    response: reqwest::Response,
+) -> Result<HashMap<String, serde_json::Value>, Error> {
+    let map = response
+        .json::<HashMap<String, serde_json::Value>>()
+        .await
+        .map_err(Error::Reqwest)?;
+
+    let status = map["status"].as_str().unwrap();
 
     match status {
-        "success" => Ok(()),
+        "success" => Ok(map),
         "error" => Err(Error::ResponseError(ResponseError {
-            kind: response["errorType"].as_str().unwrap().to_string(),
-            message: response["error"].as_str().unwrap().to_string(),
+            kind: map["errorType"].as_str().unwrap().to_string(),
+            message: map["error"].as_str().unwrap().to_string(),
         })),
         _ => Err(Error::UnknownResponseStatus(UnknownResponseStatus(
             status.to_string(),
@@ -571,7 +535,7 @@ fn check_json_response(response: &HashMap<String, serde_json::Value>) -> Result<
     }
 }
 
-// Parses the API response from a loosely typed Hashmap to a Response that
+// Parses the API response from a map to a Response enum that
 // encapsulates a vector of samples of type "vector" or "matrix"
 fn convert_query_response(response: HashMap<String, serde_json::Value>) -> Result<Response, Error> {
     let data_obj = response["data"].as_object().unwrap();
