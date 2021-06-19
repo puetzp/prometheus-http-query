@@ -102,7 +102,7 @@
 //! - [x] Executing label metadata queries (names/values)
 //! - [x] Retrieving target discovery status
 //! - [x] Retrieve alerting + recording rules
-//! - [ ] Retrieve active alerts
+//! - [x] Retrieve active alerts
 //! - [ ] Target metadata
 //! - [ ] Metric metadata
 //! - [ ] Alertmanager service discovery status
