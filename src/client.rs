@@ -95,9 +95,7 @@ impl Client {
         time: Option<i64>,
         timeout: Option<&str>,
     ) -> Result<Response, Error> {
-        let mut url = self.base_url.clone();
-
-        url.push_str("/query");
+        let url = format!("{}/query", self.base_url);
 
         let query = vector.to_string();
         let mut params = vec![("query", query.as_str())];
@@ -136,9 +134,7 @@ impl Client {
         step: &str,
         timeout: Option<&str>,
     ) -> Result<Response, Error> {
-        let mut url = self.base_url.clone();
-
-        url.push_str("/query_range");
+        let url = format!("{}/query_range", self.base_url);
 
         validate_duration(step)?;
 
@@ -203,9 +199,7 @@ impl Client {
         start: Option<i64>,
         end: Option<i64>,
     ) -> Result<Response, Error> {
-        let mut url = self.base_url.clone();
-
-        url.push_str("/series");
+        let url = format!("{}/series", self.base_url);
 
         let mut params = vec![];
 
@@ -304,9 +298,7 @@ impl Client {
         start: Option<i64>,
         end: Option<i64>,
     ) -> Result<Response, Error> {
-        let mut url = self.base_url.clone();
-
-        url.push_str("/labels");
+        let url = format!("{}/labels", self.base_url);
 
         let mut params = vec![];
 
@@ -397,11 +389,7 @@ impl Client {
         start: Option<i64>,
         end: Option<i64>,
     ) -> Result<Response, Error> {
-        let mut url = self.base_url.clone();
-
-        url.push_str("/label/");
-        url.push_str(label);
-        url.push_str("/values");
+        let url = format!("{}/label/{}/values", self.base_url, label);
 
         let mut params = vec![];
 
@@ -481,9 +469,7 @@ impl Client {
     /// }
     /// ```
     pub async fn targets(&self, state: Option<TargetState>) -> Result<Response, Error> {
-        let mut url = self.base_url.clone();
-
-        url.push_str("/targets");
+        let url = format!("{}/targets", self.base_url);
 
         let mut params = vec![];
 
