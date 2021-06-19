@@ -120,12 +120,12 @@ pub struct ActiveTarget {
 }
 
 impl ActiveTarget {
-    /// Get a list of unmodified labels as before relabelling occurred.
+    /// Get a set of unmodified labels as before relabelling occurred.
     pub fn discovered_labels(&self) -> &HashMap<String, String> {
         &self.discovered_labels
     }
 
-    /// Get a list of labels after relabelling.
+    /// Get a set of labels after relabelling.
     pub fn labels(&self) -> &HashMap<String, String> {
         &self.labels
     }
@@ -174,7 +174,7 @@ pub struct DroppedTarget {
 }
 
 impl DroppedTarget {
-    /// Get a list of unmodified labels as before relabelling occurred.
+    /// Get a set of unmodified labels as before relabelling occurred.
     pub fn discovered_labels(&self) -> &HashMap<String, String> {
         &self.discovered_labels
     }
@@ -187,6 +187,28 @@ pub struct Group {
     pub(crate) file: String,
     pub(crate) interval: f64,
     pub(crate) name: String,
+}
+
+impl Group {
+    /// Get a reference to all rules associated with this group.
+    pub fn rules(&self) -> &[Rule] {
+        &self.rules
+    }
+
+    /// Get the path to the file where this group is defined in.
+    pub fn file(&self) -> &str {
+        &self.file
+    }
+
+    /// Get the interval that defines how often rules are evaluated.
+    pub fn interval(&self) -> f64 {
+        self.interval
+    }
+
+    /// Get the name of this rule group.
+    pub fn name(&self) -> &str {
+        &self.name
+    }
 }
 
 /// A wrapper enum for different rule types.
@@ -211,12 +233,72 @@ pub struct AlertingRule {
     pub(crate) query: String,
 }
 
+impl AlertingRule {
+    /// Get a list of active alerts fired due to this alerting rule.
+    pub fn alerts(&self) -> &[Alert] {
+        &self.alerts
+    }
+
+    /// Get a set of annotations set for this rule.
+    pub fn annotations(&self) -> &HashMap<String, String> {
+        &self.annotations
+    }
+
+    /// Get the duration that Prometheus waits for before firing for this rule.
+    pub fn duration(&self) -> f64 {
+        self.duration
+    }
+
+    /// Get the health state of this rule.
+    pub fn health(&self) -> RuleHealth {
+        self.health
+    }
+
+    /// Get a set of labels defined for this rule.
+    pub fn labels(&self) -> &HashMap<String, String> {
+        &self.labels
+    }
+
+    /// Get the name of this rule.
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    /// Get the PromQL expression that is evaluated as part of this rule.
+    pub fn query(&self) -> &str {
+        &self.query
+    }
+}
+
 /// An alerting rule.
 #[derive(Debug, Deserialize)]
 pub struct RecordingRule {
     pub(crate) health: RuleHealth,
     pub(crate) name: String,
     pub(crate) query: String,
+    pub(crate) labels: HashMap<String, String>,
+}
+
+impl RecordingRule {
+    /// Get the health state of this rule.
+    pub fn health(&self) -> RuleHealth {
+        self.health
+    }
+
+    /// Get the name of this rule.
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    /// Get the PromQL expression that is evaluated as part of this rule.
+    pub fn query(&self) -> &str {
+        &self.query
+    }
+
+    /// Get a set of labels defined for this rule.
+    pub fn labels(&self) -> &HashMap<String, String> {
+        &self.labels
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -227,4 +309,31 @@ pub struct Alert {
     pub(crate) labels: HashMap<String, String>,
     pub(crate) state: AlertState,
     pub(crate) value: String,
+}
+
+impl Alert {
+    /// Get the timestamp (RFC3339 formatted).
+    pub fn active_at(&self) -> &str {
+        &self.active_at
+    }
+
+    /// Get a set of annotations associated with this alert.
+    pub fn annotations(&self) -> &HashMap<String, String> {
+        &self.annotations
+    }
+
+    /// Get a set of labels associated with this alert.
+    pub fn labels(&self) -> &HashMap<String, String> {
+        &self.labels
+    }
+
+    /// Get the state of this alert.
+    pub fn state(&self) -> AlertState {
+        self.state
+    }
+
+    /// Get the value as evaluated by the PromQL expression that caused the alert to fire.
+    pub fn value(&self) -> &str {
+        &self.value
+    }
 }
