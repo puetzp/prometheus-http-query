@@ -540,17 +540,13 @@ fn parse_series_response(response: HashMap<String, serde_json::Value>) -> Result
 
             Ok(Response::Series(result))
         }
-        "error" => {
-            return Err(Error::ResponseError(ResponseError {
-                kind: response["errorType"].as_str().unwrap().to_string(),
-                message: response["error"].as_str().unwrap().to_string(),
-            }))
-        }
-        _ => {
-            return Err(Error::UnknownResponseStatus(UnknownResponseStatus(
-                status.to_string(),
-            )))
-        }
+        "error" => Err(Error::ResponseError(ResponseError {
+            kind: response["errorType"].as_str().unwrap().to_string(),
+            message: response["error"].as_str().unwrap().to_string(),
+        })),
+        _ => Err(Error::UnknownResponseStatus(UnknownResponseStatus(
+            status.to_string(),
+        ))),
     }
 }
 
@@ -567,17 +563,13 @@ fn parse_target_response(response: HashMap<String, serde_json::Value>) -> Result
             let targets: Targets = serde_json::from_value(raw_targets).unwrap();
             Ok(Response::Targets(targets))
         }
-        "error" => {
-            return Err(Error::ResponseError(ResponseError {
-                kind: response["errorType"].as_str().unwrap().to_string(),
-                message: response["error"].as_str().unwrap().to_string(),
-            }))
-        }
-        _ => {
-            return Err(Error::UnknownResponseStatus(UnknownResponseStatus(
-                status.to_string(),
-            )))
-        }
+        "error" => Err(Error::ResponseError(ResponseError {
+            kind: response["errorType"].as_str().unwrap().to_string(),
+            message: response["error"].as_str().unwrap().to_string(),
+        })),
+        _ => Err(Error::UnknownResponseStatus(UnknownResponseStatus(
+            status.to_string(),
+        ))),
     }
 }
 
@@ -602,17 +594,13 @@ fn parse_label_name_response(
 
             Ok(Response::LabelNames(result))
         }
-        "error" => {
-            return Err(Error::ResponseError(ResponseError {
-                kind: response["errorType"].as_str().unwrap().to_string(),
-                message: response["error"].as_str().unwrap().to_string(),
-            }))
-        }
-        _ => {
-            return Err(Error::UnknownResponseStatus(UnknownResponseStatus(
-                status.to_string(),
-            )))
-        }
+        "error" => Err(Error::ResponseError(ResponseError {
+            kind: response["errorType"].as_str().unwrap().to_string(),
+            message: response["error"].as_str().unwrap().to_string(),
+        })),
+        _ => Err(Error::UnknownResponseStatus(UnknownResponseStatus(
+            status.to_string(),
+        ))),
     }
 }
 
@@ -637,17 +625,13 @@ fn parse_label_value_response(
 
             Ok(Response::LabelValues(result))
         }
-        "error" => {
-            return Err(Error::ResponseError(ResponseError {
-                kind: response["errorType"].as_str().unwrap().to_string(),
-                message: response["error"].as_str().unwrap().to_string(),
-            }))
-        }
-        _ => {
-            return Err(Error::UnknownResponseStatus(UnknownResponseStatus(
-                status.to_string(),
-            )))
-        }
+        "error" => Err(Error::ResponseError(ResponseError {
+            kind: response["errorType"].as_str().unwrap().to_string(),
+            message: response["error"].as_str().unwrap().to_string(),
+        })),
+        _ => Err(Error::UnknownResponseStatus(UnknownResponseStatus(
+            status.to_string(),
+        ))),
     }
 }
 
@@ -685,23 +669,17 @@ fn parse_query_response(response: HashMap<String, serde_json::Value>) -> Result<
 
                     Ok(Response::Matrix(result))
                 }
-                _ => {
-                    return Err(Error::UnsupportedResponseDataType(
-                        UnsupportedResponseDataType(data_type.to_string()),
-                    ))
-                }
+                _ => Err(Error::UnsupportedResponseDataType(
+                    UnsupportedResponseDataType(data_type.to_string()),
+                )),
             }
         }
-        "error" => {
-            return Err(Error::ResponseError(ResponseError {
-                kind: response["errorType"].as_str().unwrap().to_string(),
-                message: response["error"].as_str().unwrap().to_string(),
-            }))
-        }
-        _ => {
-            return Err(Error::UnknownResponseStatus(UnknownResponseStatus(
-                status.to_string(),
-            )))
-        }
+        "error" => Err(Error::ResponseError(ResponseError {
+            kind: response["errorType"].as_str().unwrap().to_string(),
+            message: response["error"].as_str().unwrap().to_string(),
+        })),
+        _ => Err(Error::UnknownResponseStatus(UnknownResponseStatus(
+            status.to_string(),
+        ))),
     }
 }

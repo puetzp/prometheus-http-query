@@ -146,10 +146,9 @@ pub(crate) fn validate_duration(duration: &str) -> Result<(), Error> {
                 Ok(num) => {
                     let val = Duration::Milliseconds(num);
 
-                    let predicate = durations.iter().any(|x| match x {
-                        Duration::Milliseconds(_) => true,
-                        _ => false,
-                    });
+                    let predicate = durations
+                        .iter()
+                        .any(|x| matches!(x, Duration::Milliseconds(_)));
 
                     if !predicate {
                         durations.push(val);
@@ -164,10 +163,7 @@ pub(crate) fn validate_duration(duration: &str) -> Result<(), Error> {
                 Ok(num) => {
                     let val = Duration::Seconds(num);
 
-                    let predicate = durations.iter().any(|x| match x {
-                        Duration::Seconds(_) => true,
-                        _ => false,
-                    });
+                    let predicate = durations.iter().any(|x| matches!(x, Duration::Seconds(_)));
 
                     if !predicate {
                         durations.push(val);
@@ -182,10 +178,7 @@ pub(crate) fn validate_duration(duration: &str) -> Result<(), Error> {
                 Ok(num) => {
                     let val = Duration::Minutes(num);
 
-                    let predicate = durations.iter().any(|x| match x {
-                        Duration::Minutes(_) => true,
-                        _ => false,
-                    });
+                    let predicate = durations.iter().any(|x| matches!(x, Duration::Minutes(_)));
 
                     if !predicate {
                         durations.push(val);
@@ -200,10 +193,7 @@ pub(crate) fn validate_duration(duration: &str) -> Result<(), Error> {
                 Ok(num) => {
                     let val = Duration::Hours(num);
 
-                    let predicate = durations.iter().any(|x| match x {
-                        Duration::Hours(_) => true,
-                        _ => false,
-                    });
+                    let predicate = durations.iter().any(|x| matches!(x, Duration::Hours(_)));
 
                     if !predicate {
                         durations.push(val);
@@ -218,10 +208,7 @@ pub(crate) fn validate_duration(duration: &str) -> Result<(), Error> {
                 Ok(num) => {
                     let val = Duration::Days(num);
 
-                    let predicate = durations.iter().any(|x| match x {
-                        Duration::Days(_) => true,
-                        _ => false,
-                    });
+                    let predicate = durations.iter().any(|x| matches!(x, Duration::Days(_)));
 
                     if !predicate {
                         durations.push(val);
@@ -236,10 +223,7 @@ pub(crate) fn validate_duration(duration: &str) -> Result<(), Error> {
                 Ok(num) => {
                     let val = Duration::Weeks(num);
 
-                    let predicate = durations.iter().any(|x| match x {
-                        Duration::Weeks(_) => true,
-                        _ => false,
-                    });
+                    let predicate = durations.iter().any(|x| matches!(x, Duration::Weeks(_)));
 
                     if !predicate {
                         durations.push(val);
@@ -254,10 +238,7 @@ pub(crate) fn validate_duration(duration: &str) -> Result<(), Error> {
                 Ok(num) => {
                     let val = Duration::Years(num);
 
-                    let predicate = durations.iter().any(|x| match x {
-                        Duration::Years(_) => true,
-                        _ => false,
-                    });
+                    let predicate = durations.iter().any(|x| matches!(x, Duration::Years(_)));
 
                     if !predicate {
                         durations.push(val);

@@ -17,6 +17,12 @@ pub struct Selector<'a> {
     pub(crate) at_modifier: Option<i64>,
 }
 
+impl<'a> Default for Selector<'a> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl<'a> Selector<'a> {
     /// Simply return an empty [Selector] to build on.
     ///

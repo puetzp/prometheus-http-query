@@ -22,7 +22,7 @@ use crate::vector::*;
 ///     Ok(())
 /// }
 /// ```
-pub fn sum<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantVector {
+pub fn sum(vector: InstantVector, labels: Option<Aggregate<'_>>) -> InstantVector {
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
@@ -52,7 +52,7 @@ pub fn sum<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantV
 ///     Ok(())
 /// }
 /// ```
-pub fn min<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantVector {
+pub fn min(vector: InstantVector, labels: Option<Aggregate<'_>>) -> InstantVector {
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
@@ -82,7 +82,7 @@ pub fn min<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantV
 ///     Ok(())
 /// }
 /// ```
-pub fn max<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantVector {
+pub fn max(vector: InstantVector, labels: Option<Aggregate<'_>>) -> InstantVector {
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
@@ -112,7 +112,7 @@ pub fn max<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantV
 ///     Ok(())
 /// }
 /// ```
-pub fn avg<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantVector {
+pub fn avg(vector: InstantVector, labels: Option<Aggregate<'_>>) -> InstantVector {
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
@@ -142,7 +142,7 @@ pub fn avg<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantV
 ///     Ok(())
 /// }
 /// ```
-pub fn group<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantVector {
+pub fn group(vector: InstantVector, labels: Option<Aggregate<'_>>) -> InstantVector {
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
@@ -172,7 +172,7 @@ pub fn group<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> Instan
 ///     Ok(())
 /// }
 /// ```
-pub fn stddev<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantVector {
+pub fn stddev(vector: InstantVector, labels: Option<Aggregate<'_>>) -> InstantVector {
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
@@ -202,7 +202,7 @@ pub fn stddev<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> Insta
 ///     Ok(())
 /// }
 /// ```
-pub fn stdvar<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantVector {
+pub fn stdvar(vector: InstantVector, labels: Option<Aggregate<'_>>) -> InstantVector {
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
@@ -232,7 +232,7 @@ pub fn stdvar<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> Insta
 ///     Ok(())
 /// }
 /// ```
-pub fn count<'a>(vector: InstantVector, labels: Option<Aggregate<'a>>) -> InstantVector {
+pub fn count(vector: InstantVector, labels: Option<Aggregate<'_>>) -> InstantVector {
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
@@ -301,9 +301,9 @@ pub fn count_values<'a>(
 ///     Ok(())
 /// }
 /// ```
-pub fn bottomk<'a>(
+pub fn bottomk(
     vector: InstantVector,
-    labels: Option<Aggregate<'a>>,
+    labels: Option<Aggregate<'_>>,
     parameter: u64,
 ) -> InstantVector {
     let InstantVector(old_vec) = vector;
@@ -335,11 +335,7 @@ pub fn bottomk<'a>(
 ///     Ok(())
 /// }
 /// ```
-pub fn topk<'a>(
-    vector: InstantVector,
-    labels: Option<Aggregate<'a>>,
-    parameter: u64,
-) -> InstantVector {
+pub fn topk(vector: InstantVector, labels: Option<Aggregate<'_>>, parameter: u64) -> InstantVector {
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
@@ -369,9 +365,9 @@ pub fn topk<'a>(
 ///     Ok(())
 /// }
 /// ```
-pub fn quantile<'a>(
+pub fn quantile(
     vector: InstantVector,
-    labels: Option<Aggregate<'a>>,
+    labels: Option<Aggregate<'_>>,
     parameter: f64,
 ) -> InstantVector {
     let InstantVector(old_vec) = vector;
