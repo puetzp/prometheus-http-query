@@ -1,5 +1,5 @@
 //! Collection of response types, most importantly the [Response] enum
-use crate::util::TargetHealth;
+use crate::util::{AlertState, RuleHealth, TargetHealth};
 use serde::Deserialize;
 use std::collections::HashMap;
 
@@ -12,6 +12,8 @@ pub enum Response {
     LabelNames(Vec<String>),
     LabelValues(Vec<String>),
     Targets(Targets),
+    Rules(Vec<Group>),
+    Alerts(Vec<Alert>),
 }
 
 /// A single time series containing a single data point ([Sample]).
@@ -176,4 +178,53 @@ impl DroppedTarget {
     pub fn discovered_labels(&self) -> &HashMap<String, String> {
         &self.discovered_labels
     }
+}
+
+/// A group of rules.
+#[derive(Debug, Deserialize)]
+pub struct Group {
+    pub(crate) rules: Vec<Rule>,
+    pub(crate) file: String,
+    pub(crate) interval: f64,
+    pub(crate) name: String,
+}
+
+/// A wrapper enum for different rule types.
+#[derive(Debug, Deserialize)]
+#[serde(tag = "type")]
+pub enum Rule {
+    #[serde(alias = "recording")]
+    Recording(RecordingRule),
+    #[serde(alias = "alerting")]
+    Alerting(AlertingRule),
+}
+
+/// A recording rule.
+#[derive(Debug, Deserialize)]
+pub struct AlertingRule {
+    pub(crate) alerts: Vec<Alert>,
+    pub(crate) annotations: HashMap<String, String>,
+    pub(crate) duration: f64,
+    pub(crate) health: RuleHealth,
+    pub(crate) labels: HashMap<String, String>,
+    pub(crate) name: String,
+    pub(crate) query: String,
+}
+
+/// An alerting rule.
+#[derive(Debug, Deserialize)]
+pub struct RecordingRule {
+    pub(crate) health: RuleHealth,
+    pub(crate) name: String,
+    pub(crate) query: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct Alert {
+    #[serde(alias = "activeAt")]
+    pub(crate) active_at: String,
+    pub(crate) annotations: HashMap<String, String>,
+    pub(crate) labels: HashMap<String, String>,
+    pub(crate) state: AlertState,
+    pub(crate) value: String,
 }

@@ -1,4 +1,5 @@
 use crate::error::Error;
+use serde::Deserialize;
 use std::fmt;
 
 /// A helper type that provides label matching logic for e.g. aggregations like `sum`.<br>
@@ -74,7 +75,7 @@ impl fmt::Display for TargetState {
 }
 
 /// A helper type to represent possible target health states.
-#[derive(Debug, Copy, Clone, serde::Deserialize)]
+#[derive(Debug, Copy, Clone, Deserialize)]
 pub enum TargetHealth {
     #[serde(alias = "up")]
     Up,
@@ -90,6 +91,64 @@ impl fmt::Display for TargetHealth {
             TargetHealth::Up => write!(f, "up"),
             TargetHealth::Down => write!(f, "down"),
             TargetHealth::Unknown => write!(f, "unknown"),
+        }
+    }
+}
+
+/// A helper type to represent possible rule health states.
+#[derive(Debug, Copy, Clone, Deserialize)]
+pub enum RuleHealth {
+    #[serde(alias = "ok")]
+    Good,
+    #[serde(alias = "err")]
+    Bad,
+    #[serde(alias = "unknown")]
+    Unknown,
+}
+
+impl fmt::Display for RuleHealth {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            RuleHealth::Good => write!(f, "ok"),
+            RuleHealth::Bad => write!(f, "err"),
+            RuleHealth::Unknown => write!(f, "unknown"),
+        }
+    }
+}
+
+/// A helper type to represent possible rule health states.
+#[derive(Debug, Copy, Clone, Deserialize)]
+pub enum AlertState {
+    #[serde(alias = "inactive")]
+    Inactive,
+    #[serde(alias = "pending")]
+    Pending,
+    #[serde(alias = "firing")]
+    Firing,
+}
+
+impl fmt::Display for AlertState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            AlertState::Inactive => write!(f, "inactive"),
+            AlertState::Pending => write!(f, "pending"),
+            AlertState::Firing => write!(f, "firing"),
+        }
+    }
+}
+
+/// A helper type to filter rules by type.
+#[derive(Debug)]
+pub enum RuleType {
+    Alert,
+    Record,
+}
+
+impl fmt::Display for RuleType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            RuleType::Alert => write!(f, "alert"),
+            RuleType::Record => write!(f, "record"),
         }
     }
 }

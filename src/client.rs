@@ -4,7 +4,7 @@ use crate::error::{
 };
 use crate::response::*;
 use crate::selector::Selector;
-use crate::util::{validate_duration, TargetState};
+use crate::util::{validate_duration, RuleType, TargetState};
 use std::collections::HashMap;
 
 /// A helper enum that is passed to the [Client::new] function in
@@ -493,6 +493,110 @@ impl Client {
             let raw_targets = r["data"].to_owned();
             let targets: Targets = serde_json::from_value(raw_targets).unwrap();
             Ok(Response::Targets(targets))
+        })
+    }
+
+    /// Retrieve a list of rule groups of recording and alerting rules.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Scheme, Error, RuleType};
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), Error> {
+    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///
+    ///     let response = tokio_test::block_on( async { client.rules(None).await });
+    ///
+    ///     assert!(response.is_ok());
+    ///
+    ///     // Filter rules by type:
+    ///     let response = tokio_test::block_on( async { client.rules(Some(RuleType::Alert)).await });
+    ///
+    ///     assert!(response.is_ok());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn rules(&self, rule_type: Option<RuleType>) -> Result<Response, Error> {
+        let url = format!("{}/rules", self.base_url);
+
+        let mut params = vec![];
+
+        let rule_type = rule_type.map(|s| s.to_string());
+
+        if let Some(s) = &rule_type {
+            params.push(("type", s.as_str()))
+        }
+
+        let response = self
+            .client
+            .get(&url)
+            .query(params.as_slice())
+            .send()
+            .await
+            .map_err(Error::Reqwest)?
+            .error_for_status()
+            .map_err(Error::Reqwest)?;
+
+        check_response(response).await.and_then(move |r| {
+            let groups = r["data"].as_object().unwrap()["groups"]
+                .as_array()
+                .unwrap()
+                .to_owned();
+
+            let mut result = vec![];
+
+            for group in groups {
+                let g: Group = serde_json::from_value(group).unwrap();
+                result.push(g);
+            }
+
+            Ok(Response::Rules(result))
+        })
+    }
+
+    /// Retrieve a list of active alerts.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Scheme, Error};
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), Error> {
+    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///
+    ///     let response = tokio_test::block_on( async { client.alerts().await });
+    ///
+    ///     assert!(response.is_ok());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn alerts(&self) -> Result<Response, Error> {
+        let url = format!("{}/alerts", self.base_url);
+
+        let response = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .map_err(Error::Reqwest)?
+            .error_for_status()
+            .map_err(Error::Reqwest)?;
+
+        check_response(response).await.and_then(move |r| {
+            let alerts = r["data"].as_object().unwrap()["alerts"]
+                .as_array()
+                .unwrap()
+                .to_owned();
+
+            let mut result = vec![];
+
+            for alert in alerts {
+                let a: Alert = serde_json::from_value(alert).unwrap();
+                result.push(a);
+            }
+
+            Ok(Response::Alerts(result))
         })
     }
 }
