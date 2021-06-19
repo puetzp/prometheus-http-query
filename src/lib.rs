@@ -91,6 +91,34 @@
 //! }
 //! ```
 //!
+//! ## Rules & Alerts
+//!
+//! Retrieve recording/alerting rules and active alerts.
+//!
+//! ```rust
+//! use prometheus_http_query::{Client, Scheme, Error, RuleType};
+//!
+//! fn main() -> Result<(), Error> {
+//!     let client = Client::new(Scheme::Http, "localhost", 9090);
+//!
+//!     let response = tokio_test::block_on( async { client.rules(None).await });
+//!
+//!     assert!(response.is_ok());
+//!
+//!     // Only request alerting rules instead:
+//!     let response = tokio_test::block_on( async { client.rules(Some(RuleType::Alert)).await });
+//!
+//!     assert!(response.is_ok());
+//!
+//!     // Request active alerts:
+//!     let response = tokio_test::block_on( async { client.alerts().await });
+//!
+//!     assert!(response.is_ok());
+//!
+//!     Ok(())
+//! }
+//! ```
+//!
 //! This is just one example. See [Client] for examples of other types of metadata queries.
 //!
 //! # Supported operations
@@ -118,7 +146,7 @@
 //!
 //! # Limitations
 //!
-//! * Some query types (rules/alerts) are not supported (yet)
+//! * Some query types (e.g. Prometheus status, metric & target metadata) are not supported (yet)
 //! * reqwest client configuration cannot be customized (yet)
 //! * Subqueries are not supported (only as custom query)
 //! * PromQL functions that do not take a range / instant vector as an argument are not supported (only as custom query)

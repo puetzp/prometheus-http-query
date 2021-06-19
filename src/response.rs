@@ -276,7 +276,7 @@ pub struct RecordingRule {
     pub(crate) health: RuleHealth,
     pub(crate) name: String,
     pub(crate) query: String,
-    pub(crate) labels: HashMap<String, String>,
+    pub(crate) labels: Option<HashMap<String, String>>,
 }
 
 impl RecordingRule {
@@ -296,7 +296,7 @@ impl RecordingRule {
     }
 
     /// Get a set of labels defined for this rule.
-    pub fn labels(&self) -> &HashMap<String, String> {
+    pub fn labels(&self) -> &Option<HashMap<String, String>> {
         &self.labels
     }
 }
