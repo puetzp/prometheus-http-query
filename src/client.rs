@@ -123,7 +123,7 @@ impl Client {
 
         // NOTE: Can be changed to .map(async |resp| resp.json ...)
         // when async closures are stable.
-        let mapped_response = match raw_response.error_for_status() {
+        let response = match raw_response.error_for_status() {
             Ok(res) => res
                 .json::<HashMap<String, serde_json::Value>>()
                 .await
@@ -131,7 +131,7 @@ impl Client {
             Err(err) => return Err(Error::Reqwest(err)),
         };
 
-        parse_query_response(mapped_response)
+        check_json_response(&response).and_then(move |_| convert_query_response(response))
     }
 
     pub async fn query_range(
@@ -174,7 +174,7 @@ impl Client {
 
         // NOTE: Can be changed to .map(async |resp| resp.json ...)
         // when async closures are stable.
-        let mapped_response = match raw_response.error_for_status() {
+        let response = match raw_response.error_for_status() {
             Ok(res) => res
                 .json::<HashMap<String, serde_json::Value>>()
                 .await
@@ -182,7 +182,7 @@ impl Client {
             Err(err) => return Err(Error::Reqwest(err)),
         };
 
-        parse_query_response(mapped_response)
+        check_json_response(&response).and_then(move |_| convert_query_response(response))
     }
 
     /// Find time series by series selectors.
@@ -265,7 +265,7 @@ impl Client {
 
         // NOTE: Can be changed to .map(async |resp| resp.json ...)
         // when async closures are stable.
-        let mapped_response = match raw_response.error_for_status() {
+        let response = match raw_response.error_for_status() {
             Ok(res) => res
                 .json::<HashMap<String, serde_json::Value>>()
                 .await
@@ -273,7 +273,19 @@ impl Client {
             Err(err) => return Err(Error::Reqwest(err)),
         };
 
-        parse_series_response(mapped_response)
+        check_json_response(&response).and_then(move |_| {
+            let data = response["data"].as_array().unwrap();
+
+            let mut result = vec![];
+
+            for datum in data {
+                let metric: HashMap<String, String> =
+                    serde_json::from_value(datum.to_owned()).unwrap();
+                result.push(metric);
+            }
+
+            Ok(Response::Series(result))
+        })
     }
 
     /// Retrieve all label names (or use [Selector]s to select time series to read label names from).
@@ -359,7 +371,7 @@ impl Client {
 
         // NOTE: Can be changed to .map(async |resp| resp.json ...)
         // when async closures are stable.
-        let mapped_response = match raw_response.error_for_status() {
+        let response = match raw_response.error_for_status() {
             Ok(res) => res
                 .json::<HashMap<String, serde_json::Value>>()
                 .await
@@ -367,7 +379,17 @@ impl Client {
             Err(err) => return Err(Error::Reqwest(err)),
         };
 
-        parse_label_name_response(mapped_response)
+        check_json_response(&response).and_then(move |_| {
+            let data = response["data"].as_array().unwrap();
+
+            let mut result = vec![];
+
+            for datum in data {
+                result.push(datum.as_str().unwrap().to_owned());
+            }
+
+            Ok(Response::LabelNames(result))
+        })
     }
 
     /// Retrieve all label values for a label name (or use [Selector]s to select the time series to read label values from)
@@ -452,7 +474,7 @@ impl Client {
 
         // NOTE: Can be changed to .map(async |resp| resp.json ...)
         // when async closures are stable.
-        let mapped_response = match raw_response.error_for_status() {
+        let response = match raw_response.error_for_status() {
             Ok(res) => res
                 .json::<HashMap<String, serde_json::Value>>()
                 .await
@@ -460,7 +482,17 @@ impl Client {
             Err(err) => return Err(Error::Reqwest(err)),
         };
 
-        parse_label_value_response(mapped_response)
+        check_json_response(&response).and_then(move |_| {
+            let data = response["data"].as_array().unwrap();
+
+            let mut result = vec![];
+
+            for datum in data {
+                result.push(datum.as_str().unwrap().to_owned());
+            }
+
+            Ok(Response::LabelValues(result))
+        })
     }
 
     /// Query the current state of target discovery.
@@ -507,7 +539,7 @@ impl Client {
 
         // NOTE: Can be changed to .map(async |resp| resp.json ...)
         // when async closures are stable.
-        let mapped_response = match raw_response.error_for_status() {
+        let response = match raw_response.error_for_status() {
             Ok(res) => res
                 .json::<HashMap<String, serde_json::Value>>()
                 .await
@@ -515,116 +547,20 @@ impl Client {
             Err(err) => return Err(Error::Reqwest(err)),
         };
 
-        parse_target_response(mapped_response)
-    }
-}
-
-// Parses the API response from a loosely typed Hashmap to a Response that
-// encapsulates a vector of Hashmaps that hold label names and values.
-// "Value"s are rigorously "unwrapped" in the process as each of these
-// is expected to be part of the JSON response.
-fn parse_series_response(response: HashMap<String, serde_json::Value>) -> Result<Response, Error> {
-    let status = response["status"].as_str().unwrap();
-
-    match status {
-        "success" => {
-            let data = response["data"].as_array().unwrap();
-
-            let mut result = vec![];
-
-            for datum in data {
-                let metric: HashMap<String, String> =
-                    serde_json::from_value(datum.to_owned()).unwrap();
-                result.push(metric);
-            }
-
-            Ok(Response::Series(result))
-        }
-        "error" => Err(Error::ResponseError(ResponseError {
-            kind: response["errorType"].as_str().unwrap().to_string(),
-            message: response["error"].as_str().unwrap().to_string(),
-        })),
-        _ => Err(Error::UnknownResponseStatus(UnknownResponseStatus(
-            status.to_string(),
-        ))),
-    }
-}
-
-// Parses the API response from a loosely typed Hashmap to a Response that
-// holds information about active and dropped targets.
-// "Value"s are rigorously "unwrapped" in the process as each of these
-// is expected to be part of the JSON response.
-fn parse_target_response(response: HashMap<String, serde_json::Value>) -> Result<Response, Error> {
-    let status = response["status"].as_str().unwrap();
-
-    match status {
-        "success" => {
+        check_json_response(&response).and_then(move |_| {
             let raw_targets = response["data"].to_owned();
             let targets: Targets = serde_json::from_value(raw_targets).unwrap();
             Ok(Response::Targets(targets))
-        }
-        "error" => Err(Error::ResponseError(ResponseError {
-            kind: response["errorType"].as_str().unwrap().to_string(),
-            message: response["error"].as_str().unwrap().to_string(),
-        })),
-        _ => Err(Error::UnknownResponseStatus(UnknownResponseStatus(
-            status.to_string(),
-        ))),
+        })
     }
 }
 
-// Parses the API response from a loosely typed Hashmap to a Response that
-// encapsulates a vector of label names.
-// "Value"s are rigorously "unwrapped" in the process as each of these
-// is expected to be part of the JSON response.
-fn parse_label_name_response(
-    response: HashMap<String, serde_json::Value>,
-) -> Result<Response, Error> {
+/// Check the JSON response's status field and map reported errors (if any).
+fn check_json_response(response: &HashMap<String, serde_json::Value>) -> Result<(), Error> {
     let status = response["status"].as_str().unwrap();
 
     match status {
-        "success" => {
-            let data = response["data"].as_array().unwrap();
-
-            let mut result = vec![];
-
-            for datum in data {
-                result.push(datum.as_str().unwrap().to_owned());
-            }
-
-            Ok(Response::LabelNames(result))
-        }
-        "error" => Err(Error::ResponseError(ResponseError {
-            kind: response["errorType"].as_str().unwrap().to_string(),
-            message: response["error"].as_str().unwrap().to_string(),
-        })),
-        _ => Err(Error::UnknownResponseStatus(UnknownResponseStatus(
-            status.to_string(),
-        ))),
-    }
-}
-
-// Parses the API response from a loosely typed Hashmap to a Response that
-// encapsulates a vector of label values.
-// "Value"s are rigorously "unwrapped" in the process as each of these
-// is expected to be part of the JSON response.
-fn parse_label_value_response(
-    response: HashMap<String, serde_json::Value>,
-) -> Result<Response, Error> {
-    let status = response["status"].as_str().unwrap();
-
-    match status {
-        "success" => {
-            let data = response["data"].as_array().unwrap();
-
-            let mut result = vec![];
-
-            for datum in data {
-                result.push(datum.as_str().unwrap().to_owned());
-            }
-
-            Ok(Response::LabelValues(result))
-        }
+        "success" => Ok(()),
         "error" => Err(Error::ResponseError(ResponseError {
             kind: response["errorType"].as_str().unwrap().to_string(),
             message: response["error"].as_str().unwrap().to_string(),
@@ -637,49 +573,34 @@ fn parse_label_value_response(
 
 // Parses the API response from a loosely typed Hashmap to a Response that
 // encapsulates a vector of samples of type "vector" or "matrix"
-// "Value"s are rigorously "unwrapped" in the process as each of these
-// is expected to be part of the JSON response.
-fn parse_query_response(response: HashMap<String, serde_json::Value>) -> Result<Response, Error> {
-    let status = response["status"].as_str().unwrap();
+fn convert_query_response(response: HashMap<String, serde_json::Value>) -> Result<Response, Error> {
+    let data_obj = response["data"].as_object().unwrap();
+    let data_type = data_obj["resultType"].as_str().unwrap();
+    let data = data_obj["result"].as_array().unwrap().to_owned();
 
-    match status {
-        "success" => {
-            let data_obj = response["data"].as_object().unwrap();
-            let data_type = data_obj["resultType"].as_str().unwrap();
-            let data = data_obj["result"].as_array().unwrap().to_owned();
+    match data_type {
+        "vector" => {
+            let mut result: Vec<Vector> = vec![];
 
-            match data_type {
-                "vector" => {
-                    let mut result: Vec<Vector> = vec![];
-
-                    for datum in data {
-                        let vector: Vector = serde_json::from_value(datum).unwrap();
-                        result.push(vector);
-                    }
-
-                    Ok(Response::Vector(result))
-                }
-                "matrix" => {
-                    let mut result: Vec<Matrix> = vec![];
-
-                    for datum in data {
-                        let matrix: Matrix = serde_json::from_value(datum).unwrap();
-                        result.push(matrix);
-                    }
-
-                    Ok(Response::Matrix(result))
-                }
-                _ => Err(Error::UnsupportedResponseDataType(
-                    UnsupportedResponseDataType(data_type.to_string()),
-                )),
+            for datum in data {
+                let vector: Vector = serde_json::from_value(datum).unwrap();
+                result.push(vector);
             }
+
+            Ok(Response::Vector(result))
         }
-        "error" => Err(Error::ResponseError(ResponseError {
-            kind: response["errorType"].as_str().unwrap().to_string(),
-            message: response["error"].as_str().unwrap().to_string(),
-        })),
-        _ => Err(Error::UnknownResponseStatus(UnknownResponseStatus(
-            status.to_string(),
-        ))),
+        "matrix" => {
+            let mut result: Vec<Matrix> = vec![];
+
+            for datum in data {
+                let matrix: Matrix = serde_json::from_value(datum).unwrap();
+                result.push(matrix);
+            }
+
+            Ok(Response::Matrix(result))
+        }
+        _ => Err(Error::UnsupportedResponseDataType(
+            UnsupportedResponseDataType(data_type.to_string()),
+        )),
     }
 }
