@@ -16,6 +16,72 @@ pub enum Response {
     Alerts(Vec<Alert>),
 }
 
+impl Response {
+    /// If the `Response`'s result type is `vector`, returns an array of [Vector]s. Returns `None` otherwise.
+    pub fn as_vectors(&self) -> Option<&[Vector]> {
+        match self {
+            Response::Vector(v) => Some(v.as_ref()),
+            _ => None,
+        }
+    }
+
+    /// If the `Response`'s result type is `matrix`, returns an array of [Matrix]s. Returns `None` otherwise.
+    pub fn as_matrices(&self) -> Option<&[Matrix]> {
+        match self {
+            Response::Matrix(v) => Some(v.as_ref()),
+            _ => None,
+        }
+    }
+
+    /// If the `Response` contains a collection of time series, returns an array of time series. Returns `None` otherwise.
+    pub fn as_series(&self) -> Option<&[HashMap<String, String>]> {
+        match self {
+            Response::Series(v) => Some(v.as_ref()),
+            _ => None,
+        }
+    }
+
+    /// If the `Response` contains a collection of label names, returns an array of strings. Returns `None` otherwise.
+    pub fn as_label_names(&self) -> Option<&[String]> {
+        match self {
+            Response::LabelNames(v) => Some(v.as_ref()),
+            _ => None,
+        }
+    }
+
+    /// If the `Response` contains a collection of label values, returns an array of strings. Returns `None` otherwise.
+    pub fn as_label_values(&self) -> Option<&[String]> {
+        match self {
+            Response::LabelValues(v) => Some(v.as_ref()),
+            _ => None,
+        }
+    }
+
+    /// If the `Response` contains a set of active or dropped targets, returns [Targets]. Returns `None` otherwise.
+    pub fn as_targets(&self) -> Option<&Targets> {
+        match self {
+            Response::Targets(t) => Some(&t),
+            _ => None,
+        }
+    }
+
+    /// If the `Response` contains a set of rule groups, returns an array of [Group]s. Returns `None` otherwise.
+    pub fn as_rules(&self) -> Option<&[Group]> {
+        match self {
+            Response::Rules(v) => Some(v.as_ref()),
+            _ => None,
+        }
+    }
+
+    /// If the `Response` contains a set of alerts, returns an array of [Alert]s. Returns `None` otherwise.
+    pub fn as_alerts(&self) -> Option<&[Alert]> {
+        match self {
+            Response::Alerts(v) => Some(v.as_ref()),
+            _ => None,
+        }
+    }
+}
+
 /// A single time series containing a single data point ([Sample]).
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Vector {
