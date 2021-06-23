@@ -547,7 +547,7 @@ impl Client {
             let mut result = vec![];
 
             for group in groups {
-                let g: Group = serde_json::from_value(group).unwrap();
+                let g: RuleGroup = serde_json::from_value(group).unwrap();
                 result.push(g);
             }
 

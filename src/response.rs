@@ -12,7 +12,7 @@ pub enum Response {
     LabelNames(Vec<String>),
     LabelValues(Vec<String>),
     Targets(Targets),
-    Rules(Vec<Group>),
+    Rules(Vec<RuleGroup>),
     Alerts(Vec<Alert>),
 }
 
@@ -66,7 +66,7 @@ impl Response {
     }
 
     /// If the `Response` contains a set of rule groups, returns an array of [Group]s. Returns `None` otherwise.
-    pub fn as_rules(&self) -> Option<&[Group]> {
+    pub fn as_rules(&self) -> Option<&[RuleGroup]> {
         match self {
             Response::Rules(v) => Some(v.as_ref()),
             _ => None,
@@ -248,14 +248,14 @@ impl DroppedTarget {
 
 /// A group of rules.
 #[derive(Debug, Deserialize)]
-pub struct Group {
+pub struct RuleGroup {
     pub(crate) rules: Vec<Rule>,
     pub(crate) file: String,
     pub(crate) interval: f64,
     pub(crate) name: String,
 }
 
-impl Group {
+impl RuleGroup {
     /// Get a reference to all rules associated with this group.
     pub fn rules(&self) -> &[Rule] {
         &self.rules
