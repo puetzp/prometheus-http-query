@@ -169,7 +169,7 @@ impl Client {
             .and_then(convert_query_response)
     }
 
-    /// Find time series by series selectors.
+    /// Find time series by label matchers ([Selector]s).
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Scheme, Selector, Error};

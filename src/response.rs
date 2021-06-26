@@ -17,7 +17,7 @@ pub enum Response {
 }
 
 impl Response {
-    /// If the `Response`'s result type is `vector`, returns an array of [Vector]s. Returns `None` otherwise.
+    /// If the `Response`'s contains instant vectors, returns an array of [Vector]s. Returns `None` otherwise.
     pub fn as_instant(&self) -> Option<&[Vector]> {
         match self {
             Response::Instant(v) => Some(v.as_ref()),
@@ -25,7 +25,7 @@ impl Response {
         }
     }
 
-    /// If the `Response`'s result type is `matrix`, returns an array of [Matrix]s. Returns `None` otherwise.
+    /// If the `Response`'s contains range vectors, returns an array of [Matrix]s. Returns `None` otherwise.
     pub fn as_range(&self) -> Option<&[Matrix]> {
         match self {
             Response::Range(v) => Some(v.as_ref()),
@@ -33,7 +33,7 @@ impl Response {
         }
     }
 
-    /// If the `Response` contains a collection of time series, returns an array of time series. Returns `None` otherwise.
+    /// If the `Response` contains time series, returns an array of time series. Returns `None` otherwise.
     pub fn as_series(&self) -> Option<&[HashMap<String, String>]> {
         match self {
             Response::Series(v) => Some(v.as_ref()),
