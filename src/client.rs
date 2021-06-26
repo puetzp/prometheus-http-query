@@ -82,9 +82,9 @@ impl Client {
     ///
     ///     let s = sum(v, Some(Aggregate::By(&["cpu"])));
     ///
-    ///     let response = tokio_test::block_on( async { client.query(s, None, None).await });
+    ///     let response = tokio_test::block_on( async { client.query(s, None, None).await.unwrap() });
     ///
-    ///     assert!(response.is_ok());
+    ///     assert!(response.as_instant().is_some());
     ///
     ///     Ok(())
     /// }
@@ -186,9 +186,9 @@ impl Client {
     ///
     ///     let set = vec![s1, s2];
     ///
-    ///     let response = tokio_test::block_on( async { client.series(&set, None, None).await });
+    ///     let response = tokio_test::block_on( async { client.series(&set, None, None).await.unwrap() });
     ///
-    ///     assert!(response.is_ok());
+    ///     assert!(response.as_series().is_some());
     ///
     ///     Ok(())
     /// }
@@ -271,9 +271,9 @@ impl Client {
     ///     let client = Client::new(Scheme::Http, "localhost", 9090);
     ///
     ///     // To retrieve a list of all labels:
-    ///     let response = tokio_test::block_on( async { client.labels(None, None, None).await });
+    ///     let response = tokio_test::block_on( async { client.labels(None, None, None).await.unwrap() });
     ///
-    ///     assert!(response.is_ok());
+    ///     assert!(response.as_label_name().is_some());
     ///
     ///     // To retrieve a list of labels that appear in specific time series, use Selectors:
     ///     let s1 = Selector::new()
@@ -285,9 +285,9 @@ impl Client {
     ///
     ///     let set = Some(vec![s1, s2]);
     ///
-    ///     let response = tokio_test::block_on( async { client.labels(set, None, None).await });
+    ///     let response = tokio_test::block_on( async { client.labels(set, None, None).await.unwrap() });
     ///
-    ///     assert!(response.is_ok());
+    ///     assert!(response.as_label_name().is_some());
     ///
     ///     Ok(())
     /// }
@@ -365,9 +365,9 @@ impl Client {
     ///     let client = Client::new(Scheme::Http, "localhost", 9090);
     ///
     ///     // To retrieve a list of all label values for a specific label name:
-    ///     let response = tokio_test::block_on( async { client.label_values("job", None, None, None).await });
+    ///     let response = tokio_test::block_on( async { client.label_values("job", None, None, None).await.unwrap() });
     ///
-    ///     assert!(response.is_ok());
+    ///     assert!(response.as_label_value().is_some());
     ///
     ///     // To retrieve a list of label values of labels in specific time series instead:
     ///     let s1 = Selector::new()
@@ -375,9 +375,9 @@ impl Client {
     ///
     ///     let set = Some(vec![s1]);
     ///
-    ///     let response = tokio_test::block_on( async { client.label_values("job", set, None, None).await });
+    ///     let response = tokio_test::block_on( async { client.label_values("job", set, None, None).await.unwrap() });
     ///
-    ///     assert!(response.is_ok());
+    ///     assert!(response.as_label_value().is_some());
     ///
     ///     Ok(())
     /// }
@@ -456,14 +456,14 @@ impl Client {
     /// fn main() -> Result<(), Error> {
     ///     let client = Client::new(Scheme::Http, "localhost", 9090);
     ///
-    ///     let response = tokio_test::block_on( async { client.targets(None).await });
+    ///     let response = tokio_test::block_on( async { client.targets(None).await.unwrap() });
     ///
-    ///     assert!(response.is_ok());
+    ///     assert!(response.as_target().is_some());
     ///
     ///     // Filter targets by type:
-    ///     let response = tokio_test::block_on( async { client.targets(Some(TargetState::Active)).await });
+    ///     let response = tokio_test::block_on( async { client.targets(Some(TargetState::Active)).await.unwrap() });
     ///
-    ///     assert!(response.is_ok());
+    ///     assert!(response.as_target().is_some());
     ///
     ///     Ok(())
     /// }
@@ -505,14 +505,14 @@ impl Client {
     /// fn main() -> Result<(), Error> {
     ///     let client = Client::new(Scheme::Http, "localhost", 9090);
     ///
-    ///     let response = tokio_test::block_on( async { client.rules(None).await });
+    ///     let response = tokio_test::block_on( async { client.rules(None).await.unwrap() });
     ///
-    ///     assert!(response.is_ok());
+    ///     assert!(response.as_rule().is_some());
     ///
     ///     // Filter rules by type:
-    ///     let response = tokio_test::block_on( async { client.rules(Some(RuleType::Alert)).await });
+    ///     let response = tokio_test::block_on( async { client.rules(Some(RuleType::Alert)).await.unwrap() });
     ///
-    ///     assert!(response.is_ok());
+    ///     assert!(response.as_rule().is_some());
     ///
     ///     Ok(())
     /// }
@@ -564,9 +564,9 @@ impl Client {
     /// fn main() -> Result<(), Error> {
     ///     let client = Client::new(Scheme::Http, "localhost", 9090);
     ///
-    ///     let response = tokio_test::block_on( async { client.alerts().await });
+    ///     let response = tokio_test::block_on( async { client.alerts().await.unwrap() });
     ///
-    ///     assert!(response.is_ok());
+    ///     assert!(response.as_alert().is_some());
     ///
     ///     Ok(())
     /// }

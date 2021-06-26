@@ -32,9 +32,9 @@
 //!
 //!     let q = sum(rate(v), Some(Aggregate::By(&["cpu"])));
 //!
-//!     let response = client.query(q, None, None).await;
+//!     let response = client.query(q, None, None).await?;
 //!
-//!     assert!(response.is_ok());
+//!     assert!(response.as_instant().is_some());
 //!    
 //!     Ok(())
 //! }
@@ -56,9 +56,9 @@
 //!
 //!     let v = RangeVector(q.to_string());
 //!
-//!     let response = client.query(v, None, None).await;
+//!     let response = client.query(v, None, None).await?;
 //!
-//!     assert!(response.is_ok());
+//!     assert!(response.as_instant().is_some());
 //!    
 //!     Ok(())
 //! }
@@ -83,9 +83,9 @@
 //!
 //!     let set = vec![s1, s2];
 //!
-//!     let response = tokio_test::block_on( async { client.series(&set, None, None).await });
+//!     let response = tokio_test::block_on( async { client.series(&set, None, None).await.unwrap() });
 //!
-//!     assert!(response.is_ok());
+//!     assert!(response.as_series().is_some());
 //!
 //!     Ok(())
 //! }
@@ -111,9 +111,9 @@
 //!     assert!(response.is_ok());
 //!
 //!     // Request active alerts:
-//!     let response = tokio_test::block_on( async { client.alerts().await });
+//!     let response = tokio_test::block_on( async { client.alerts().await.unwrap() });
 //!
-//!     assert!(response.is_ok());
+//!     assert!(response.as_alert().is_some());
 //!
 //!     Ok(())
 //! }
