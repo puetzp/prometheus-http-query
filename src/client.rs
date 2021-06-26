@@ -352,7 +352,7 @@ impl Client {
                 result.push(datum.as_str().unwrap().to_owned());
             }
 
-            Ok(Response::LabelNames(result))
+            Ok(Response::LabelName(result))
         })
     }
 
@@ -443,7 +443,7 @@ impl Client {
                 result.push(datum.as_str().unwrap().to_owned());
             }
 
-            Ok(Response::LabelValues(result))
+            Ok(Response::LabelValue(result))
         })
     }
 
@@ -492,7 +492,7 @@ impl Client {
         check_response(response).await.and_then(move |r| {
             let raw_targets = r["data"].to_owned();
             let targets: Targets = serde_json::from_value(raw_targets).unwrap();
-            Ok(Response::Targets(targets))
+            Ok(Response::Target(targets))
         })
     }
 
@@ -551,7 +551,7 @@ impl Client {
                 result.push(g);
             }
 
-            Ok(Response::Rules(result))
+            Ok(Response::Rule(result))
         })
     }
 
@@ -596,7 +596,7 @@ impl Client {
                 result.push(a);
             }
 
-            Ok(Response::Alerts(result))
+            Ok(Response::Alert(result))
         })
     }
 }
@@ -641,7 +641,7 @@ fn convert_query_response(response: HashMap<String, serde_json::Value>) -> Resul
                 result.push(vector);
             }
 
-            Ok(Response::Vector(result))
+            Ok(Response::Instant(result))
         }
         "matrix" => {
             let mut result: Vec<Matrix> = vec![];
@@ -651,7 +651,7 @@ fn convert_query_response(response: HashMap<String, serde_json::Value>) -> Resul
                 result.push(matrix);
             }
 
-            Ok(Response::Matrix(result))
+            Ok(Response::Range(result))
         }
         _ => Err(Error::UnsupportedResponseDataType(
             UnsupportedResponseDataType(data_type.to_string()),

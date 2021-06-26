@@ -6,29 +6,29 @@ use std::collections::HashMap;
 /// A wrapper for any kind of response the API returns.
 #[derive(Debug)]
 pub enum Response {
-    Vector(Vec<Vector>),
-    Matrix(Vec<Matrix>),
+    Instant(Vec<Vector>),
+    Range(Vec<Matrix>),
     Series(Vec<HashMap<String, String>>),
-    LabelNames(Vec<String>),
-    LabelValues(Vec<String>),
-    Targets(Targets),
-    Rules(Vec<RuleGroup>),
-    Alerts(Vec<Alert>),
+    LabelName(Vec<String>),
+    LabelValue(Vec<String>),
+    Target(Targets),
+    Rule(Vec<RuleGroup>),
+    Alert(Vec<Alert>),
 }
 
 impl Response {
     /// If the `Response`'s result type is `vector`, returns an array of [Vector]s. Returns `None` otherwise.
-    pub fn as_vectors(&self) -> Option<&[Vector]> {
+    pub fn as_instant(&self) -> Option<&[Vector]> {
         match self {
-            Response::Vector(v) => Some(v.as_ref()),
+            Response::Instant(v) => Some(v.as_ref()),
             _ => None,
         }
     }
 
     /// If the `Response`'s result type is `matrix`, returns an array of [Matrix]s. Returns `None` otherwise.
-    pub fn as_matrices(&self) -> Option<&[Matrix]> {
+    pub fn as_range(&self) -> Option<&[Matrix]> {
         match self {
-            Response::Matrix(v) => Some(v.as_ref()),
+            Response::Range(v) => Some(v.as_ref()),
             _ => None,
         }
     }
@@ -42,41 +42,41 @@ impl Response {
     }
 
     /// If the `Response` contains a collection of label names, returns an array of strings. Returns `None` otherwise.
-    pub fn as_label_names(&self) -> Option<&[String]> {
+    pub fn as_label_name(&self) -> Option<&[String]> {
         match self {
-            Response::LabelNames(v) => Some(v.as_ref()),
+            Response::LabelName(v) => Some(v.as_ref()),
             _ => None,
         }
     }
 
     /// If the `Response` contains a collection of label values, returns an array of strings. Returns `None` otherwise.
-    pub fn as_label_values(&self) -> Option<&[String]> {
+    pub fn as_label_value(&self) -> Option<&[String]> {
         match self {
-            Response::LabelValues(v) => Some(v.as_ref()),
+            Response::LabelValue(v) => Some(v.as_ref()),
             _ => None,
         }
     }
 
     /// If the `Response` contains a set of active or dropped targets, returns [Targets]. Returns `None` otherwise.
-    pub fn as_targets(&self) -> Option<&Targets> {
+    pub fn as_target(&self) -> Option<&Targets> {
         match self {
-            Response::Targets(t) => Some(&t),
+            Response::Target(t) => Some(&t),
             _ => None,
         }
     }
 
     /// If the `Response` contains a set of rule groups, returns an array of [Group]s. Returns `None` otherwise.
-    pub fn as_rules(&self) -> Option<&[RuleGroup]> {
+    pub fn as_rule(&self) -> Option<&[RuleGroup]> {
         match self {
-            Response::Rules(v) => Some(v.as_ref()),
+            Response::Rule(v) => Some(v.as_ref()),
             _ => None,
         }
     }
 
     /// If the `Response` contains a set of alerts, returns an array of [Alert]s. Returns `None` otherwise.
-    pub fn as_alerts(&self) -> Option<&[Alert]> {
+    pub fn as_alert(&self) -> Option<&[Alert]> {
         match self {
-            Response::Alerts(v) => Some(v.as_ref()),
+            Response::Alert(v) => Some(v.as_ref()),
             _ => None,
         }
     }
