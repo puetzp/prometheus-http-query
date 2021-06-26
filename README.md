@@ -22,9 +22,9 @@ async fn main() -> Result<(), prometheus_http_query::Error> {
 	
     let q = sum(rate(v), Some(Aggregate::By(&["cpu"])));
     
-    let response = client.query(q, None, None).await;
+    let response = client.query(q, None, None).await?;
     
-    assert!(response.is_ok());
+    assert!(response.is_instant().is_some());
     
     // It is also possible to bypass every kind of validation by supplying
     // a custom query directly to the InstantVector | RangeVector types.
@@ -33,9 +33,9 @@ async fn main() -> Result<(), prometheus_http_query::Error> {
     
     let v = RangeVector(q.to_string());
     
-    let response = client.query(v, None, None).await;
+    let response = client.query(v, None, None).await?;
     
-    assert!(response.is_ok());
+    assert!(response.as_instant().is_some());
    
     Ok(())
 }
