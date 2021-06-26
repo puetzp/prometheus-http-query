@@ -131,10 +131,12 @@
 //! - [x] Retrieving target discovery status
 //! - [x] Retrieve alerting + recording rules
 //! - [x] Retrieve active alerts
-//! - [ ] Target metadata
-//! - [ ] Metric metadata
+//! - [x] Retrieve configured flags & values
+//! - [ ] Target metadata (still experimental as of Prometheus v2.28)
+//! - [ ] Metric metadata (still experimental as of Prometheus v2.28)
 //! - [ ] Alertmanager service discovery status
-//! - [ ] Prometheus status (config, startup flags ...)
+//! - [ ] Prometheus config
+//! - [ ] Prometheus runtime & build information (still unstable as of Prometheus v2.28)
 //!
 //! # Notes
 //!
