@@ -1,6 +1,6 @@
 # prometheus-http-query
 
-A rust library that provides an interface to query a Prometheus server and offers the tools to gradually build queries before actually sending them by leveraging Rust's type system. Check [docs.rs](https://docs.rs/prometheus-http-query) for detailed information.
+A rust library that provides an interface to query a Prometheus server and offers the tools to gradually build queries before actually sending them by leveraging Rust's type system. Several kinds of metadata queries are also supported (e.g. retrieving time series, rules, alerts etc.). Check [docs.rs](https://docs.rs/prometheus-http-query) for detailed information.
 
 ## Example
 
