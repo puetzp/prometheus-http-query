@@ -3,7 +3,7 @@ use crate::util::{AlertState, RuleHealth, TargetHealth};
 use serde::Deserialize;
 use std::collections::HashMap;
 
-/// A wrapper for any kind of response the API returns.
+/// A wrapper for all kinds of responses the API returns.
 #[derive(Debug)]
 pub enum Response {
     Instant(Vec<Vector>),
