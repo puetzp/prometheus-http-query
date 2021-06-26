@@ -14,6 +14,7 @@ pub enum Error {
     UnsupportedResponseDataType(UnsupportedResponseDataType),
     UnknownResponseStatus(UnknownResponseStatus),
     InvalidFunctionArgument(InvalidFunctionArgument),
+    UrlParse(url::ParseError),
 }
 
 impl fmt::Display for Error {
@@ -28,6 +29,7 @@ impl fmt::Display for Error {
             Self::UnsupportedResponseDataType(e) => e.fmt(f),
             Self::UnknownResponseStatus(e) => e.fmt(f),
             Self::InvalidFunctionArgument(e) => e.fmt(f),
+            Self::UrlParse(e) => e.fmt(f),
         }
     }
 }

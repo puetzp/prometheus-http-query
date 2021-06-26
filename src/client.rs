@@ -6,6 +6,7 @@ use crate::response::*;
 use crate::selector::Selector;
 use crate::util::{validate_duration, RuleType, TargetState};
 use std::collections::HashMap;
+use url::Url;
 
 /// A helper enum that is passed to the [Client::new] function in
 /// order to avoid errors on unsupported connection schemes.
@@ -632,6 +633,59 @@ impl Client {
             let data = r["data"].to_owned();
             let flags: HashMap<String, String> = serde_json::from_value(data).unwrap();
             Ok(Response::Flags(flags))
+        })
+    }
+
+    /// Query the current state of alertmanager discovery.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Scheme, Error, TargetState};
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), Error> {
+    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///
+    ///     let response = tokio_test::block_on( async { client.alertmanagers().await.unwrap() });
+    ///
+    ///     assert!(response.as_alertmanagers().is_some());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn alertmanagers(&self) -> Result<Response, Error> {
+        let url = format!("{}/alertmanagers", self.base_url);
+
+        let response = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .map_err(Error::Reqwest)?
+            .error_for_status()
+            .map_err(Error::Reqwest)?;
+
+        check_response(response).await.and_then(move |r| {
+            let data = r["data"].as_object().unwrap();
+
+            let mut active: Vec<Url> = vec![];
+
+            for item in data["activeAlertmanagers"].as_array().unwrap() {
+                let raw_url = item["url"].as_str().unwrap();
+                let url = Url::parse(raw_url).map_err(Error::UrlParse)?;
+                active.push(url);
+            }
+
+            let mut dropped: Vec<Url> = vec![];
+
+            for item in data["droppedAlertmanagers"].as_array().unwrap() {
+                let raw_url = item["url"].as_str().unwrap();
+                let url = Url::parse(raw_url).map_err(Error::UrlParse)?;
+                dropped.push(url);
+            }
+
+            let result = Alertmanagers { active, dropped };
+
+            Ok(Response::Alertmanagers(result))
         })
     }
 }

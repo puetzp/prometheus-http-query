@@ -2,6 +2,7 @@
 use crate::util::{AlertState, RuleHealth, TargetHealth};
 use serde::Deserialize;
 use std::collections::HashMap;
+use url::Url;
 
 /// A wrapper for all kinds of responses the API returns.
 #[derive(Debug)]
@@ -15,6 +16,7 @@ pub enum Response {
     Rule(Vec<RuleGroup>),
     Alert(Vec<Alert>),
     Flags(HashMap<String, String>),
+    Alertmanagers(Alertmanagers),
 }
 
 impl Response {
@@ -86,6 +88,14 @@ impl Response {
     pub fn as_flags(&self) -> Option<&HashMap<String, String>> {
         match self {
             Response::Flags(f) => Some(&f),
+            _ => None,
+        }
+    }
+
+    /// If the `Response` contains a set of active and dropped alertmanagers, returns [Alertmanagers]. Returns `None` otherwise.
+    pub fn as_alertmanagers(&self) -> Option<&Alertmanagers> {
+        match self {
+            Response::Alertmanagers(a) => Some(&a),
             _ => None,
         }
     }
@@ -173,7 +183,7 @@ impl Targets {
     }
 }
 
-/// A single active target.v
+/// A single active target.
 #[derive(Debug, Deserialize)]
 pub struct ActiveTarget {
     #[serde(alias = "discoveredLabels")]
@@ -188,7 +198,7 @@ pub struct ActiveTarget {
     #[serde(alias = "lastError")]
     pub(crate) last_error: String,
     #[serde(alias = "lastScrape")]
-    pub(crate) last_scrape: time::OffsetDateTime,
+    pub(crate) last_scrape: String,
     #[serde(alias = "lastScrapeDuration")]
     pub(crate) last_scrape_duration: f64,
     pub(crate) health: TargetHealth,
@@ -226,7 +236,7 @@ impl ActiveTarget {
     }
 
     /// Get the timestamp of the last scrape in RFC3339 format.
-    pub fn last_scrape(&self) -> &time::OffsetDateTime {
+    pub fn last_scrape(&self) -> &String {
         &self.last_scrape
     }
 
@@ -379,7 +389,7 @@ impl RecordingRule {
 #[derive(Debug, Deserialize)]
 pub struct Alert {
     #[serde(alias = "activeAt")]
-    pub(crate) active_at: time::OffsetDateTime,
+    pub(crate) active_at: String,
     pub(crate) annotations: HashMap<String, String>,
     pub(crate) labels: HashMap<String, String>,
     pub(crate) state: AlertState,
@@ -388,7 +398,7 @@ pub struct Alert {
 
 impl Alert {
     /// Get the timestamp (RFC3339 formatted).
-    pub fn active_at(&self) -> &time::OffsetDateTime {
+    pub fn active_at(&self) -> &String {
         &self.active_at
     }
 
@@ -410,5 +420,24 @@ impl Alert {
     /// Get the value as evaluated by the PromQL expression that caused the alert to fire.
     pub fn value(&self) -> &str {
         &self.value
+    }
+}
+
+/// Collection of active and dropped alertmanagers as returned by the API.
+#[derive(Debug)]
+pub struct Alertmanagers {
+    pub(crate) active: Vec<Url>,
+    pub(crate) dropped: Vec<Url>,
+}
+
+impl Alertmanagers {
+    /// Get a list of currently active alertmanagers.
+    pub fn active(&self) -> &[Url] {
+        &self.active
+    }
+
+    /// Get a list of dropped alertmanagers.
+    pub fn dropped(&self) -> &[Url] {
+        &self.dropped
     }
 }
