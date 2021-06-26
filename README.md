@@ -24,7 +24,7 @@ async fn main() -> Result<(), prometheus_http_query::Error> {
     
     let response = client.query(q, None, None).await?;
     
-    assert!(response.is_instant().is_some());
+    assert!(response.as_instant().is_some());
     
     // It is also possible to bypass every kind of validation by supplying
     // a custom query directly to the InstantVector | RangeVector types.
