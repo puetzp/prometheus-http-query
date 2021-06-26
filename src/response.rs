@@ -188,7 +188,7 @@ pub struct ActiveTarget {
     #[serde(alias = "lastError")]
     pub(crate) last_error: String,
     #[serde(alias = "lastScrape")]
-    pub(crate) last_scrape: String,
+    pub(crate) last_scrape: time::OffsetDateTime,
     #[serde(alias = "lastScrapeDuration")]
     pub(crate) last_scrape_duration: f64,
     pub(crate) health: TargetHealth,
@@ -226,7 +226,7 @@ impl ActiveTarget {
     }
 
     /// Get the timestamp of the last scrape in RFC3339 format.
-    pub fn last_scrape(&self) -> &str {
+    pub fn last_scrape(&self) -> &time::OffsetDateTime {
         &self.last_scrape
     }
 
@@ -379,7 +379,7 @@ impl RecordingRule {
 #[derive(Debug, Deserialize)]
 pub struct Alert {
     #[serde(alias = "activeAt")]
-    pub(crate) active_at: String,
+    pub(crate) active_at: time::OffsetDateTime,
     pub(crate) annotations: HashMap<String, String>,
     pub(crate) labels: HashMap<String, String>,
     pub(crate) state: AlertState,
@@ -388,7 +388,7 @@ pub struct Alert {
 
 impl Alert {
     /// Get the timestamp (RFC3339 formatted).
-    pub fn active_at(&self) -> &str {
+    pub fn active_at(&self) -> &time::OffsetDateTime {
         &self.active_at
     }
 
