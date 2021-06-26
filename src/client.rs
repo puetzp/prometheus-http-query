@@ -599,6 +599,41 @@ impl Client {
             Ok(Response::Alert(result))
         })
     }
+
+    /// Retrieve a list of flags that Prometheus was configured with.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Scheme, Error};
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), Error> {
+    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///
+    ///     let response = tokio_test::block_on( async { client.flags().await.unwrap() });
+    ///
+    ///     assert!(response.as_flags().is_some());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn flags(&self) -> Result<Response, Error> {
+        let url = format!("{}/status/flags", self.base_url);
+
+        let response = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .map_err(Error::Reqwest)?
+            .error_for_status()
+            .map_err(Error::Reqwest)?;
+
+        check_response(response).await.and_then(move |r| {
+            let data = r["data"].to_owned();
+            let flags: HashMap<String, String> = serde_json::from_value(data).unwrap();
+            Ok(Response::Flags(flags))
+        })
+    }
 }
 
 // Convert the response object to an intermediary map, check the JSON's status field

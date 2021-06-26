@@ -14,6 +14,7 @@ pub enum Response {
     Target(Targets),
     Rule(Vec<RuleGroup>),
     Alert(Vec<Alert>),
+    Flags(HashMap<String, String>),
 }
 
 impl Response {
@@ -77,6 +78,14 @@ impl Response {
     pub fn as_alert(&self) -> Option<&[Alert]> {
         match self {
             Response::Alert(v) => Some(v.as_ref()),
+            _ => None,
+        }
+    }
+
+    /// If the `Response` contains flags, returns a map with flag names as keys. Returns `None` otherwise.
+    pub fn as_flags(&self) -> Option<&HashMap<String, String>> {
+        match self {
+            Response::Flags(f) => Some(&f),
             _ => None,
         }
     }
