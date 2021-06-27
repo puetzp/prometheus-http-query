@@ -1,6 +1,6 @@
 //! Collection of response types, most importantly the [Response] enum
 use crate::util::{AlertState, RuleHealth, TargetHealth};
-use serde::Deserialize;
+use serde::{Deserialize, Deserializer};
 use std::collections::HashMap;
 use url::Url;
 
@@ -192,9 +192,11 @@ pub struct ActiveTarget {
     #[serde(alias = "scrapePool")]
     pub(crate) scrape_pool: String,
     #[serde(alias = "scrapeUrl")]
-    pub(crate) scrape_url: String,
+    #[serde(deserialize_with = "deserialize_url")]
+    pub(crate) scrape_url: Url,
     #[serde(alias = "globalUrl")]
-    pub(crate) global_url: String,
+    #[serde(deserialize_with = "deserialize_url")]
+    pub(crate) global_url: Url,
     #[serde(alias = "lastError")]
     pub(crate) last_error: String,
     #[serde(alias = "lastScrape")]
@@ -202,6 +204,15 @@ pub struct ActiveTarget {
     #[serde(alias = "lastScrapeDuration")]
     pub(crate) last_scrape_duration: f64,
     pub(crate) health: TargetHealth,
+}
+
+fn deserialize_url<'de, D>(deserializer: D) -> Result<Url, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let raw = String::deserialize(deserializer)?;
+    let url = Url::parse(&raw).map_err(serde::de::Error::custom)?;
+    Ok(url)
 }
 
 impl ActiveTarget {
@@ -221,12 +232,12 @@ impl ActiveTarget {
     }
 
     /// Get the scrape URL of this target.
-    pub fn scrape_url(&self) -> &str {
+    pub fn scrape_url(&self) -> &Url {
         &self.scrape_url
     }
 
     /// Get the global URL of this target.
-    pub fn global_url(&self) -> &str {
+    pub fn global_url(&self) -> &Url {
         &self.global_url
     }
 
