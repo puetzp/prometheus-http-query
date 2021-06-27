@@ -1,8 +1,35 @@
 //! Collection of response types, most importantly the [Response] enum
 use crate::util::{AlertState, RuleHealth, TargetHealth};
-use serde::{Deserialize, Deserializer};
+use serde::Deserialize;
 use std::collections::HashMap;
+use time::OffsetDateTime;
 use url::Url;
+
+mod de {
+    use serde::{Deserialize, Deserializer};
+    use time::OffsetDateTime;
+    use url::Url;
+
+    pub(crate) fn deserialize_url<'de, D>(deserializer: D) -> Result<Url, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let raw = String::deserialize(deserializer)?;
+        let url = Url::parse(&raw).map_err(serde::de::Error::custom)?;
+        Ok(url)
+    }
+
+    pub(crate) fn deserialize_rfc3339<'de, D>(deserializer: D) -> Result<OffsetDateTime, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let mut raw = String::deserialize(deserializer)?;
+        raw = raw.as_str().trim_end_matches(":00").to_string();
+        raw.push_str("00");
+        let dt = OffsetDateTime::parse(&raw, "%FT%T.%N%z").map_err(serde::de::Error::custom)?;
+        Ok(dt)
+    }
+}
 
 /// A wrapper for all kinds of responses the API returns.
 #[derive(Debug)]
@@ -192,27 +219,19 @@ pub struct ActiveTarget {
     #[serde(alias = "scrapePool")]
     pub(crate) scrape_pool: String,
     #[serde(alias = "scrapeUrl")]
-    #[serde(deserialize_with = "deserialize_url")]
+    #[serde(deserialize_with = "de::deserialize_url")]
     pub(crate) scrape_url: Url,
     #[serde(alias = "globalUrl")]
-    #[serde(deserialize_with = "deserialize_url")]
+    #[serde(deserialize_with = "de::deserialize_url")]
     pub(crate) global_url: Url,
     #[serde(alias = "lastError")]
     pub(crate) last_error: String,
     #[serde(alias = "lastScrape")]
-    pub(crate) last_scrape: String,
+    #[serde(deserialize_with = "de::deserialize_rfc3339")]
+    pub(crate) last_scrape: OffsetDateTime,
     #[serde(alias = "lastScrapeDuration")]
     pub(crate) last_scrape_duration: f64,
     pub(crate) health: TargetHealth,
-}
-
-fn deserialize_url<'de, D>(deserializer: D) -> Result<Url, D::Error>
-where
-    D: Deserializer<'de>,
-{
-    let raw = String::deserialize(deserializer)?;
-    let url = Url::parse(&raw).map_err(serde::de::Error::custom)?;
-    Ok(url)
 }
 
 impl ActiveTarget {
@@ -246,8 +265,8 @@ impl ActiveTarget {
         &self.last_error
     }
 
-    /// Get the timestamp of the last scrape in RFC3339 format.
-    pub fn last_scrape(&self) -> &String {
+    /// Get the time when the last scrape occurred.
+    pub fn last_scrape(&self) -> &OffsetDateTime {
         &self.last_scrape
     }
 
@@ -400,7 +419,8 @@ impl RecordingRule {
 #[derive(Debug, Deserialize)]
 pub struct Alert {
     #[serde(alias = "activeAt")]
-    pub(crate) active_at: String,
+    #[serde(deserialize_with = "de::deserialize_rfc3339")]
+    pub(crate) active_at: OffsetDateTime,
     pub(crate) annotations: HashMap<String, String>,
     pub(crate) labels: HashMap<String, String>,
     pub(crate) state: AlertState,
@@ -408,8 +428,8 @@ pub struct Alert {
 }
 
 impl Alert {
-    /// Get the timestamp (RFC3339 formatted).
-    pub fn active_at(&self) -> &String {
+    /// Get the time when this alert started firing.
+    pub fn active_at(&self) -> &OffsetDateTime {
         &self.active_at
     }
 
