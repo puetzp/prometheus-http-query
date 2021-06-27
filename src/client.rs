@@ -272,9 +272,9 @@ impl Client {
     ///     let client = Client::new(Scheme::Http, "localhost", 9090);
     ///
     ///     // To retrieve a list of all labels:
-    ///     let response = tokio_test::block_on( async { client.labels(None, None, None).await.unwrap() });
+    ///     let response = tokio_test::block_on( async { client.label_names(None, None, None).await.unwrap() });
     ///
-    ///     assert!(response.as_label_name().is_some());
+    ///     assert!(response.as_label_names().is_some());
     ///
     ///     // To retrieve a list of labels that appear in specific time series, use Selectors:
     ///     let s1 = Selector::new()
@@ -286,14 +286,14 @@ impl Client {
     ///
     ///     let set = Some(vec![s1, s2]);
     ///
-    ///     let response = tokio_test::block_on( async { client.labels(set, None, None).await.unwrap() });
+    ///     let response = tokio_test::block_on( async { client.label_names(set, None, None).await.unwrap() });
     ///
-    ///     assert!(response.as_label_name().is_some());
+    ///     assert!(response.as_label_names().is_some());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn labels(
+    pub async fn label_names(
         &self,
         selectors: Option<Vec<Selector<'_>>>,
         start: Option<i64>,
@@ -368,7 +368,7 @@ impl Client {
     ///     // To retrieve a list of all label values for a specific label name:
     ///     let response = tokio_test::block_on( async { client.label_values("job", None, None, None).await.unwrap() });
     ///
-    ///     assert!(response.as_label_value().is_some());
+    ///     assert!(response.as_label_values().is_some());
     ///
     ///     // To retrieve a list of label values of labels in specific time series instead:
     ///     let s1 = Selector::new()
@@ -378,7 +378,7 @@ impl Client {
     ///
     ///     let response = tokio_test::block_on( async { client.label_values("job", set, None, None).await.unwrap() });
     ///
-    ///     assert!(response.as_label_value().is_some());
+    ///     assert!(response.as_label_values().is_some());
     ///
     ///     Ok(())
     /// }
@@ -459,12 +459,12 @@ impl Client {
     ///
     ///     let response = tokio_test::block_on( async { client.targets(None).await.unwrap() });
     ///
-    ///     assert!(response.as_target().is_some());
+    ///     assert!(response.as_targets().is_some());
     ///
     ///     // Filter targets by type:
     ///     let response = tokio_test::block_on( async { client.targets(Some(TargetState::Active)).await.unwrap() });
     ///
-    ///     assert!(response.as_target().is_some());
+    ///     assert!(response.as_targets().is_some());
     ///
     ///     Ok(())
     /// }
@@ -508,12 +508,12 @@ impl Client {
     ///
     ///     let response = tokio_test::block_on( async { client.rules(None).await.unwrap() });
     ///
-    ///     assert!(response.as_rule().is_some());
+    ///     assert!(response.as_rules().is_some());
     ///
     ///     // Filter rules by type:
     ///     let response = tokio_test::block_on( async { client.rules(Some(RuleType::Alert)).await.unwrap() });
     ///
-    ///     assert!(response.as_rule().is_some());
+    ///     assert!(response.as_rules().is_some());
     ///
     ///     Ok(())
     /// }
@@ -567,7 +567,7 @@ impl Client {
     ///
     ///     let response = tokio_test::block_on( async { client.alerts().await.unwrap() });
     ///
-    ///     assert!(response.as_alert().is_some());
+    ///     assert!(response.as_alerts().is_some());
     ///
     ///     Ok(())
     /// }

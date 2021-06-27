@@ -72,7 +72,7 @@ impl Response {
     }
 
     /// If the `Response` contains a collection of label names, returns an array of strings. Returns `None` otherwise.
-    pub fn as_label_name(&self) -> Option<&[String]> {
+    pub fn as_label_names(&self) -> Option<&[String]> {
         match self {
             Response::LabelName(v) => Some(v.as_ref()),
             _ => None,
@@ -80,7 +80,7 @@ impl Response {
     }
 
     /// If the `Response` contains a collection of label values, returns an array of strings. Returns `None` otherwise.
-    pub fn as_label_value(&self) -> Option<&[String]> {
+    pub fn as_label_values(&self) -> Option<&[String]> {
         match self {
             Response::LabelValue(v) => Some(v.as_ref()),
             _ => None,
@@ -88,7 +88,7 @@ impl Response {
     }
 
     /// If the `Response` contains a set of active or dropped targets, returns [Targets]. Returns `None` otherwise.
-    pub fn as_target(&self) -> Option<&Targets> {
+    pub fn as_targets(&self) -> Option<&Targets> {
         match self {
             Response::Target(t) => Some(&t),
             _ => None,
@@ -96,7 +96,7 @@ impl Response {
     }
 
     /// If the `Response` contains a set of rule groups, returns an array of [RuleGroup]s. Returns `None` otherwise.
-    pub fn as_rule(&self) -> Option<&[RuleGroup]> {
+    pub fn as_rules(&self) -> Option<&[RuleGroup]> {
         match self {
             Response::Rule(v) => Some(v.as_ref()),
             _ => None,
@@ -104,7 +104,7 @@ impl Response {
     }
 
     /// If the `Response` contains a set of alerts, returns an array of [Alert]s. Returns `None` otherwise.
-    pub fn as_alert(&self) -> Option<&[Alert]> {
+    pub fn as_alerts(&self) -> Option<&[Alert]> {
         match self {
             Response::Alert(v) => Some(v.as_ref()),
             _ => None,

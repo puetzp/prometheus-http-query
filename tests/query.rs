@@ -15,9 +15,9 @@ fn test_query_1() {
 
     let s = sum(v, Some(Aggregate::By(&["mode"])));
 
-    let response = tokio_test::block_on(async { client.query(s, None, None).await });
+    let response = tokio_test::block_on(async { client.query(s, None, None).await.unwrap() });
 
-    assert!(response.is_ok());
+    assert!(response.as_instant().is_some());
 }
 
 #[test]
@@ -35,9 +35,9 @@ fn test_query_2() {
 
     let s = rate(v);
 
-    let response = tokio_test::block_on(async { client.query(s, None, None).await });
+    let response = tokio_test::block_on(async { client.query(s, None, None).await.unwrap() });
 
-    assert!(response.is_ok());
+    assert!(response.as_instant().is_some());
 }
 
 #[test]
@@ -59,9 +59,10 @@ fn test_query_3() {
         client
             .query_range(s, 1623345960, 1623841309, "5m", None)
             .await
+            .unwrap()
     });
 
-    assert!(response.is_ok());
+    assert!(response.as_range().is_some());
 }
 
 #[test]
@@ -79,9 +80,10 @@ fn test_query_4() {
 
     let s = sum(rate(v), Some(Aggregate::By(&["cpu"])));
 
-    let response = tokio_test::block_on(async { client.query(s, Some(1623345960), None).await });
+    let response =
+        tokio_test::block_on(async { client.query(s, Some(1623345960), None).await.unwrap() });
 
-    assert!(response.is_ok());
+    assert!(response.as_instant().is_some());
 }
 
 #[test]
@@ -98,9 +100,9 @@ fn test_query_5() {
 
     let s = sum(predict_linear(v, 3600.0), Some(Aggregate::By(&["mode"])));
 
-    let response = tokio_test::block_on(async { client.query(s, None, None).await });
+    let response = tokio_test::block_on(async { client.query(s, None, None).await.unwrap() });
 
-    assert!(response.is_ok());
+    assert!(response.as_instant().is_some());
 }
 
 #[test]
@@ -115,9 +117,9 @@ fn test_query_6() {
 
     let s = sum(v, Some(Aggregate::By(&["mode"]))) + 5.0;
 
-    let response = tokio_test::block_on(async { client.query(s, None, None).await });
+    let response = tokio_test::block_on(async { client.query(s, None, None).await.unwrap() });
 
-    assert!(response.is_ok());
+    assert!(response.as_instant().is_some());
 }
 
 #[test]
@@ -132,7 +134,7 @@ fn test_query_7() {
 
     let s = round(sum(v, Some(Aggregate::By(&["mode"]))), Some(2.0));
 
-    let response = tokio_test::block_on(async { client.query(s, None, None).await });
+    let response = tokio_test::block_on(async { client.query(s, None, None).await.unwrap() });
 
-    assert!(response.is_ok());
+    assert!(response.as_instant().is_some());
 }

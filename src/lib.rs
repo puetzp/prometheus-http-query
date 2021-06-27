@@ -113,7 +113,7 @@
 //!     // Request active alerts:
 //!     let response = tokio_test::block_on( async { client.alerts().await.unwrap() });
 //!
-//!     assert!(response.as_alert().is_some());
+//!     assert!(response.as_alerts().is_some());
 //!
 //!     Ok(())
 //! }
