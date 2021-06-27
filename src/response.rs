@@ -95,7 +95,7 @@ impl Response {
         }
     }
 
-    /// If the `Response` contains a set of rule groups, returns an array of [Group]s. Returns `None` otherwise.
+    /// If the `Response` contains a set of rule groups, returns an array of [RuleGroup]s. Returns `None` otherwise.
     pub fn as_rule(&self) -> Option<&[RuleGroup]> {
         match self {
             Response::Rule(v) => Some(v.as_ref()),
