@@ -31,98 +31,26 @@ mod de {
     }
 }
 
-/// A wrapper for all kinds of responses the API returns.
+/// A wrapper for possible result types of expression queries.
 #[derive(Debug)]
-pub enum Response {
-    Instant(Vec<Vector>),
-    Range(Vec<Matrix>),
-    Series(Vec<HashMap<String, String>>),
-    LabelName(Vec<String>),
-    LabelValue(Vec<String>),
-    Target(Targets),
-    Rule(Vec<RuleGroup>),
-    Alert(Vec<Alert>),
-    Flags(HashMap<String, String>),
-    Alertmanagers(Alertmanagers),
+pub enum QueryResultType {
+    Vector(Vec<InstantVector>),
+    Matrix(Vec<RangeVector>),
 }
 
-impl Response {
-    /// If the `Response`'s contains instant vectors, returns an array of [Vector]s. Returns `None` otherwise.
-    pub fn as_instant(&self) -> Option<&[Vector]> {
+impl QueryResultType {
+    /// If the result type of the query is `vector`, returns an array of [InstantVector]s. Returns `None` otherwise.
+    pub fn as_instant(&self) -> Option<&[InstantVector]> {
         match self {
-            Response::Instant(v) => Some(v.as_ref()),
+            QueryResultType::Vector(v) => Some(v.as_ref()),
             _ => None,
         }
     }
 
-    /// If the `Response`'s contains range vectors, returns an array of [Matrix]s. Returns `None` otherwise.
-    pub fn as_range(&self) -> Option<&[Matrix]> {
+    /// If the result type of the query is `matrix` returns an array of [RangeVector]s. Returns `None` otherwise.
+    pub fn as_range(&self) -> Option<&[RangeVector]> {
         match self {
-            Response::Range(v) => Some(v.as_ref()),
-            _ => None,
-        }
-    }
-
-    /// If the `Response` contains time series, returns an array of time series. Returns `None` otherwise.
-    pub fn as_series(&self) -> Option<&[HashMap<String, String>]> {
-        match self {
-            Response::Series(v) => Some(v.as_ref()),
-            _ => None,
-        }
-    }
-
-    /// If the `Response` contains a collection of label names, returns an array of strings. Returns `None` otherwise.
-    pub fn as_label_names(&self) -> Option<&[String]> {
-        match self {
-            Response::LabelName(v) => Some(v.as_ref()),
-            _ => None,
-        }
-    }
-
-    /// If the `Response` contains a collection of label values, returns an array of strings. Returns `None` otherwise.
-    pub fn as_label_values(&self) -> Option<&[String]> {
-        match self {
-            Response::LabelValue(v) => Some(v.as_ref()),
-            _ => None,
-        }
-    }
-
-    /// If the `Response` contains a set of active or dropped targets, returns [Targets]. Returns `None` otherwise.
-    pub fn as_targets(&self) -> Option<&Targets> {
-        match self {
-            Response::Target(t) => Some(&t),
-            _ => None,
-        }
-    }
-
-    /// If the `Response` contains a set of rule groups, returns an array of [RuleGroup]s. Returns `None` otherwise.
-    pub fn as_rules(&self) -> Option<&[RuleGroup]> {
-        match self {
-            Response::Rule(v) => Some(v.as_ref()),
-            _ => None,
-        }
-    }
-
-    /// If the `Response` contains a set of alerts, returns an array of [Alert]s. Returns `None` otherwise.
-    pub fn as_alerts(&self) -> Option<&[Alert]> {
-        match self {
-            Response::Alert(v) => Some(v.as_ref()),
-            _ => None,
-        }
-    }
-
-    /// If the `Response` contains flags, returns a map with flag names as keys. Returns `None` otherwise.
-    pub fn as_flags(&self) -> Option<&HashMap<String, String>> {
-        match self {
-            Response::Flags(f) => Some(&f),
-            _ => None,
-        }
-    }
-
-    /// If the `Response` contains a set of active and dropped alertmanagers, returns [Alertmanagers]. Returns `None` otherwise.
-    pub fn as_alertmanagers(&self) -> Option<&Alertmanagers> {
-        match self {
-            Response::Alertmanagers(a) => Some(&a),
+            QueryResultType::Matrix(v) => Some(v.as_ref()),
             _ => None,
         }
     }
@@ -130,13 +58,13 @@ impl Response {
 
 /// A single time series containing a single data point ([Sample]).
 #[derive(Debug, PartialEq, Deserialize)]
-pub struct Vector {
+pub struct InstantVector {
     pub(crate) metric: HashMap<String, String>,
     #[serde(alias = "value")]
     pub(crate) sample: Sample,
 }
 
-impl Vector {
+impl InstantVector {
     /// Returns a reference to the set of labels (+ metric name)
     /// of this time series.
     pub fn metric(&self) -> &HashMap<String, String> {
@@ -151,13 +79,13 @@ impl Vector {
 
 /// A single time series containing a range of data points ([Sample]s).
 #[derive(Debug, PartialEq, Deserialize)]
-pub struct Matrix {
+pub struct RangeVector {
     pub(crate) metric: HashMap<String, String>,
     #[serde(alias = "values")]
     pub(crate) samples: Vec<Sample>,
 }
 
-impl Matrix {
+impl RangeVector {
     /// Returns a reference to the set of labels (+ metric name)
     /// of this time series.
     pub fn metric(&self) -> &HashMap<String, String> {

@@ -95,7 +95,7 @@ impl Client {
         vector: impl std::fmt::Display,
         time: Option<i64>,
         timeout: Option<&str>,
-    ) -> Result<Response, Error> {
+    ) -> Result<QueryResultType, Error> {
         let url = format!("{}/query", self.base_url);
 
         let query = vector.to_string();
@@ -134,7 +134,7 @@ impl Client {
         end: i64,
         step: &str,
         timeout: Option<&str>,
-    ) -> Result<Response, Error> {
+    ) -> Result<QueryResultType, Error> {
         let url = format!("{}/query_range", self.base_url);
 
         validate_duration(step)?;
@@ -187,9 +187,9 @@ impl Client {
     ///
     ///     let set = vec![s1, s2];
     ///
-    ///     let response = tokio_test::block_on( async { client.series(&set, None, None).await.unwrap() });
+    ///     let response = tokio_test::block_on( async { client.series(&set, None, None).await });
     ///
-    ///     assert!(response.as_series().is_some());
+    ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
@@ -199,7 +199,7 @@ impl Client {
         selectors: &[Selector<'_>],
         start: Option<i64>,
         end: Option<i64>,
-    ) -> Result<Response, Error> {
+    ) -> Result<Vec<HashMap<String, String>>, Error> {
         let url = format!("{}/series", self.base_url);
 
         let mut params = vec![];
@@ -259,7 +259,7 @@ impl Client {
                 result.push(metric);
             }
 
-            Ok(Response::Series(result))
+            Ok(result)
         })
     }
 
@@ -272,9 +272,9 @@ impl Client {
     ///     let client = Client::new(Scheme::Http, "localhost", 9090);
     ///
     ///     // To retrieve a list of all labels:
-    ///     let response = tokio_test::block_on( async { client.label_names(None, None, None).await.unwrap() });
+    ///     let response = tokio_test::block_on( async { client.label_names(None, None, None).await });
     ///
-    ///     assert!(response.as_label_names().is_some());
+    ///     assert!(response.is_ok());
     ///
     ///     // To retrieve a list of labels that appear in specific time series, use Selectors:
     ///     let s1 = Selector::new()
@@ -286,9 +286,9 @@ impl Client {
     ///
     ///     let set = Some(vec![s1, s2]);
     ///
-    ///     let response = tokio_test::block_on( async { client.label_names(set, None, None).await.unwrap() });
+    ///     let response = tokio_test::block_on( async { client.label_names(set, None, None).await });
     ///
-    ///     assert!(response.as_label_names().is_some());
+    ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
@@ -298,7 +298,7 @@ impl Client {
         selectors: Option<Vec<Selector<'_>>>,
         start: Option<i64>,
         end: Option<i64>,
-    ) -> Result<Response, Error> {
+    ) -> Result<Vec<String>, Error> {
         let url = format!("{}/labels", self.base_url);
 
         let mut params = vec![];
@@ -353,7 +353,7 @@ impl Client {
                 result.push(datum.as_str().unwrap().to_owned());
             }
 
-            Ok(Response::LabelName(result))
+            Ok(result)
         })
     }
 
@@ -366,9 +366,9 @@ impl Client {
     ///     let client = Client::new(Scheme::Http, "localhost", 9090);
     ///
     ///     // To retrieve a list of all label values for a specific label name:
-    ///     let response = tokio_test::block_on( async { client.label_values("job", None, None, None).await.unwrap() });
+    ///     let response = tokio_test::block_on( async { client.label_values("job", None, None, None).await });
     ///
-    ///     assert!(response.as_label_values().is_some());
+    ///     assert!(response.is_ok());
     ///
     ///     // To retrieve a list of label values of labels in specific time series instead:
     ///     let s1 = Selector::new()
@@ -376,9 +376,9 @@ impl Client {
     ///
     ///     let set = Some(vec![s1]);
     ///
-    ///     let response = tokio_test::block_on( async { client.label_values("job", set, None, None).await.unwrap() });
+    ///     let response = tokio_test::block_on( async { client.label_values("job", set, None, None).await });
     ///
-    ///     assert!(response.as_label_values().is_some());
+    ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
@@ -389,7 +389,7 @@ impl Client {
         selectors: Option<Vec<Selector<'_>>>,
         start: Option<i64>,
         end: Option<i64>,
-    ) -> Result<Response, Error> {
+    ) -> Result<Vec<String>, Error> {
         let url = format!("{}/label/{}/values", self.base_url, label);
 
         let mut params = vec![];
@@ -444,7 +444,7 @@ impl Client {
                 result.push(datum.as_str().unwrap().to_owned());
             }
 
-            Ok(Response::LabelValue(result))
+            Ok(result)
         })
     }
 
@@ -457,19 +457,19 @@ impl Client {
     /// fn main() -> Result<(), Error> {
     ///     let client = Client::new(Scheme::Http, "localhost", 9090);
     ///
-    ///     let response = tokio_test::block_on( async { client.targets(None).await.unwrap() });
+    ///     let response = tokio_test::block_on( async { client.targets(None).await });
     ///
-    ///     assert!(response.as_targets().is_some());
+    ///     assert!(response.is_ok());
     ///
     ///     // Filter targets by type:
-    ///     let response = tokio_test::block_on( async { client.targets(Some(TargetState::Active)).await.unwrap() });
+    ///     let response = tokio_test::block_on( async { client.targets(Some(TargetState::Active)).await });
     ///
-    ///     assert!(response.as_targets().is_some());
+    ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn targets(&self, state: Option<TargetState>) -> Result<Response, Error> {
+    pub async fn targets(&self, state: Option<TargetState>) -> Result<Targets, Error> {
         let url = format!("{}/targets", self.base_url);
 
         let mut params = vec![];
@@ -493,7 +493,7 @@ impl Client {
         check_response(response).await.and_then(move |r| {
             let raw_targets = r["data"].to_owned();
             let targets: Targets = serde_json::from_value(raw_targets).unwrap();
-            Ok(Response::Target(targets))
+            Ok(targets)
         })
     }
 
@@ -506,19 +506,19 @@ impl Client {
     /// fn main() -> Result<(), Error> {
     ///     let client = Client::new(Scheme::Http, "localhost", 9090);
     ///
-    ///     let response = tokio_test::block_on( async { client.rules(None).await.unwrap() });
+    ///     let response = tokio_test::block_on( async { client.rules(None).await });
     ///
-    ///     assert!(response.as_rules().is_some());
+    ///     assert!(response.is_ok());
     ///
     ///     // Filter rules by type:
-    ///     let response = tokio_test::block_on( async { client.rules(Some(RuleType::Alert)).await.unwrap() });
+    ///     let response = tokio_test::block_on( async { client.rules(Some(RuleType::Alert)).await });
     ///
-    ///     assert!(response.as_rules().is_some());
+    ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn rules(&self, rule_type: Option<RuleType>) -> Result<Response, Error> {
+    pub async fn rules(&self, rule_type: Option<RuleType>) -> Result<Vec<RuleGroup>, Error> {
         let url = format!("{}/rules", self.base_url);
 
         let mut params = vec![];
@@ -552,7 +552,7 @@ impl Client {
                 result.push(g);
             }
 
-            Ok(Response::Rule(result))
+            Ok(result)
         })
     }
 
@@ -565,14 +565,14 @@ impl Client {
     /// fn main() -> Result<(), Error> {
     ///     let client = Client::new(Scheme::Http, "localhost", 9090);
     ///
-    ///     let response = tokio_test::block_on( async { client.alerts().await.unwrap() });
+    ///     let response = tokio_test::block_on( async { client.alerts().await });
     ///
-    ///     assert!(response.as_alerts().is_some());
+    ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn alerts(&self) -> Result<Response, Error> {
+    pub async fn alerts(&self) -> Result<Vec<Alert>, Error> {
         let url = format!("{}/alerts", self.base_url);
 
         let response = self
@@ -597,7 +597,7 @@ impl Client {
                 result.push(a);
             }
 
-            Ok(Response::Alert(result))
+            Ok(result)
         })
     }
 
@@ -610,14 +610,14 @@ impl Client {
     /// fn main() -> Result<(), Error> {
     ///     let client = Client::new(Scheme::Http, "localhost", 9090);
     ///
-    ///     let response = tokio_test::block_on( async { client.flags().await.unwrap() });
+    ///     let response = tokio_test::block_on( async { client.flags().await });
     ///
-    ///     assert!(response.as_flags().is_some());
+    ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn flags(&self) -> Result<Response, Error> {
+    pub async fn flags(&self) -> Result<HashMap<String, String>, Error> {
         let url = format!("{}/status/flags", self.base_url);
 
         let response = self
@@ -632,7 +632,7 @@ impl Client {
         check_response(response).await.and_then(move |r| {
             let data = r["data"].to_owned();
             let flags: HashMap<String, String> = serde_json::from_value(data).unwrap();
-            Ok(Response::Flags(flags))
+            Ok(flags)
         })
     }
 
@@ -645,14 +645,14 @@ impl Client {
     /// fn main() -> Result<(), Error> {
     ///     let client = Client::new(Scheme::Http, "localhost", 9090);
     ///
-    ///     let response = tokio_test::block_on( async { client.alertmanagers().await.unwrap() });
+    ///     let response = tokio_test::block_on( async { client.alertmanagers().await });
     ///
-    ///     assert!(response.as_alertmanagers().is_some());
+    ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn alertmanagers(&self) -> Result<Response, Error> {
+    pub async fn alertmanagers(&self) -> Result<Alertmanagers, Error> {
         let url = format!("{}/alertmanagers", self.base_url);
 
         let response = self
@@ -685,7 +685,7 @@ impl Client {
 
             let result = Alertmanagers { active, dropped };
 
-            Ok(Response::Alertmanagers(result))
+            Ok(result)
         })
     }
 }
@@ -716,31 +716,33 @@ async fn check_response(
 
 // Parses the API response from a map to a Response enum that
 // encapsulates a vector of samples of type "vector" or "matrix"
-fn convert_query_response(response: HashMap<String, serde_json::Value>) -> Result<Response, Error> {
+fn convert_query_response(
+    response: HashMap<String, serde_json::Value>,
+) -> Result<QueryResultType, Error> {
     let data_obj = response["data"].as_object().unwrap();
     let data_type = data_obj["resultType"].as_str().unwrap();
     let data = data_obj["result"].as_array().unwrap().to_owned();
 
     match data_type {
         "vector" => {
-            let mut result: Vec<Vector> = vec![];
+            let mut result: Vec<InstantVector> = vec![];
 
             for datum in data {
-                let vector: Vector = serde_json::from_value(datum).unwrap();
+                let vector: InstantVector = serde_json::from_value(datum).unwrap();
                 result.push(vector);
             }
 
-            Ok(Response::Instant(result))
+            Ok(QueryResultType::Vector(result))
         }
         "matrix" => {
-            let mut result: Vec<Matrix> = vec![];
+            let mut result: Vec<RangeVector> = vec![];
 
             for datum in data {
-                let matrix: Matrix = serde_json::from_value(datum).unwrap();
+                let matrix: RangeVector = serde_json::from_value(datum).unwrap();
                 result.push(matrix);
             }
 
-            Ok(Response::Range(result))
+            Ok(QueryResultType::Matrix(result))
         }
         _ => Err(Error::UnsupportedResponseDataType(
             UnsupportedResponseDataType(data_type.to_string()),

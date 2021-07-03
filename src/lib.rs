@@ -83,9 +83,9 @@
 //!
 //!     let set = vec![s1, s2];
 //!
-//!     let response = tokio_test::block_on( async { client.series(&set, None, None).await.unwrap() });
+//!     let response = tokio_test::block_on( async { client.series(&set, None, None).await });
 //!
-//!     assert!(response.as_series().is_some());
+//!     assert!(response.is_ok());
 //!
 //!     Ok(())
 //! }
@@ -111,9 +111,9 @@
 //!     assert!(response.is_ok());
 //!
 //!     // Request active alerts:
-//!     let response = tokio_test::block_on( async { client.alerts().await.unwrap() });
+//!     let response = tokio_test::block_on( async { client.alerts().await });
 //!
-//!     assert!(response.as_alerts().is_some());
+//!     assert!(response.is_ok());
 //!
 //!     Ok(())
 //! }
