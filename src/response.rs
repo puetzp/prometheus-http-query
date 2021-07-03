@@ -402,7 +402,7 @@ impl Alertmanagers {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Copy, Clone, Deserialize)]
 pub enum MetricType {
     #[serde(alias = "counter")]
     Counter,
@@ -445,4 +445,31 @@ pub struct TargetMetadata {
     pub(crate) metric: Option<String>,
     pub(crate) help: String,
     pub(crate) unit: String,
+}
+
+impl TargetMetadata {
+    /// Get target labels.
+    pub fn target(&self) -> &HashMap<String, String> {
+        &self.target
+    }
+
+    /// Get the metric type.
+    pub fn metric_type(&self) -> MetricType {
+        self.metric_type
+    }
+
+    /// Get the metric name.
+    pub fn metric(&self) -> Option<&str> {
+        self.metric.as_deref()
+    }
+
+    /// Get the metric help.
+    pub fn help(&self) -> &str {
+        &self.help
+    }
+
+    /// Get the metric unit.
+    pub fn unit(&self) -> &str {
+        &self.unit
+    }
 }
