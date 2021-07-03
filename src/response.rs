@@ -2,6 +2,7 @@
 use crate::util::{AlertState, RuleHealth, TargetHealth};
 use serde::Deserialize;
 use std::collections::HashMap;
+use std::fmt;
 use time::OffsetDateTime;
 use url::Url;
 
@@ -399,4 +400,49 @@ impl Alertmanagers {
     pub fn dropped(&self) -> &[Url] {
         &self.dropped
     }
+}
+
+#[derive(Debug, Deserialize)]
+pub enum MetricType {
+    #[serde(alias = "counter")]
+    Counter,
+    #[serde(alias = "gauge")]
+    Gauge,
+    #[serde(alias = "histogram")]
+    Histogram,
+    #[serde(alias = "gaugehistogram")]
+    GaugeHistogram,
+    #[serde(alias = "summary")]
+    Summary,
+    #[serde(alias = "info")]
+    Info,
+    #[serde(alias = "stateset")]
+    Stateset,
+    #[serde(alias = "unknown")]
+    Unknown,
+}
+
+impl fmt::Display for MetricType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            MetricType::Counter => write!(f, "counter"),
+            MetricType::Gauge => write!(f, "gauge"),
+            MetricType::Histogram => write!(f, "histogram"),
+            MetricType::GaugeHistogram => write!(f, "gaugehistogram"),
+            MetricType::Summary => write!(f, "summary"),
+            MetricType::Info => write!(f, "info"),
+            MetricType::Stateset => write!(f, "stateset"),
+            MetricType::Unknown => write!(f, "unknown"),
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
+pub struct TargetMetadata {
+    pub(crate) target: HashMap<String, String>,
+    #[serde(alias = "type")]
+    pub(crate) metric_type: MetricType,
+    pub(crate) metric: Option<String>,
+    pub(crate) help: String,
+    pub(crate) unit: String,
 }

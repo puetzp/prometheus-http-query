@@ -688,6 +688,89 @@ impl Client {
             Ok(result)
         })
     }
+
+    /// Retrieve metadata about metrics that are currently scraped from targets.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Scheme, Error, Selector};
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), Error> {
+    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///
+    ///     // Retrieve metadata for a specific metric from all targets.
+    ///     let response = tokio_test::block_on( async { client.target_metadata(Some("go_routines"), None, None).await });
+    ///
+    ///     assert!(response.is_ok());
+    ///
+    ///     // Retrieve metric metadata from specific targets.
+    ///     let s = Selector::new().with("job", "prometheus");
+    ///
+    ///     let response = tokio_test::block_on( async { client.target_metadata(None, Some(&s), None).await });
+    ///
+    ///     assert!(response.is_ok());
+    ///
+    ///     // Retrieve metadata for a specific metric from targets that match a specific label set.
+    ///     let s = Selector::new().with("job", "node");
+    ///
+    ///     let response = tokio_test::block_on( async { client.target_metadata(Some("node_cpu_seconds_total"), Some(&s), None).await });
+    ///
+    ///     assert!(response.is_ok());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn target_metadata(
+        &self,
+        metric: Option<&str>,
+        match_target: Option<&Selector<'_>>,
+        limit: Option<usize>,
+    ) -> Result<Vec<TargetMetadata>, Error> {
+        let url = format!("{}/targets/metadata", self.base_url);
+
+        let mut params = vec![];
+
+        let metric = metric.map(|s| s.to_string());
+
+        if let Some(m) = &metric {
+            params.push(("metric", m.as_str()))
+        }
+
+        let match_target = match_target.map(|s| s.to_string());
+
+        if let Some(m) = &match_target {
+            params.push(("match_target", m.as_str()))
+        }
+
+        let limit = limit.map(|s| s.to_string());
+
+        if let Some(l) = &limit {
+            params.push(("limit", l.as_str()))
+        }
+
+        let response = self
+            .client
+            .get(&url)
+            .query(params.as_slice())
+            .send()
+            .await
+            .map_err(Error::Reqwest)?
+            .error_for_status()
+            .map_err(Error::Reqwest)?;
+
+        check_response(response).await.and_then(move |r| {
+            let data = r["data"].as_array().unwrap();
+
+            let mut result = vec![];
+
+            for datum in data {
+                let metadata: TargetMetadata = serde_json::from_value(datum.to_owned()).unwrap();
+                result.push(metadata);
+            }
+
+            Ok(result)
+        })
+    }
 }
 
 // Convert the response object to an intermediary map, check the JSON's status field
