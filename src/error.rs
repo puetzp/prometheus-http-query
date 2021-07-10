@@ -11,7 +11,7 @@ pub enum Error {
     InvalidRangeVector,
     Reqwest(reqwest::Error),
     ResponseError(ResponseError),
-    UnsupportedResponseDataType(UnsupportedResponseDataType),
+    UnsupportedQueryResultType(UnsupportedQueryResultType),
     UnknownResponseStatus(UnknownResponseStatus),
     InvalidFunctionArgument(InvalidFunctionArgument),
     UrlParse(url::ParseError),
@@ -26,7 +26,7 @@ impl fmt::Display for Error {
             Self::InvalidRangeVector => InvalidRangeVectorError.fmt(f),
             Self::Reqwest(e) => e.fmt(f),
             Self::ResponseError(e) => e.fmt(f),
-            Self::UnsupportedResponseDataType(e) => e.fmt(f),
+            Self::UnsupportedQueryResultType(e) => e.fmt(f),
             Self::UnknownResponseStatus(e) => e.fmt(f),
             Self::InvalidFunctionArgument(e) => e.fmt(f),
             Self::UrlParse(e) => e.fmt(f),
@@ -100,16 +100,16 @@ impl fmt::Display for ResponseError {
     }
 }
 
-/// This error is thrown when the JSON response's `data.resultType` field indicates
-/// an unsupported data format that is not expected for this type of request.<br>
-/// For instant and range queries this must be either `vector` or `matrix`.
+/// This error is thrown when the JSON response's `data.resultType` field contains
+/// an unexpected result type.<br>
+/// For instant and range queries this is expected to be either `vector` or `matrix`.
 #[derive(Debug, Clone, PartialEq)]
-pub struct UnsupportedResponseDataType(pub String);
+pub struct UnsupportedQueryResultType(pub String);
 
-impl fmt::Display for UnsupportedResponseDataType {
+impl fmt::Display for UnsupportedQueryResultType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let UnsupportedResponseDataType(data_type) = self;
-        write!(f, "the API returned an unsupported type of data, is '{}', must be either 'vector' or 'matrix'", data_type)
+        let UnsupportedQueryResultType(data_type) = self;
+        write!(f, "the API returned an unsupported result type, is '{}', must be either 'vector' or 'matrix'", data_type)
     }
 }
 

@@ -1,6 +1,6 @@
 use crate::error::{
     Error, InvalidFunctionArgument, ResponseError, UnknownResponseStatus,
-    UnsupportedResponseDataType,
+    UnsupportedQueryResultType,
 };
 use crate::response::*;
 use crate::selector::Selector;
@@ -846,8 +846,8 @@ fn convert_query_response(
 
             Ok(QueryResultType::Matrix(result))
         }
-        _ => Err(Error::UnsupportedResponseDataType(
-            UnsupportedResponseDataType(data_type.to_string()),
+        _ => Err(Error::UnsupportedQueryResultType(
+            UnsupportedQueryResultType(data_type.to_string()),
         )),
     }
 }
