@@ -823,27 +823,15 @@ fn convert_query_response(
 ) -> Result<QueryResultType, Error> {
     let data_obj = response["data"].as_object().unwrap();
     let data_type = data_obj["resultType"].as_str().unwrap();
-    let data = data_obj["result"].as_array().unwrap().to_owned();
+    let data = data_obj["result"].to_owned();
 
     match data_type {
         "vector" => {
-            let mut result: Vec<InstantVector> = vec![];
-
-            for datum in data {
-                let vector: InstantVector = serde_json::from_value(datum).unwrap();
-                result.push(vector);
-            }
-
+            let result: Vec<InstantVector> = serde_json::from_value(data).unwrap();
             Ok(QueryResultType::Vector(result))
         }
         "matrix" => {
-            let mut result: Vec<RangeVector> = vec![];
-
-            for datum in data {
-                let matrix: RangeVector = serde_json::from_value(datum).unwrap();
-                result.push(matrix);
-            }
-
+            let result: Vec<RangeVector> = serde_json::from_value(data).unwrap();
             Ok(QueryResultType::Matrix(result))
         }
         _ => Err(Error::UnsupportedQueryResultType(
