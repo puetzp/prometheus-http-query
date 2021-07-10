@@ -250,7 +250,8 @@ impl Client {
 
         check_response(response).await.and_then(move |r| {
             let data = r["data"].to_owned();
-            let result: Vec<HashMap<String, String>> = serde_json::from_value(data).unwrap();
+            let result: Vec<HashMap<String, String>> =
+                serde_json::from_value(data).map_err(Error::ResponseParse)?;
             Ok(result)
         })
     }
@@ -338,7 +339,7 @@ impl Client {
 
         check_response(response).await.and_then(move |r| {
             let data = r["data"].to_owned();
-            let result: Vec<String> = serde_json::from_value(data).unwrap();
+            let result: Vec<String> = serde_json::from_value(data).map_err(Error::ResponseParse)?;
             Ok(result)
         })
     }
@@ -423,7 +424,7 @@ impl Client {
 
         check_response(response).await.and_then(move |r| {
             let data = r["data"].to_owned();
-            let result = serde_json::from_value(data).unwrap();
+            let result = serde_json::from_value(data).map_err(Error::ResponseParse)?;
             Ok(result)
         })
     }
@@ -472,7 +473,7 @@ impl Client {
 
         check_response(response).await.and_then(move |r| {
             let data = r["data"].to_owned();
-            let targets: Targets = serde_json::from_value(data).unwrap();
+            let targets: Targets = serde_json::from_value(data).map_err(Error::ResponseParse)?;
             Ok(targets)
         })
     }
@@ -521,7 +522,8 @@ impl Client {
 
         check_response(response).await.and_then(move |r| {
             let groups = r["data"].as_object().unwrap()["groups"].to_owned();
-            let result: Vec<RuleGroup> = serde_json::from_value(groups).unwrap();
+            let result: Vec<RuleGroup> =
+                serde_json::from_value(groups).map_err(Error::ResponseParse)?;
             Ok(result)
         })
     }
@@ -556,7 +558,8 @@ impl Client {
 
         check_response(response).await.and_then(move |r| {
             let alerts = r["data"].as_object().unwrap()["alerts"].to_owned();
-            let result: Vec<Alert> = serde_json::from_value(alerts).unwrap();
+            let result: Vec<Alert> =
+                serde_json::from_value(alerts).map_err(Error::ResponseParse)?;
             Ok(result)
         })
     }
@@ -591,7 +594,8 @@ impl Client {
 
         check_response(response).await.and_then(move |r| {
             let data = r["data"].to_owned();
-            let flags: HashMap<String, String> = serde_json::from_value(data).unwrap();
+            let flags: HashMap<String, String> =
+                serde_json::from_value(data).map_err(Error::ResponseParse)?;
             Ok(flags)
         })
     }
@@ -720,7 +724,8 @@ impl Client {
 
         check_response(response).await.and_then(move |r| {
             let data = r["data"].to_owned();
-            let result: Vec<TargetMetadata> = serde_json::from_value(data).unwrap();
+            let result: Vec<TargetMetadata> =
+                serde_json::from_value(data).map_err(Error::ResponseParse)?;
             Ok(result)
         })
     }
@@ -784,8 +789,9 @@ impl Client {
             .map_err(Error::Reqwest)?;
 
         check_response(response).await.and_then(move |r| {
+            let data = r["data"].to_owned();
             let result: HashMap<String, Vec<MetricMetadata>> =
-                serde_json::from_value(r["data"].to_owned()).unwrap();
+                serde_json::from_value(data).map_err(Error::ResponseParse)?;
 
             Ok(result)
         })
@@ -827,11 +833,13 @@ fn convert_query_response(
 
     match data_type {
         "vector" => {
-            let result: Vec<InstantVector> = serde_json::from_value(data).unwrap();
+            let result: Vec<InstantVector> =
+                serde_json::from_value(data).map_err(Error::ResponseParse)?;
             Ok(QueryResultType::Vector(result))
         }
         "matrix" => {
-            let result: Vec<RangeVector> = serde_json::from_value(data).unwrap();
+            let result: Vec<RangeVector> =
+                serde_json::from_value(data).map_err(Error::ResponseParse)?;
             Ok(QueryResultType::Matrix(result))
         }
         _ => Err(Error::UnsupportedQueryResultType(

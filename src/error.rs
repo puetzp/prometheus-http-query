@@ -15,6 +15,7 @@ pub enum Error {
     UnknownResponseStatus(UnknownResponseStatus),
     InvalidFunctionArgument(InvalidFunctionArgument),
     UrlParse(url::ParseError),
+    ResponseParse(serde_json::Error),
 }
 
 impl fmt::Display for Error {
@@ -30,6 +31,7 @@ impl fmt::Display for Error {
             Self::UnknownResponseStatus(e) => e.fmt(f),
             Self::InvalidFunctionArgument(e) => e.fmt(f),
             Self::UrlParse(e) => e.fmt(f),
+            Self::ResponseParse(e) => e.fmt(f),
         }
     }
 }
