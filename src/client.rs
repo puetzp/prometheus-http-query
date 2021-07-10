@@ -249,16 +249,8 @@ impl Client {
             .map_err(Error::Reqwest)?;
 
         check_response(response).await.and_then(move |r| {
-            let data = r["data"].as_array().unwrap();
-
-            let mut result = vec![];
-
-            for datum in data {
-                let metric: HashMap<String, String> =
-                    serde_json::from_value(datum.to_owned()).unwrap();
-                result.push(metric);
-            }
-
+            let data = r["data"].to_owned();
+            let result: Vec<HashMap<String, String>> = serde_json::from_value(data).unwrap();
             Ok(result)
         })
     }
@@ -345,14 +337,8 @@ impl Client {
             .map_err(Error::Reqwest)?;
 
         check_response(response).await.and_then(move |r| {
-            let data = r["data"].as_array().unwrap();
-
-            let mut result = vec![];
-
-            for datum in data {
-                result.push(datum.as_str().unwrap().to_owned());
-            }
-
+            let data = r["data"].to_owned();
+            let result: Vec<String> = serde_json::from_value(data).unwrap();
             Ok(result)
         })
     }
@@ -436,14 +422,8 @@ impl Client {
             .map_err(Error::Reqwest)?;
 
         check_response(response).await.and_then(move |r| {
-            let data = r["data"].as_array().unwrap();
-
-            let mut result = vec![];
-
-            for datum in data {
-                result.push(datum.as_str().unwrap().to_owned());
-            }
-
+            let data = r["data"].to_owned();
+            let result = serde_json::from_value(data).unwrap();
             Ok(result)
         })
     }
@@ -491,8 +471,8 @@ impl Client {
             .map_err(Error::Reqwest)?;
 
         check_response(response).await.and_then(move |r| {
-            let raw_targets = r["data"].to_owned();
-            let targets: Targets = serde_json::from_value(raw_targets).unwrap();
+            let data = r["data"].to_owned();
+            let targets: Targets = serde_json::from_value(data).unwrap();
             Ok(targets)
         })
     }
@@ -540,18 +520,8 @@ impl Client {
             .map_err(Error::Reqwest)?;
 
         check_response(response).await.and_then(move |r| {
-            let groups = r["data"].as_object().unwrap()["groups"]
-                .as_array()
-                .unwrap()
-                .to_owned();
-
-            let mut result = vec![];
-
-            for group in groups {
-                let g: RuleGroup = serde_json::from_value(group).unwrap();
-                result.push(g);
-            }
-
+            let groups = r["data"].as_object().unwrap()["groups"].to_owned();
+            let result: Vec<RuleGroup> = serde_json::from_value(groups).unwrap();
             Ok(result)
         })
     }
@@ -585,18 +555,8 @@ impl Client {
             .map_err(Error::Reqwest)?;
 
         check_response(response).await.and_then(move |r| {
-            let alerts = r["data"].as_object().unwrap()["alerts"]
-                .as_array()
-                .unwrap()
-                .to_owned();
-
-            let mut result = vec![];
-
-            for alert in alerts {
-                let a: Alert = serde_json::from_value(alert).unwrap();
-                result.push(a);
-            }
-
+            let alerts = r["data"].as_object().unwrap()["alerts"].to_owned();
+            let result: Vec<Alert> = serde_json::from_value(alerts).unwrap();
             Ok(result)
         })
     }
@@ -759,15 +719,8 @@ impl Client {
             .map_err(Error::Reqwest)?;
 
         check_response(response).await.and_then(move |r| {
-            let data = r["data"].as_array().unwrap();
-
-            let mut result = vec![];
-
-            for datum in data {
-                let metadata: TargetMetadata = serde_json::from_value(datum.to_owned()).unwrap();
-                result.push(metadata);
-            }
-
+            let data = r["data"].to_owned();
+            let result: Vec<TargetMetadata> = serde_json::from_value(data).unwrap();
             Ok(result)
         })
     }
