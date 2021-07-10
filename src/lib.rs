@@ -1,9 +1,9 @@
 //! The goal of this crate is to provide a query interface to the [Prometheus HTTP API](https://prometheus.io/docs/prometheus/latest/querying/api/) and leverage Rust's type system in the process. Thus mistakes while building a query can be caught at compile-time (or at least before actually sending the query to Prometheus).
 //!
 //! Most of the features of PromQL are mirrored in this library. Queries are gradually built from time series selectors, aggregations
-//! and functions and then passed to an HTTP client to execute.
+//! and functions and then passed to an HTTP client to execute. Methods to retrieve various kinds of metadata and configuration are also implemented.
 //!
-//! Behind the scenes this library uses the [reqwest] crate as a HTTP client. Thus its features and limitations also
+//! Behind the scenes this library uses the [reqwest] crate as HTTP client. Thus its features and limitations also
 //! apply to this library.
 //!
 //! # Usage
