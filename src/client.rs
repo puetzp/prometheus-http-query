@@ -249,7 +249,7 @@ impl Client {
             .map_err(Error::Reqwest)?;
 
         check_response(response).await.and_then(move |r| {
-            let data = r["data"].to_owned();
+            let data = r.get("data").ok_or(Error::MissingField)?.to_owned();
             let result: Vec<HashMap<String, String>> =
                 serde_json::from_value(data).map_err(Error::ResponseParse)?;
             Ok(result)
@@ -338,7 +338,7 @@ impl Client {
             .map_err(Error::Reqwest)?;
 
         check_response(response).await.and_then(move |r| {
-            let data = r["data"].to_owned();
+            let data = r.get("data").ok_or(Error::MissingField)?.to_owned();
             let result: Vec<String> = serde_json::from_value(data).map_err(Error::ResponseParse)?;
             Ok(result)
         })
@@ -423,7 +423,7 @@ impl Client {
             .map_err(Error::Reqwest)?;
 
         check_response(response).await.and_then(move |r| {
-            let data = r["data"].to_owned();
+            let data = r.get("data").ok_or(Error::MissingField)?.to_owned();
             let result = serde_json::from_value(data).map_err(Error::ResponseParse)?;
             Ok(result)
         })
@@ -472,7 +472,7 @@ impl Client {
             .map_err(Error::Reqwest)?;
 
         check_response(response).await.and_then(move |r| {
-            let data = r["data"].to_owned();
+            let data = r.get("data").ok_or(Error::MissingField)?.to_owned();
             let targets: Targets = serde_json::from_value(data).map_err(Error::ResponseParse)?;
             Ok(targets)
         })
@@ -521,9 +521,18 @@ impl Client {
             .map_err(Error::Reqwest)?;
 
         check_response(response).await.and_then(move |r| {
-            let groups = r["data"].as_object().unwrap()["groups"].to_owned();
+            let groups = r
+                .get("data")
+                .ok_or(Error::MissingField)?
+                .as_object()
+                .unwrap()
+                .get("groups")
+                .ok_or(Error::MissingField)?
+                .to_owned();
+
             let result: Vec<RuleGroup> =
                 serde_json::from_value(groups).map_err(Error::ResponseParse)?;
+
             Ok(result)
         })
     }
@@ -557,9 +566,18 @@ impl Client {
             .map_err(Error::Reqwest)?;
 
         check_response(response).await.and_then(move |r| {
-            let alerts = r["data"].as_object().unwrap()["alerts"].to_owned();
+            let alerts = r
+                .get("data")
+                .ok_or(Error::MissingField)?
+                .as_object()
+                .unwrap()
+                .get("alerts")
+                .ok_or(Error::MissingField)?
+                .to_owned();
+
             let result: Vec<Alert> =
                 serde_json::from_value(alerts).map_err(Error::ResponseParse)?;
+
             Ok(result)
         })
     }
@@ -593,7 +611,7 @@ impl Client {
             .map_err(Error::Reqwest)?;
 
         check_response(response).await.and_then(move |r| {
-            let data = r["data"].to_owned();
+            let data = r.get("data").ok_or(Error::MissingField)?.to_owned();
             let flags: HashMap<String, String> =
                 serde_json::from_value(data).map_err(Error::ResponseParse)?;
             Ok(flags)
@@ -629,21 +647,49 @@ impl Client {
             .map_err(Error::Reqwest)?;
 
         check_response(response).await.and_then(move |r| {
-            let data = r["data"].as_object().unwrap();
+            let data = r
+                .get("data")
+                .ok_or(Error::MissingField)?
+                .as_object()
+                .unwrap();
 
             let mut active: Vec<Url> = vec![];
 
-            for item in data["activeAlertmanagers"].as_array().unwrap() {
-                let raw_url = item["url"].as_str().unwrap();
+            let items = data
+                .get("activeAlertmanagers")
+                .ok_or(Error::MissingField)?
+                .as_array()
+                .unwrap();
+
+            for item in items {
+                let raw_url = item
+                    .get("url")
+                    .ok_or(Error::MissingField)?
+                    .as_str()
+                    .unwrap();
+
                 let url = Url::parse(raw_url).map_err(Error::UrlParse)?;
+
                 active.push(url);
             }
 
             let mut dropped: Vec<Url> = vec![];
 
-            for item in data["droppedAlertmanagers"].as_array().unwrap() {
-                let raw_url = item["url"].as_str().unwrap();
+            let items = data
+                .get("droppedAlertmanagers")
+                .ok_or(Error::MissingField)?
+                .as_array()
+                .unwrap();
+
+            for item in items {
+                let raw_url = item
+                    .get("url")
+                    .ok_or(Error::MissingField)?
+                    .as_str()
+                    .unwrap();
+
                 let url = Url::parse(raw_url).map_err(Error::UrlParse)?;
+
                 dropped.push(url);
             }
 
@@ -723,7 +769,7 @@ impl Client {
             .map_err(Error::Reqwest)?;
 
         check_response(response).await.and_then(move |r| {
-            let data = r["data"].to_owned();
+            let data = r.get("data").ok_or(Error::MissingField)?.to_owned();
             let result: Vec<TargetMetadata> =
                 serde_json::from_value(data).map_err(Error::ResponseParse)?;
             Ok(result)
@@ -789,7 +835,7 @@ impl Client {
             .map_err(Error::Reqwest)?;
 
         check_response(response).await.and_then(move |r| {
-            let data = r["data"].to_owned();
+            let data = r.get("data").ok_or(Error::MissingField)?.to_owned();
             let result: HashMap<String, Vec<MetricMetadata>> =
                 serde_json::from_value(data).map_err(Error::ResponseParse)?;
 
@@ -827,9 +873,22 @@ async fn check_response(
 fn convert_query_response(
     response: HashMap<String, serde_json::Value>,
 ) -> Result<QueryResultType, Error> {
-    let data_obj = response["data"].as_object().unwrap();
-    let data_type = data_obj["resultType"].as_str().unwrap();
-    let data = data_obj["result"].to_owned();
+    let data_obj = response
+        .get("data")
+        .ok_or(Error::MissingField)?
+        .as_object()
+        .unwrap();
+
+    let data_type = data_obj
+        .get("resultType")
+        .ok_or(Error::MissingField)?
+        .as_str()
+        .unwrap();
+
+    let data = data_obj
+        .get("result")
+        .ok_or(Error::MissingField)?
+        .to_owned();
 
     match data_type {
         "vector" => {
