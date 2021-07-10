@@ -132,23 +132,28 @@
 //! - [x] Retrieve alerting + recording rules
 //! - [x] Retrieve active alerts
 //! - [x] Retrieve configured flags & values
-//! - [ ] Target metadata (still experimental as of Prometheus v2.28)
-//! - [ ] Metric metadata (still experimental as of Prometheus v2.28)
-//! - [ ] Alertmanager service discovery status
+//! - [x] Target metadata (still experimental as of Prometheus v2.28)
+//! - [x] Metric metadata (still experimental as of Prometheus v2.28)
+//! - [x] Alertmanager service discovery status
 //! - [ ] Prometheus config
 //! - [ ] Prometheus runtime & build information (still unstable as of Prometheus v2.28)
 //!
 //! # Notes
 //!
+//! ## On parsing an error handling
+//!
 //! If the JSON response from the Prometheus HTTP API indicates an error (field `status` == `"error"`),
 //! then the contents of both fields `errorType` and `error` are captured and then returned by the client
 //! as a variant of the [Error] enum, just as any HTTP errors (non-200) that may indicate a problem
 //! with the provided query string. Thus any syntax problems etc. that cannot be caught at compile time
-//! or before executing the query will at least be propagated in the same manner.
+//! or before executing the query will at least be propagated as returned by the HTTP API.
+//!
+//! ## On types
+//!
+//! This library uses two versions of instant vector and range vector types. [InstantVector] to build queries and be passed to [Client::query] or [Client::query_range] to execute. And [crate::response::InstantVector] as part of the result of these methods. The same applies to range vectors.
 //!
 //! # Limitations
 //!
-//! * Some query types (e.g. Prometheus status, metric & target metadata) are not supported (yet)
 //! * reqwest client configuration cannot be customized (yet)
 //! * Subqueries are not supported (only as custom query)
 //! * PromQL functions that do not take a range / instant vector as an argument are not supported (only as custom query)

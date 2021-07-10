@@ -1,4 +1,4 @@
-//! Collection of response types, most importantly the [Response] enum
+//! All types that may be returned as part of return types from [crate::Client] methods.
 use crate::util::{AlertState, RuleHealth, TargetHealth};
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -32,7 +32,7 @@ mod de {
     }
 }
 
-/// A wrapper for possible result types of expression queries.
+/// A wrapper for possible result types of expression queries ([crate::Client::query] and [crate::Client::query_range]).
 #[derive(Debug)]
 pub enum QueryResultType {
     Vector(Vec<InstantVector>),
@@ -57,7 +57,7 @@ impl QueryResultType {
     }
 }
 
-/// A single time series containing a single data point ([Sample]).
+/// A single time series containing a single data point/sample.
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct InstantVector {
     pub(crate) metric: HashMap<String, String>,
@@ -78,7 +78,7 @@ impl InstantVector {
     }
 }
 
-/// A single time series containing a range of data points ([Sample]s).
+/// A single time series containing a range of data points/samples.
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct RangeVector {
     pub(crate) metric: HashMap<String, String>,
@@ -255,7 +255,7 @@ impl RuleGroup {
     }
 }
 
-/// A wrapper enum for different rule types.
+/// A wrapper for different types of rules that the HTTP API may return.
 #[derive(Debug, Deserialize)]
 #[serde(tag = "type")]
 pub enum Rule {
@@ -265,7 +265,7 @@ pub enum Rule {
     Alerting(AlertingRule),
 }
 
-/// A recording rule.
+/// An alerting rule.
 #[derive(Debug, Deserialize)]
 pub struct AlertingRule {
     pub(crate) alerts: Vec<Alert>,
@@ -314,7 +314,7 @@ impl AlertingRule {
     }
 }
 
-/// An alerting rule.
+/// A recording rule.
 #[derive(Debug, Deserialize)]
 pub struct RecordingRule {
     pub(crate) health: RuleHealth,
@@ -345,6 +345,7 @@ impl RecordingRule {
     }
 }
 
+/// A single alert.
 #[derive(Debug, Deserialize)]
 pub struct Alert {
     #[serde(alias = "activeAt")]
@@ -402,6 +403,7 @@ impl Alertmanagers {
     }
 }
 
+/// Possible metric types that the HTTP API may return.
 #[derive(Debug, Copy, Clone, Deserialize)]
 pub enum MetricType {
     #[serde(alias = "counter")]
@@ -437,6 +439,7 @@ impl fmt::Display for MetricType {
     }
 }
 
+/// A target metadata object.
 #[derive(Debug, Deserialize)]
 pub struct TargetMetadata {
     pub(crate) target: HashMap<String, String>,
@@ -474,6 +477,7 @@ impl TargetMetadata {
     }
 }
 
+/// A metric metadata object
 #[derive(Debug, Deserialize)]
 pub struct MetricMetadata {
     #[serde(alias = "type")]
