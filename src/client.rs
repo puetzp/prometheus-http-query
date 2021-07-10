@@ -854,14 +854,31 @@ async fn check_response(
         .await
         .map_err(Error::Reqwest)?;
 
-    let status = map["status"].as_str().unwrap();
+    let status = map
+        .get("status")
+        .ok_or(Error::MissingField)?
+        .as_str()
+        .unwrap();
 
     match status {
         "success" => Ok(map),
-        "error" => Err(Error::ResponseError(ResponseError {
-            kind: map["errorType"].as_str().unwrap().to_string(),
-            message: map["error"].as_str().unwrap().to_string(),
-        })),
+        "error" => {
+            let kind = map
+                .get("errorType")
+                .ok_or(Error::MissingField)?
+                .as_str()
+                .unwrap()
+                .to_string();
+
+            let message = map
+                .get("error")
+                .ok_or(Error::MissingField)?
+                .as_str()
+                .unwrap()
+                .to_string();
+
+            Err(Error::ResponseError(ResponseError { kind, message }))
+        }
         _ => Err(Error::UnknownResponseStatus(UnknownResponseStatus(
             status.to_string(),
         ))),
