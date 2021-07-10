@@ -473,3 +473,28 @@ impl TargetMetadata {
         &self.unit
     }
 }
+
+#[derive(Debug, Deserialize)]
+pub struct MetricMetadata {
+    #[serde(alias = "type")]
+    pub(crate) metric_type: MetricType,
+    pub(crate) help: String,
+    pub(crate) unit: String,
+}
+
+impl MetricMetadata {
+    /// Get the metric type.
+    pub fn metric_type(&self) -> MetricType {
+        self.metric_type
+    }
+
+    /// Get the metric help.
+    pub fn help(&self) -> &str {
+        &self.help
+    }
+
+    /// Get the metric unit.
+    pub fn unit(&self) -> &str {
+        &self.unit
+    }
+}

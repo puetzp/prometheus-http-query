@@ -689,7 +689,7 @@ impl Client {
         })
     }
 
-    /// Retrieve metadata about metrics that are currently scraped from targets.
+    /// Retrieve metadata about metrics that are currently scraped from targets, along with target information.
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Scheme, Error, Selector};
@@ -767,6 +767,72 @@ impl Client {
                 let metadata: TargetMetadata = serde_json::from_value(datum.to_owned()).unwrap();
                 result.push(metadata);
             }
+
+            Ok(result)
+        })
+    }
+
+    /// Retrieve metadata about metrics that are currently scraped from targets.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Scheme, Error};
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), Error> {
+    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///
+    ///     // Retrieve metadata for a all metrics.
+    ///     let response = tokio_test::block_on( async { client.metric_metadata(None, None).await });
+    ///
+    ///     assert!(response.is_ok());
+    ///
+    ///     // Limit the number of returned metrics
+    ///     let response = tokio_test::block_on( async { client.metric_metadata(None, Some(10)).await });
+    ///
+    ///     assert!(response.is_ok());
+    ///
+    ///     // Retrieve metadata of a specific metric.
+    ///     let response = tokio_test::block_on( async { client.metric_metadata(Some("go_routines"), None).await });
+    ///
+    ///     assert!(response.is_ok());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn metric_metadata(
+        &self,
+        metric: Option<&str>,
+        limit: Option<usize>,
+    ) -> Result<HashMap<String, Vec<MetricMetadata>>, Error> {
+        let url = format!("{}/metadata", self.base_url);
+
+        let mut params = vec![];
+
+        let metric = metric.map(|s| s.to_string());
+
+        if let Some(m) = &metric {
+            params.push(("metric", m.as_str()))
+        }
+
+        let limit = limit.map(|s| s.to_string());
+
+        if let Some(l) = &limit {
+            params.push(("limit", l.as_str()))
+        }
+
+        let response = self
+            .client
+            .get(&url)
+            .query(params.as_slice())
+            .send()
+            .await
+            .map_err(Error::Reqwest)?
+            .error_for_status()
+            .map_err(Error::Reqwest)?;
+
+        check_response(response).await.and_then(move |r| {
+            let result: HashMap<String, Vec<MetricMetadata>> =
+                serde_json::from_value(r["data"].to_owned()).unwrap();
 
             Ok(result)
         })
