@@ -1303,3 +1303,30 @@ pub fn last_over_time(vector: RangeVector) -> InstantVector {
     let new = format!("last_over_time({})", query);
     InstantVector(new)
 }
+
+/// Apply the PromQL `present_over_time` function.
+///
+/// ```rust
+/// use prometheus_http_query::{Selector, RangeVector};
+/// use prometheus_http_query::functions::present_over_time;
+/// use std::convert::TryInto;
+///
+/// fn main() -> Result<(), prometheus_http_query::Error> {
+///     let vector: RangeVector = Selector::new()
+///         .metric("some_metric")?
+///         .with("some_label", "some_value")
+///         .range("5m")?
+///         .try_into()?;
+///
+///     let result = present_over_time(vector);
+///
+///     assert_eq!(&result.to_string(), "present_over_time(some_metric{some_label=\"some_value\"}[5m])");
+///
+///     Ok(())
+/// }
+/// ```
+pub fn present_over_time(vector: RangeVector) -> InstantVector {
+    let RangeVector(query) = vector;
+    let new = format!("present_over_time({})", query);
+    InstantVector(new)
+}
