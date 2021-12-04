@@ -161,6 +161,10 @@ pub struct ActiveTarget {
     #[serde(alias = "lastScrapeDuration")]
     pub(crate) last_scrape_duration: f64,
     pub(crate) health: TargetHealth,
+    #[serde(alias = "scrapeInterval")]
+    pub(crate) scrape_interval: String,
+    #[serde(alias = "scrapeTimeout")]
+    pub(crate) scrape_timeout: String,
 }
 
 impl ActiveTarget {
@@ -207,6 +211,16 @@ impl ActiveTarget {
     /// Get the health status of this target.
     pub fn health(&self) -> TargetHealth {
         self.health
+    }
+
+    /// Get the scrape interval of this target.
+    pub fn scrape_interval(&self) -> &str {
+        &self.scrape_interval
+    }
+
+    /// Get the scrape timeout of this target.
+    pub fn scrape_timeout(&self) -> &str {
+        &self.scrape_timeout
     }
 }
 
