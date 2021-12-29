@@ -8,6 +8,7 @@ use url::Url;
 
 mod de {
     use serde::{Deserialize, Deserializer};
+    use time::format_description::well_known::Rfc3339;
     use time::OffsetDateTime;
     use url::Url;
 
@@ -24,11 +25,10 @@ mod de {
     where
         D: Deserializer<'de>,
     {
-        let mut raw = String::deserialize(deserializer)?;
-        raw = raw.as_str().trim_end_matches(":00").to_string();
-        raw.push_str("00");
-        let dt = OffsetDateTime::parse(&raw, "%FT%T.%N%z").map_err(serde::de::Error::custom)?;
-        Ok(dt)
+        let raw = String::deserialize(deserializer)?;
+
+        OffsetDateTime::parse(&raw, &Rfc3339)
+            .map_err(|e| serde::de::Error::custom(format!("error parsing '{}': {}", raw, e)))
     }
 }
 
