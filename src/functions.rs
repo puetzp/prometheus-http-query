@@ -1325,6 +1325,8 @@ pub fn last_over_time(vector: RangeVector) -> InstantVector {
 ///     Ok(())
 /// }
 /// ```
+///
+/// Requires Prometheus server >= 2.29.0.
 pub fn present_over_time(vector: RangeVector) -> InstantVector {
     let RangeVector(query) = vector;
     let new = format!("present_over_time({})", query);
