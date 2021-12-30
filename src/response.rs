@@ -162,8 +162,10 @@ pub struct ActiveTarget {
     pub(crate) last_scrape_duration: f64,
     pub(crate) health: TargetHealth,
     #[serde(alias = "scrapeInterval")]
+    #[serde(default)]
     pub(crate) scrape_interval: String,
     #[serde(alias = "scrapeTimeout")]
+    #[serde(default)]
     pub(crate) scrape_timeout: String,
 }
 
