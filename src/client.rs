@@ -26,6 +26,7 @@ impl Scheme {
 
 /// A client used to execute queries. It uses a [reqwest::Client] internally
 /// that manages connections for us.
+#[derive(Clone)]
 pub struct Client {
     pub(crate) client: reqwest::Client,
     pub(crate) base_url: String,
