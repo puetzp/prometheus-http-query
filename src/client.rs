@@ -6,10 +6,12 @@ use crate::response::*;
 use crate::selector::Selector;
 use crate::util::{validate_duration, RuleType, TargetState};
 use std::collections::HashMap;
+use std::fmt;
 use url::Url;
 
 /// A helper enum that is passed to the [Client::new] function in
 /// order to avoid errors on unsupported connection schemes.
+#[derive(Debug)]
 pub enum Scheme {
     Http,
     Https,
@@ -20,6 +22,15 @@ impl Scheme {
         match self {
             Scheme::Http => "http",
             Scheme::Https => "https",
+        }
+    }
+}
+
+impl fmt::Display for Scheme {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Http => write!(f, "http"),
+            Self::Https => write!(f, "https"),
         }
     }
 }
