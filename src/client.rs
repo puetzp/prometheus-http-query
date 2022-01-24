@@ -37,6 +37,10 @@ impl fmt::Display for Scheme {
 
 /// A client used to execute queries. It uses a [reqwest::Client] internally
 /// that manages connections for us.
+///
+/// Note that possible errors regarding domain name resolution or
+/// connection establishment will only be propagated from the underlying
+/// [reqwest::Client] when a query is executed.
 #[derive(Clone)]
 pub struct Client {
     pub(crate) client: reqwest::Client,
@@ -63,10 +67,6 @@ impl Client {
     /// Create a Client that connects to a Prometheus instance at the
     /// given FQDN/domain and port, using either HTTP or HTTPS.
     ///
-    /// Note that possible errors regarding domain name resolution or
-    /// connection establishment will only be propagated from the underlying
-    /// [reqwest::Client] when a query is executed.
-    ///
     /// ```rust
     /// use prometheus_http_query::{Client, Scheme};
     ///
@@ -77,6 +77,30 @@ impl Client {
             base_url: format!("{}://{}:{}/api/v1", scheme.as_str(), host, port),
             ..Default::default()
         }
+    }
+
+    /// Create a Client that connects to a Prometheus instance at the
+    /// given URL.
+    ///
+    /// ```rust
+    /// let client = prometheus_http_query::Client::from("https://prometheus.example.com");
+    ///
+    /// assert!(client.is_ok());
+    /// ```
+    pub fn from(url: &str) -> Result<Self, Error> {
+        let mut base_url = Url::parse(url)
+            .map_err(Error::UrlParse)?
+            .as_str()
+            .to_string();
+
+        base_url.push_str("/api/v1");
+
+        let client = Client {
+            base_url,
+            ..Default::default()
+        };
+
+        Ok(client)
     }
 
     /// Perform an instant query using a [crate::RangeVector] or [crate::InstantVector].
