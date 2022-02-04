@@ -2,136 +2,137 @@
 use crate::error::{Error, InvalidFunctionArgument};
 use crate::vector::*;
 
-/// Apply the PromQL `abs` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::abs;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .try_into()?;
-///
-///     let result = abs(vector);
-///
-///     assert_eq!(&result.to_string(), "abs(some_metric{some_label=\"some_value\"})");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn abs(vector: InstantVector) -> InstantVector {
-    let InstantVector(query) = vector;
-    let new = format!("abs({})", query);
-    InstantVector(new)
+macro_rules! create_function {
+    ( $(#[$attr:meta])* => $func_name:ident, $source_type:ident, $result_type:ident ) => {
+        $(#[$attr])*
+        pub fn $func_name(vector: $source_type) -> $result_type {
+            let $source_type(query) = vector;
+            let new = format!("{}({})", stringify!($func_name), query);
+            $result_type(new)
+        }
+    };
 }
 
-/// Apply the PromQL `absent` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::absent;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("nonexistent")?
-///         .with("some_label", "some_value")
-///         .try_into()?;
-///
-///     let result = absent(vector);
-///
-///     assert_eq!(&result.to_string(), "absent(nonexistent{some_label=\"some_value\"})");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn absent(vector: InstantVector) -> InstantVector {
-    let InstantVector(query) = vector;
-    let new = format!("absent({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `abs` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::functions::abs;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let result = abs(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "abs(some_metric{some_label=\"some_value\"})");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => abs, InstantVector, InstantVector
 }
 
-/// Apply the PromQL `absent_over_time` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
-/// use prometheus_http_query::functions::absent_over_time;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: RangeVector = Selector::new()
-///         .metric("nonexistent")?
-///         .with("some_label", "some_value")
-///         .range("5m")?
-///         .try_into()?;
-///
-///     let result = absent_over_time(vector);
-///
-///     assert_eq!(&result.to_string(), "absent_over_time(nonexistent{some_label=\"some_value\"}[5m])");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn absent_over_time(vector: RangeVector) -> InstantVector {
-    let RangeVector(query) = vector;
-    let new = format!("absent_over_time({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `absent` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::functions::absent;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("nonexistent")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let result = absent(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "absent(nonexistent{some_label=\"some_value\"})");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => absent, InstantVector, InstantVector
 }
 
-/// Apply the PromQL `ceil` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::ceil;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .try_into()?;
-///
-///     let result = ceil(vector);
-///
-///     assert_eq!(&result.to_string(), "ceil(some_metric{some_label=\"some_value\"})");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn ceil(vector: InstantVector) -> InstantVector {
-    let InstantVector(query) = vector;
-    let new = format!("ceil({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `absent_over_time` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::functions::absent_over_time;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: RangeVector = Selector::new()
+    ///         .metric("nonexistent")?
+    ///         .with("some_label", "some_value")
+    ///         .range("5m")?
+    ///         .try_into()?;
+    ///
+    ///     let result = absent_over_time(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "absent_over_time(nonexistent{some_label=\"some_value\"}[5m])");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => absent_over_time, RangeVector, InstantVector
 }
 
-/// Apply the PromQL `changes` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
-/// use prometheus_http_query::functions::changes;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .range("5m")?
-///         .try_into()?;
-///
-///     let result = changes(vector);
-///
-///     assert_eq!(&result.to_string(), "changes(some_metric{some_label=\"some_value\"}[5m])");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn changes(vector: RangeVector) -> InstantVector {
-    let RangeVector(query) = vector;
-    let new = format!("changes({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `ceil` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::functions::ceil;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let result = ceil(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "ceil(some_metric{some_label=\"some_value\"})");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => ceil, InstantVector, InstantVector
+}
+
+create_function! {
+    /// Apply the PromQL `changes` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::functions::changes;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: RangeVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .range("5m")?
+    ///         .try_into()?;
+    ///
+    ///     let result = changes(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "changes(some_metric{some_label=\"some_value\"}[5m])");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => changes, RangeVector, InstantVector
 }
 
 /// Apply the PromQL `clamp` function.
@@ -212,188 +213,174 @@ pub fn clamp_min(vector: InstantVector, min: f64) -> InstantVector {
     InstantVector(new)
 }
 
-/// Apply the PromQL `day_of_month` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::day_of_month;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .try_into()?;
-///
-///     let result = day_of_month(vector);
-///
-///     assert_eq!(&result.to_string(), "day_of_month(some_metric{some_label=\"some_value\"})");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn day_of_month(vector: InstantVector) -> InstantVector {
-    let InstantVector(query) = vector;
-    let new = format!("day_of_month({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `day_of_month` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::functions::day_of_month;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let result = day_of_month(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "day_of_month(some_metric{some_label=\"some_value\"})");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => day_of_month, InstantVector, InstantVector
 }
 
-/// Apply the PromQL `day_of_week` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::day_of_week;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .try_into()?;
-///
-///     let result = day_of_week(vector);
-///
-///     assert_eq!(&result.to_string(), "day_of_week(some_metric{some_label=\"some_value\"})");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn day_of_week(vector: InstantVector) -> InstantVector {
-    let InstantVector(query) = vector;
-    let new = format!("day_of_week({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `day_of_week` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::functions::day_of_week;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let result = day_of_week(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "day_of_week(some_metric{some_label=\"some_value\"})");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => day_of_week, InstantVector, InstantVector
 }
 
-/// Apply the PromQL `days_in_month` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::days_in_month;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .try_into()?;
-///
-///     let result = days_in_month(vector);
-///
-///     assert_eq!(&result.to_string(), "days_in_month(some_metric{some_label=\"some_value\"})");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn days_in_month(vector: InstantVector) -> InstantVector {
-    let InstantVector(query) = vector;
-    let new = format!("days_in_month({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `days_in_month` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::functions::days_in_month;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let result = days_in_month(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "days_in_month(some_metric{some_label=\"some_value\"})");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => days_in_month, InstantVector, InstantVector
 }
 
-/// Apply the PromQL `delta` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
-/// use prometheus_http_query::functions::delta;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .range("5m")?
-///         .try_into()?;
-///
-///     let result = delta(vector);
-///
-///     assert_eq!(&result.to_string(), "delta(some_metric{some_label=\"some_value\"}[5m])");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn delta(vector: RangeVector) -> InstantVector {
-    let RangeVector(query) = vector;
-    let new = format!("delta({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `delta` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::functions::delta;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: RangeVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .range("5m")?
+    ///         .try_into()?;
+    ///
+    ///     let result = delta(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "delta(some_metric{some_label=\"some_value\"}[5m])");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => delta, RangeVector, InstantVector
 }
 
-/// Apply the PromQL `deriv` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
-/// use prometheus_http_query::functions::deriv;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .range("5m")?
-///         .try_into()?;
-///
-///     let result = deriv(vector);
-///
-///     assert_eq!(&result.to_string(), "deriv(some_metric{some_label=\"some_value\"}[5m])");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn deriv(vector: RangeVector) -> InstantVector {
-    let RangeVector(query) = vector;
-    let new = format!("deriv({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `deriv` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::functions::deriv;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: RangeVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .range("5m")?
+    ///         .try_into()?;
+    ///
+    ///     let result = deriv(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "deriv(some_metric{some_label=\"some_value\"}[5m])");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => deriv, RangeVector, InstantVector
 }
 
-/// Apply the PromQL `exp` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::exp;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .try_into()?;
-///
-///     let result = exp(vector);
-///
-///     assert_eq!(&result.to_string(), "exp(some_metric{some_label=\"some_value\"})");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn exp(vector: InstantVector) -> InstantVector {
-    let InstantVector(query) = vector;
-    let new = format!("exp({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `exp` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::functions::exp;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let result = exp(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "exp(some_metric{some_label=\"some_value\"})");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => exp, InstantVector, InstantVector
 }
 
-/// Apply the PromQL `floor` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::floor;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .try_into()?;
-///
-///     let result = floor(vector);
-///
-///     assert_eq!(&result.to_string(), "floor(some_metric{some_label=\"some_value\"})");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn floor(vector: InstantVector) -> InstantVector {
-    let InstantVector(query) = vector;
-    let new = format!("floor({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `floor` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::functions::floor;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let result = floor(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "floor(some_metric{some_label=\"some_value\"})");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => floor, InstantVector, InstantVector
 }
 
 /// Apply the PromQL `histogram_quantile` function.
@@ -457,111 +444,103 @@ pub fn holt_winters(vector: RangeVector, sf: f64, tf: f64) -> Result<InstantVect
     Ok(InstantVector(new))
 }
 
-/// Apply the PromQL `hour` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::hour;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .try_into()?;
-///
-///     let result = hour(vector);
-///
-///     assert_eq!(&result.to_string(), "hour(some_metric{some_label=\"some_value\"})");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn hour(vector: InstantVector) -> InstantVector {
-    let InstantVector(query) = vector;
-    let new = format!("hour({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `hour` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::functions::hour;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let result = hour(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "hour(some_metric{some_label=\"some_value\"})");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => hour, InstantVector, InstantVector
 }
 
-/// Apply the PromQL `idelta` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
-/// use prometheus_http_query::functions::idelta;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .range("5m")?
-///         .try_into()?;
-///
-///     let result = idelta(vector);
-///
-///     assert_eq!(&result.to_string(), "idelta(some_metric{some_label=\"some_value\"}[5m])");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn idelta(vector: RangeVector) -> InstantVector {
-    let RangeVector(query) = vector;
-    let new = format!("idelta({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `idelta` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::functions::idelta;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: RangeVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .range("5m")?
+    ///         .try_into()?;
+    ///
+    ///     let result = idelta(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "idelta(some_metric{some_label=\"some_value\"}[5m])");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => idelta, RangeVector, InstantVector
 }
 
-/// Apply the PromQL `increase` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
-/// use prometheus_http_query::functions::increase;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .range("5m")?
-///         .try_into()?;
-///
-///     let result = increase(vector);
-///
-///     assert_eq!(&result.to_string(), "increase(some_metric{some_label=\"some_value\"}[5m])");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn increase(vector: RangeVector) -> InstantVector {
-    let RangeVector(query) = vector;
-    let new = format!("increase({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `increase` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::functions::increase;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: RangeVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .range("5m")?
+    ///         .try_into()?;
+    ///
+    ///     let result = increase(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "increase(some_metric{some_label=\"some_value\"}[5m])");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => increase, RangeVector, InstantVector
 }
 
-/// Apply the PromQL `irate` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
-/// use prometheus_http_query::functions::irate;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .range("5m")?
-///         .try_into()?;
-///
-///     let result = irate(vector);
-///
-///     assert_eq!(&result.to_string(), "irate(some_metric{some_label=\"some_value\"}[5m])");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn irate(vector: RangeVector) -> InstantVector {
-    let RangeVector(query) = vector;
-    let new = format!("irate({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `irate` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::functions::irate;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: RangeVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .range("5m")?
+    ///         .try_into()?;
+    ///
+    ///     let result = irate(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "irate(some_metric{some_label=\"some_value\"}[5m])");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => irate, RangeVector, InstantVector
 }
 
 /// Apply the PromQL `label_join` function.
@@ -664,134 +643,124 @@ pub fn label_replace(
     Ok(InstantVector(new))
 }
 
-/// Apply the PromQL `ln` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::ln;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .try_into()?;
-///
-///     let result = ln(vector);
-///
-///     assert_eq!(&result.to_string(), "ln(some_metric{some_label=\"some_value\"})");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn ln(vector: InstantVector) -> InstantVector {
-    let InstantVector(query) = vector;
-    let new = format!("ln({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `ln` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::functions::ln;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let result = ln(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "ln(some_metric{some_label=\"some_value\"})");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => ln, InstantVector, InstantVector
 }
 
-/// Apply the PromQL `log2` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::log2;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .try_into()?;
-///
-///     let result = log2(vector);
-///
-///     assert_eq!(&result.to_string(), "log2(some_metric{some_label=\"some_value\"})");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn log2(vector: InstantVector) -> InstantVector {
-    let InstantVector(query) = vector;
-    let new = format!("log2({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `log2` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::functions::log2;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let result = log2(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "log2(some_metric{some_label=\"some_value\"})");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => log2, InstantVector, InstantVector
 }
 
-/// Apply the PromQL `log10` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::log10;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .try_into()?;
-///
-///     let result = log10(vector);
-///
-///     assert_eq!(&result.to_string(), "log10(some_metric{some_label=\"some_value\"})");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn log10(vector: InstantVector) -> InstantVector {
-    let InstantVector(query) = vector;
-    let new = format!("log10({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `log10` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::functions::log10;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let result = log10(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "log10(some_metric{some_label=\"some_value\"})");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => log10, InstantVector, InstantVector
 }
 
-/// Apply the PromQL `minute` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::minute;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .try_into()?;
-///
-///     let result = minute(vector);
-///
-///     assert_eq!(&result.to_string(), "minute(some_metric{some_label=\"some_value\"})");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn minute(vector: InstantVector) -> InstantVector {
-    let InstantVector(query) = vector;
-    let new = format!("minute({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `minute` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::functions::minute;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let result = minute(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "minute(some_metric{some_label=\"some_value\"})");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => minute, InstantVector, InstantVector
 }
 
-/// Apply the PromQL `month` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::month;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .try_into()?;
-///
-///     let result = month(vector);
-///
-///     assert_eq!(&result.to_string(), "month(some_metric{some_label=\"some_value\"})");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn month(vector: InstantVector) -> InstantVector {
-    let InstantVector(query) = vector;
-    let new = format!("month({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `month` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::functions::month;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let result = month(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "month(some_metric{some_label=\"some_value\"})");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => month, InstantVector, InstantVector
 }
 
 /// Apply the PromQL `predict_linear` function.
@@ -821,58 +790,54 @@ pub fn predict_linear(vector: RangeVector, seconds: f64) -> InstantVector {
     InstantVector(new)
 }
 
-/// Apply the PromQL `rate` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
-/// use prometheus_http_query::functions::rate;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .range("5m")?
-///         .try_into()?;
-///
-///     let result = rate(vector);
-///
-///     assert_eq!(&result.to_string(), "rate(some_metric{some_label=\"some_value\"}[5m])");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn rate(vector: RangeVector) -> InstantVector {
-    let RangeVector(query) = vector;
-    let new = format!("rate({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `rate` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::functions::rate;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: RangeVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .range("5m")?
+    ///         .try_into()?;
+    ///
+    ///     let result = rate(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "rate(some_metric{some_label=\"some_value\"}[5m])");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => rate, RangeVector, InstantVector
 }
 
-/// Apply the PromQL `resets` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
-/// use prometheus_http_query::functions::resets;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .range("5m")?
-///         .try_into()?;
-///
-///     let result = resets(vector);
-///
-///     assert_eq!(&result.to_string(), "resets(some_metric{some_label=\"some_value\"}[5m])");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn resets(vector: RangeVector) -> InstantVector {
-    let RangeVector(query) = vector;
-    let new = format!("resets({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `resets` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::functions::resets;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: RangeVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .range("5m")?
+    ///         .try_into()?;
+    ///
+    ///     let result = resets(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "resets(some_metric{some_label=\"some_value\"}[5m])");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => resets, RangeVector, InstantVector
 }
 
 /// Apply the PromQL `round` function.
@@ -905,295 +870,273 @@ pub fn round(vector: InstantVector, to_nearest: Option<f64>) -> InstantVector {
     InstantVector(new)
 }
 
-/// Apply the PromQL `scalar` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::scalar;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .try_into()?;
-///
-///     let result = scalar(vector);
-///
-///     assert_eq!(&result.to_string(), "scalar(some_metric{some_label=\"some_value\"})");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn scalar(vector: InstantVector) -> InstantVector {
-    let InstantVector(query) = vector;
-    let new = format!("scalar({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `scalar` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::functions::scalar;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let result = scalar(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "scalar(some_metric{some_label=\"some_value\"})");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => scalar, InstantVector, InstantVector
 }
 
-/// Apply the PromQL `sgn` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::sgn;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .try_into()?;
-///
-///     let result = sgn(vector);
-///
-///     assert_eq!(&result.to_string(), "sgn(some_metric{some_label=\"some_value\"})");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn sgn(vector: InstantVector) -> InstantVector {
-    let InstantVector(query) = vector;
-    let new = format!("sgn({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `sgn` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::functions::sgn;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let result = sgn(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "sgn(some_metric{some_label=\"some_value\"})");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => sgn, InstantVector, InstantVector
 }
 
-/// Apply the PromQL `sort` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::sort;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .try_into()?;
-///
-///     let result = sort(vector);
-///
-///     assert_eq!(&result.to_string(), "sort(some_metric{some_label=\"some_value\"})");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn sort(vector: InstantVector) -> InstantVector {
-    let InstantVector(query) = vector;
-    let new = format!("sort({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `sort` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::functions::sort;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let result = sort(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "sort(some_metric{some_label=\"some_value\"})");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => sort, InstantVector, InstantVector
 }
 
-/// Apply the PromQL `sort_desc` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::sort_desc;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .try_into()?;
-///
-///     let result = sort_desc(vector);
-///
-///     assert_eq!(&result.to_string(), "sort_desc(some_metric{some_label=\"some_value\"})");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn sort_desc(vector: InstantVector) -> InstantVector {
-    let InstantVector(query) = vector;
-    let new = format!("sort_desc({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `sort_desc` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::functions::sort_desc;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let result = sort_desc(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "sort_desc(some_metric{some_label=\"some_value\"})");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => sort_desc, InstantVector, InstantVector
 }
 
-/// Apply the PromQL `timestamp` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::timestamp;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .try_into()?;
-///
-///     let result = timestamp(vector);
-///
-///     assert_eq!(&result.to_string(), "timestamp(some_metric{some_label=\"some_value\"})");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn timestamp(vector: InstantVector) -> InstantVector {
-    let InstantVector(query) = vector;
-    let new = format!("timestamp({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `timestamp` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::functions::timestamp;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let result = timestamp(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "timestamp(some_metric{some_label=\"some_value\"})");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => timestamp, InstantVector, InstantVector
 }
 
-/// Apply the PromQL `year` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::year;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .try_into()?;
-///
-///     let result = year(vector);
-///
-///     assert_eq!(&result.to_string(), "year(some_metric{some_label=\"some_value\"})");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn year(vector: InstantVector) -> InstantVector {
-    let InstantVector(query) = vector;
-    let new = format!("year({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `year` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::functions::year;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .try_into()?;
+    ///
+    ///     let result = year(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "year(some_metric{some_label=\"some_value\"})");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => year, InstantVector, InstantVector
 }
 
-/// Apply the PromQL `avg_over_time` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
-/// use prometheus_http_query::functions::avg_over_time;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .range("5m")?
-///         .try_into()?;
-///
-///     let result = avg_over_time(vector);
-///
-///     assert_eq!(&result.to_string(), "avg_over_time(some_metric{some_label=\"some_value\"}[5m])");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn avg_over_time(vector: RangeVector) -> InstantVector {
-    let RangeVector(query) = vector;
-    let new = format!("avg_over_time({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `avg_over_time` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::functions::avg_over_time;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: RangeVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .range("5m")?
+    ///         .try_into()?;
+    ///
+    ///     let result = avg_over_time(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "avg_over_time(some_metric{some_label=\"some_value\"}[5m])");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => avg_over_time, RangeVector, InstantVector
 }
 
-/// Apply the PromQL `min_over_time` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
-/// use prometheus_http_query::functions::min_over_time;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .range("5m")?
-///         .try_into()?;
-///
-///     let result = min_over_time(vector);
-///
-///     assert_eq!(&result.to_string(), "min_over_time(some_metric{some_label=\"some_value\"}[5m])");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn min_over_time(vector: RangeVector) -> InstantVector {
-    let RangeVector(query) = vector;
-    let new = format!("min_over_time({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `min_over_time` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::functions::min_over_time;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: RangeVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .range("5m")?
+    ///         .try_into()?;
+    ///
+    ///     let result = min_over_time(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "min_over_time(some_metric{some_label=\"some_value\"}[5m])");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => min_over_time, RangeVector, InstantVector
 }
 
-/// Apply the PromQL `max_over_time` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
-/// use prometheus_http_query::functions::max_over_time;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .range("5m")?
-///         .try_into()?;
-///
-///     let result = max_over_time(vector);
-///
-///     assert_eq!(&result.to_string(), "max_over_time(some_metric{some_label=\"some_value\"}[5m])");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn max_over_time(vector: RangeVector) -> InstantVector {
-    let RangeVector(query) = vector;
-    let new = format!("max_over_time({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `max_over_time` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::functions::max_over_time;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: RangeVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .range("5m")?
+    ///         .try_into()?;
+    ///
+    ///     let result = max_over_time(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "max_over_time(some_metric{some_label=\"some_value\"}[5m])");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => max_over_time, RangeVector, InstantVector
 }
 
-/// Apply the PromQL `sum_over_time` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
-/// use prometheus_http_query::functions::sum_over_time;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .range("5m")?
-///         .try_into()?;
-///
-///     let result = sum_over_time(vector);
-///
-///     assert_eq!(&result.to_string(), "sum_over_time(some_metric{some_label=\"some_value\"}[5m])");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn sum_over_time(vector: RangeVector) -> InstantVector {
-    let RangeVector(query) = vector;
-    let new = format!("sum_over_time({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `sum_over_time` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::functions::sum_over_time;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: RangeVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .range("5m")?
+    ///         .try_into()?;
+    ///
+    ///     let result = sum_over_time(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "sum_over_time(some_metric{some_label=\"some_value\"}[5m])");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => sum_over_time, RangeVector, InstantVector
 }
 
-/// Apply the PromQL `count_over_time` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
-/// use prometheus_http_query::functions::count_over_time;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .range("5m")?
-///         .try_into()?;
-///
-///     let result = count_over_time(vector);
-///
-///     assert_eq!(&result.to_string(), "count_over_time(some_metric{some_label=\"some_value\"}[5m])");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn count_over_time(vector: RangeVector) -> InstantVector {
-    let RangeVector(query) = vector;
-    let new = format!("count_over_time({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `count_over_time` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::functions::count_over_time;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: RangeVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .range("5m")?
+    ///         .try_into()?;
+    ///
+    ///     let result = count_over_time(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "count_over_time(some_metric{some_label=\"some_value\"}[5m])");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => count_over_time, RangeVector, InstantVector
 }
 
 /// Apply the PromQL `quantile_over_time` function.
@@ -1223,112 +1166,104 @@ pub fn quantile_over_time(quantile: f64, vector: RangeVector) -> InstantVector {
     InstantVector(new)
 }
 
-/// Apply the PromQL `stddev_over_time` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
-/// use prometheus_http_query::functions::stddev_over_time;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .range("5m")?
-///         .try_into()?;
-///
-///     let result = stddev_over_time(vector);
-///
-///     assert_eq!(&result.to_string(), "stddev_over_time(some_metric{some_label=\"some_value\"}[5m])");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn stddev_over_time(vector: RangeVector) -> InstantVector {
-    let RangeVector(query) = vector;
-    let new = format!("stddev_over_time({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `stddev_over_time` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::functions::stddev_over_time;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: RangeVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .range("5m")?
+    ///         .try_into()?;
+    ///
+    ///     let result = stddev_over_time(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "stddev_over_time(some_metric{some_label=\"some_value\"}[5m])");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => stddev_over_time, RangeVector, InstantVector
 }
 
-/// Apply the PromQL `stdvar_over_time` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
-/// use prometheus_http_query::functions::stdvar_over_time;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .range("5m")?
-///         .try_into()?;
-///
-///     let result = stdvar_over_time(vector);
-///
-///     assert_eq!(&result.to_string(), "stdvar_over_time(some_metric{some_label=\"some_value\"}[5m])");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn stdvar_over_time(vector: RangeVector) -> InstantVector {
-    let RangeVector(query) = vector;
-    let new = format!("stdvar_over_time({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `stdvar_over_time` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::functions::stdvar_over_time;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: RangeVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .range("5m")?
+    ///         .try_into()?;
+    ///
+    ///     let result = stdvar_over_time(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "stdvar_over_time(some_metric{some_label=\"some_value\"}[5m])");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => stdvar_over_time, RangeVector, InstantVector
 }
 
-/// Apply the PromQL `last_over_time` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
-/// use prometheus_http_query::functions::last_over_time;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .range("5m")?
-///         .try_into()?;
-///
-///     let result = last_over_time(vector);
-///
-///     assert_eq!(&result.to_string(), "last_over_time(some_metric{some_label=\"some_value\"}[5m])");
-///
-///     Ok(())
-/// }
-/// ```
-pub fn last_over_time(vector: RangeVector) -> InstantVector {
-    let RangeVector(query) = vector;
-    let new = format!("last_over_time({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `last_over_time` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::functions::last_over_time;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: RangeVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .range("5m")?
+    ///         .try_into()?;
+    ///
+    ///     let result = last_over_time(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "last_over_time(some_metric{some_label=\"some_value\"}[5m])");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => last_over_time, RangeVector, InstantVector
 }
 
-/// Apply the PromQL `present_over_time` function.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
-/// use prometheus_http_query::functions::present_over_time;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")?
-///         .with("some_label", "some_value")
-///         .range("5m")?
-///         .try_into()?;
-///
-///     let result = present_over_time(vector);
-///
-///     assert_eq!(&result.to_string(), "present_over_time(some_metric{some_label=\"some_value\"}[5m])");
-///
-///     Ok(())
-/// }
-/// ```
-///
-/// Requires Prometheus server >= 2.29.0.
-pub fn present_over_time(vector: RangeVector) -> InstantVector {
-    let RangeVector(query) = vector;
-    let new = format!("present_over_time({})", query);
-    InstantVector(new)
+create_function! {
+    /// Apply the PromQL `present_over_time` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::functions::present_over_time;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: RangeVector = Selector::new()
+    ///         .metric("some_metric")?
+    ///         .with("some_label", "some_value")
+    ///         .range("5m")?
+    ///         .try_into()?;
+    ///
+    ///     let result = present_over_time(vector);
+    ///
+    ///     assert_eq!(&result.to_string(), "present_over_time(some_metric{some_label=\"some_value\"}[5m])");
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    ///
+    /// Requires Prometheus server >= 2.29.0.
+    => present_over_time, RangeVector, InstantVector
 }
