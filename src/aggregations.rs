@@ -2,245 +2,205 @@
 use crate::util::*;
 use crate::vector::*;
 
-/// Use the `sum` aggregation operator on an instant vector.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector, Aggregate};
-/// use prometheus_http_query::aggregations::sum;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("http_requests_total")?
-///         .with("job", "apiserver")
-///         .try_into()?;
-///
-///     let result = sum(vector, Some(Aggregate::By(&["code"])));
-///
-///     assert_eq!(result.to_string(), String::from("sum by (code) (http_requests_total{job=\"apiserver\"})"));
-///
-///     Ok(())
-/// }
-/// ```
-pub fn sum(vector: InstantVector, labels: Option<Aggregate<'_>>) -> InstantVector {
-    let InstantVector(old_vec) = vector;
+macro_rules! create_aggregation {
+    ( $(#[$attr:meta])* => $func_name:ident ) => {
+        $(#[$attr])*
+        pub fn $func_name(vector: InstantVector, labels: Option<Aggregate<'_>>) -> InstantVector {
+            let InstantVector(old_vec) = vector;
 
-    let new_vec = match labels {
-        Some(l) => format!("sum {} ({})", l.to_string(), old_vec),
-        None => format!("sum ({})", old_vec),
+            let new_vec = match labels {
+                Some(l) => format!("{} {} ({})", stringify!($func_name), l.to_string(), old_vec),
+                None => format!("{} ({})", stringify!($func_name), old_vec),
+            };
+
+            InstantVector(new_vec)
+        }
     };
-
-    InstantVector(new_vec)
 }
 
-/// Use the `min` aggregation operator on an instant vector.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector, Aggregate};
-/// use prometheus_http_query::aggregations::min;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("node_cpu_seconds_total")?
-///         .try_into()?;
-///
-///     let result = min(vector, Some(Aggregate::By(&["cpu"])));
-///
-///     assert_eq!(result.to_string(), String::from("min by (cpu) (node_cpu_seconds_total)"));
-///
-///     Ok(())
-/// }
-/// ```
-pub fn min(vector: InstantVector, labels: Option<Aggregate<'_>>) -> InstantVector {
-    let InstantVector(old_vec) = vector;
-
-    let new_vec = match labels {
-        Some(l) => format!("min {} ({})", l.to_string(), old_vec),
-        None => format!("min ({})", old_vec),
-    };
-
-    InstantVector(new_vec)
+create_aggregation! {
+    /// Use the `$func_name` aggregation operator on an instant vector.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector, Aggregate};
+    /// use prometheus_http_query::aggregations::sum;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("http_requests_total")?
+    ///         .with("job", "apiserver")
+    ///         .try_into()?;
+    ///
+    ///     let result = sum(vector, Some(Aggregate::By(&["code"])));
+    ///
+    ///     assert_eq!(result.to_string(), String::from("sum by (code) (http_requests_total{job=\"apiserver\"})"));
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => sum
 }
 
-/// Use the `max` aggregation operator on an instant vector.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector, Aggregate};
-/// use prometheus_http_query::aggregations::max;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("node_cpu_seconds_total")?
-///         .try_into()?;
-///
-///     let result = max(vector, Some(Aggregate::By(&["cpu"])));
-///
-///     assert_eq!(result.to_string(), String::from("max by (cpu) (node_cpu_seconds_total)"));
-///
-///     Ok(())
-/// }
-/// ```
-pub fn max(vector: InstantVector, labels: Option<Aggregate<'_>>) -> InstantVector {
-    let InstantVector(old_vec) = vector;
-
-    let new_vec = match labels {
-        Some(l) => format!("max {} ({})", l.to_string(), old_vec),
-        None => format!("max ({})", old_vec),
-    };
-
-    InstantVector(new_vec)
+create_aggregation! {
+    /// Use the `min` aggregation operator on an instant vector.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector, Aggregate};
+    /// use prometheus_http_query::aggregations::min;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("node_cpu_seconds_total")?
+    ///         .try_into()?;
+    ///
+    ///     let result = min(vector, Some(Aggregate::By(&["cpu"])));
+    ///
+    ///     assert_eq!(result.to_string(), String::from("min by (cpu) (node_cpu_seconds_total)"));
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => min
 }
 
-/// Use the `avg` aggregation operator on an instant vector.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::aggregations::avg;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("node_memory_Active_bytes")?
-///         .try_into()?;
-///
-///     let result = avg(vector, None);
-///
-///     assert_eq!(result.to_string(), String::from("avg (node_memory_Active_bytes)"));
-///
-///     Ok(())
-/// }
-/// ```
-pub fn avg(vector: InstantVector, labels: Option<Aggregate<'_>>) -> InstantVector {
-    let InstantVector(old_vec) = vector;
-
-    let new_vec = match labels {
-        Some(l) => format!("avg {} ({})", l.to_string(), old_vec),
-        None => format!("avg ({})", old_vec),
-    };
-
-    InstantVector(new_vec)
+create_aggregation! {
+    /// Use the `max` aggregation operator on an instant vector.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector, Aggregate};
+    /// use prometheus_http_query::aggregations::max;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("node_cpu_seconds_total")?
+    ///         .try_into()?;
+    ///
+    ///     let result = max(vector, Some(Aggregate::By(&["cpu"])));
+    ///
+    ///     assert_eq!(result.to_string(), String::from("max by (cpu) (node_cpu_seconds_total)"));
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => max
 }
 
-/// Use the `group` aggregation operator on an instant vector.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector, Aggregate};
-/// use prometheus_http_query::aggregations::group;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("node_cpu_seconds_total")?
-///         .try_into()?;
-///
-///     let result = group(vector, Some(Aggregate::Without(&["mode"])));
-///
-///     assert_eq!(result.to_string(), String::from("group without (mode) (node_cpu_seconds_total)"));
-///
-///     Ok(())
-/// }
-/// ```
-pub fn group(vector: InstantVector, labels: Option<Aggregate<'_>>) -> InstantVector {
-    let InstantVector(old_vec) = vector;
-
-    let new_vec = match labels {
-        Some(l) => format!("group {} ({})", l.to_string(), old_vec),
-        None => format!("group ({})", old_vec),
-    };
-
-    InstantVector(new_vec)
+create_aggregation! {
+    /// Use the `avg` aggregation operator on an instant vector.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::aggregations::avg;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("node_memory_Active_bytes")?
+    ///         .try_into()?;
+    ///
+    ///     let result = avg(vector, None);
+    ///
+    ///     assert_eq!(result.to_string(), String::from("avg (node_memory_Active_bytes)"));
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => avg
 }
 
-/// Use the `stddev` aggregation operator on an instant vector.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector, Aggregate};
-/// use prometheus_http_query::aggregations::stddev;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("promhttp_metric_handler_requests_total")?
-///         .try_into()?;
-///
-///     let result = stddev(vector, Some(Aggregate::By(&["code"])));
-///
-///     assert_eq!(result.to_string(), String::from("stddev by (code) (promhttp_metric_handler_requests_total)"));
-///
-///     Ok(())
-/// }
-/// ```
-pub fn stddev(vector: InstantVector, labels: Option<Aggregate<'_>>) -> InstantVector {
-    let InstantVector(old_vec) = vector;
-
-    let new_vec = match labels {
-        Some(l) => format!("stddev {} ({})", l.to_string(), old_vec),
-        None => format!("stddev ({})", old_vec),
-    };
-
-    InstantVector(new_vec)
+create_aggregation! {
+    /// Use the `group` aggregation operator on an instant vector.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector, Aggregate};
+    /// use prometheus_http_query::aggregations::group;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("node_cpu_seconds_total")?
+    ///         .try_into()?;
+    ///
+    ///     let result = group(vector, Some(Aggregate::Without(&["mode"])));
+    ///
+    ///     assert_eq!(result.to_string(), String::from("group without (mode) (node_cpu_seconds_total)"));
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => group
 }
 
-/// Use the `stdvar` aggregation operator on an instant vector.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector, Aggregate};
-/// use prometheus_http_query::aggregations::stdvar;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("promhttp_metric_handler_requests_total")?
-///         .try_into()?;
-///
-///     let result = stdvar(vector, Some(Aggregate::By(&["code"])));
-///
-///     assert_eq!(result.to_string(), String::from("stdvar by (code) (promhttp_metric_handler_requests_total)"));
-///
-///     Ok(())
-/// }
-/// ```
-pub fn stdvar(vector: InstantVector, labels: Option<Aggregate<'_>>) -> InstantVector {
-    let InstantVector(old_vec) = vector;
-
-    let new_vec = match labels {
-        Some(l) => format!("stdvar {} ({})", l.to_string(), old_vec),
-        None => format!("stdvar ({})", old_vec),
-    };
-
-    InstantVector(new_vec)
+create_aggregation! {
+    /// Use the `stddev` aggregation operator on an instant vector.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector, Aggregate};
+    /// use prometheus_http_query::aggregations::stddev;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("promhttp_metric_handler_requests_total")?
+    ///         .try_into()?;
+    ///
+    ///     let result = stddev(vector, Some(Aggregate::By(&["code"])));
+    ///
+    ///     assert_eq!(result.to_string(), String::from("stddev by (code) (promhttp_metric_handler_requests_total)"));
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => stddev
 }
 
-/// Use the `count` aggregation operator on an instant vector.
-///
-/// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::aggregations::count;
-/// use std::convert::TryInto;
-///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("node_cpu_seconds_total")?
-///         .try_into()?;
-///
-///     let result = count(vector, None);
-///
-///     assert_eq!(result.to_string(), String::from("count (node_cpu_seconds_total)"));
-///
-///     Ok(())
-/// }
-/// ```
-pub fn count(vector: InstantVector, labels: Option<Aggregate<'_>>) -> InstantVector {
-    let InstantVector(old_vec) = vector;
+create_aggregation! {
+    /// Use the `stdvar` aggregation operator on an instant vector.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector, Aggregate};
+    /// use prometheus_http_query::aggregations::stdvar;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("promhttp_metric_handler_requests_total")?
+    ///         .try_into()?;
+    ///
+    ///     let result = stdvar(vector, Some(Aggregate::By(&["code"])));
+    ///
+    ///     assert_eq!(result.to_string(), String::from("stdvar by (code) (promhttp_metric_handler_requests_total)"));
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => stdvar
+}
 
-    let new_vec = match labels {
-        Some(l) => format!("count {} ({})", l.to_string(), old_vec),
-        None => format!("count ({})", old_vec),
-    };
-
-    InstantVector(new_vec)
+create_aggregation! {
+    /// Use the `count` aggregation operator on an instant vector.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::aggregations::count;
+    /// use std::convert::TryInto;
+    ///
+    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("node_cpu_seconds_total")?
+    ///         .try_into()?;
+    ///
+    ///     let result = count(vector, None);
+    ///
+    ///     assert_eq!(result.to_string(), String::from("count (node_cpu_seconds_total)"));
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    => count
 }
 
 /// Use the `count_values` aggregation operator on an instant vector.
