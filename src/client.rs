@@ -113,14 +113,20 @@ impl Client {
     /// by building it into the [reqwest::Client].
     ///
     /// ```rust
-    /// use prometheus_http_query::Client;
+    /// use prometheus_http_query::{Client, Error};
     ///
-    /// let client = {
-    ///     let c = reqwest::Client::builder().no_proxy().build().unwrap();
-    ///     Client::from(c, "https://prometheus.example.com")
-    /// };
+    /// fn main() -> Result<(), Error> {
+    ///     let client = {
+    ///         let c = reqwest::Client::builder()
+    ///             .no_proxy()
+    ///             .build()
+    ///             .map_err(Error::Reqwest)?;
+    ///         Client::from(c, "https://prometheus.example.com")
+    ///     };
     ///
-    /// assert!(client.is_ok());
+    ///     assert!(client.is_ok());
+    ///     Ok(())
+    /// }
     /// ```
     pub fn from(client: reqwest::Client, url: &str) -> Result<Self, Error> {
         let base_url = format!("{}/api/v1", Url::parse(url).map_err(Error::UrlParse)?);
