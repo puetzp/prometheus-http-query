@@ -48,18 +48,88 @@ pub struct Client {
 }
 
 impl Default for Client {
-    /// Create a Client that connects to a local Prometheus instance at port 9090.
+    /// Create a standard Client that sends requests to "http://127.0.0.1:9090/api/v1".
     ///
     /// ```rust
     /// use prometheus_http_query::Client;
     ///
-    /// let client: Client = Default::default();
+    /// let client = Client::default();
     /// ```
     fn default() -> Self {
         Client {
             client: reqwest::Client::new(),
             base_url: String::from("http://127.0.0.1:9090/api/v1"),
         }
+    }
+}
+
+impl std::str::FromStr for Client {
+    type Err = crate::error::Error;
+
+    /// Create a Client from a custom base URL, which *may* be useful if requests
+    /// are handled by i.e. a reverse proxy.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Client;
+    /// use std::str::FromStr;
+    ///
+    /// let client = Client::from_str("http://proxy.example.com/prometheus");
+    /// assert!(client.is_ok());
+    /// ```
+    fn from_str(url: &str) -> Result<Self, Self::Err> {
+        let url = Url::parse(url).map_err(Error::UrlParse)?;
+        let client = Client {
+            base_url: format!("{}/api/v1", url),
+            client: reqwest::Client::new(),
+        };
+        Ok(client)
+    }
+}
+
+impl std::convert::TryFrom<&str> for Client {
+    type Error = crate::error::Error;
+
+    /// Create a Client from a custom base URL, which *may* be useful if requests
+    /// are handled by i.e. a reverse proxy.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Client;
+    /// use std::convert::TryFrom;
+    ///
+    /// let client = Client::try_from("http://proxy.example.com/prometheus");
+    /// assert!(client.is_ok());
+    /// ```
+    fn try_from(url: &str) -> Result<Self, Self::Error> {
+        let url = Url::parse(url).map_err(Error::UrlParse)?;
+        let client = Client {
+            base_url: format!("{}/api/v1", url),
+            client: reqwest::Client::new(),
+        };
+        Ok(client)
+    }
+}
+
+impl std::convert::TryFrom<String> for Client {
+    type Error = crate::error::Error;
+
+    /// Create a Client from a custom base URL, which *may* be useful if requests
+    /// are handled by i.e. a reverse proxy.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Client;
+    /// use std::convert::TryFrom;
+    ///
+    /// let url = String::from("http://proxy.example.com/prometheus");
+    /// let client = Client::try_from(url);
+    /// assert!(client.is_ok());
+    /// ```
+    fn try_from(url: String) -> Result<Self, Self::Error> {
+        let url = Url::parse(&url).map_err(Error::UrlParse)?;
+        let client = Client {
+            base_url: format!("{}/api/v1", url),
+            client: reqwest::Client::new(),
+        };
+        Ok(client)
     }
 }
 
