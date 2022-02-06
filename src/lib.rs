@@ -69,10 +69,10 @@
 //! Retrieve a list of time series that match a certain label set by providing one or more series [Selector]s.
 //!
 //! ```rust
-//! use prometheus_http_query::{Client, Scheme, Selector, Error};
+//! use prometheus_http_query::{Client, Selector, Error};
 //!
 //! fn main() -> Result<(), Error> {
-//!     let client = Client::new(Scheme::Http, "localhost", 9090);
+//!     let client = Client::defaut();
 //!
 //!     let s1 = Selector::new()
 //!         .with("handler", "/api/v1/query");
@@ -96,10 +96,10 @@
 //! Retrieve recording/alerting rules and active alerts.
 //!
 //! ```rust
-//! use prometheus_http_query::{Client, Scheme, Error, RuleType};
+//! use prometheus_http_query::{Client, Error, RuleType};
 //!
 //! fn main() -> Result<(), Error> {
-//!     let client = Client::new(Scheme::Http, "localhost", 9090);
+//!     let client = Client::defaut();
 //!
 //!     let response = tokio_test::block_on( async { client.rules(None).await });
 //!
