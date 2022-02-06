@@ -144,7 +144,7 @@ impl Client {
     ///     let client = Client::default();
     ///
     ///     let v: InstantVector = Selector::new()
-    ///         .metric("node_cpu_seconds_total")?
+    ///         .metric("node_cpu_seconds_total")
     ///         .try_into()?;
     ///
     ///     let s = sum(v, Some(Aggregate::By(&["cpu"])));

@@ -28,13 +28,13 @@ create_aggregation! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("http_requests_total")?
+    ///         .metric("http_requests_total")
     ///         .with("job", "apiserver")
     ///         .try_into()?;
     ///
     ///     let result = sum(vector, Some(Aggregate::By(&["code"])));
     ///
-    ///     assert_eq!(result.to_string(), String::from("sum by (code) (http_requests_total{job=\"apiserver\"})"));
+    ///     assert_eq!(result.to_string(), String::from("sum by (code) ({__name__=\"http_requests_total\",job=\"apiserver\"})"));
     ///
     ///     Ok(())
     /// }
@@ -52,12 +52,12 @@ create_aggregation! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("node_cpu_seconds_total")?
+    ///         .metric("node_cpu_seconds_total")
     ///         .try_into()?;
     ///
     ///     let result = min(vector, Some(Aggregate::By(&["cpu"])));
     ///
-    ///     assert_eq!(result.to_string(), String::from("min by (cpu) (node_cpu_seconds_total)"));
+    ///     assert_eq!(result.to_string(), String::from("min by (cpu) ({__name__=\"node_cpu_seconds_total\"})"));
     ///
     ///     Ok(())
     /// }
@@ -75,12 +75,12 @@ create_aggregation! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("node_cpu_seconds_total")?
+    ///         .metric("node_cpu_seconds_total")
     ///         .try_into()?;
     ///
     ///     let result = max(vector, Some(Aggregate::By(&["cpu"])));
     ///
-    ///     assert_eq!(result.to_string(), String::from("max by (cpu) (node_cpu_seconds_total)"));
+    ///     assert_eq!(result.to_string(), String::from("max by (cpu) ({__name__=\"node_cpu_seconds_total\"})"));
     ///
     ///     Ok(())
     /// }
@@ -98,12 +98,12 @@ create_aggregation! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("node_memory_Active_bytes")?
+    ///         .metric("node_memory_Active_bytes")
     ///         .try_into()?;
     ///
     ///     let result = avg(vector, None);
     ///
-    ///     assert_eq!(result.to_string(), String::from("avg (node_memory_Active_bytes)"));
+    ///     assert_eq!(result.to_string(), String::from("avg ({__name__=\"node_memory_Active_bytes\"})"));
     ///
     ///     Ok(())
     /// }
@@ -121,12 +121,12 @@ create_aggregation! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("node_cpu_seconds_total")?
+    ///         .metric("node_cpu_seconds_total")
     ///         .try_into()?;
     ///
     ///     let result = group(vector, Some(Aggregate::Without(&["mode"])));
     ///
-    ///     assert_eq!(result.to_string(), String::from("group without (mode) (node_cpu_seconds_total)"));
+    ///     assert_eq!(result.to_string(), String::from("group without (mode) ({__name__=\"node_cpu_seconds_total\"})"));
     ///
     ///     Ok(())
     /// }
@@ -144,12 +144,12 @@ create_aggregation! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("promhttp_metric_handler_requests_total")?
+    ///         .metric("promhttp_metric_handler_requests_total")
     ///         .try_into()?;
     ///
     ///     let result = stddev(vector, Some(Aggregate::By(&["code"])));
     ///
-    ///     assert_eq!(result.to_string(), String::from("stddev by (code) (promhttp_metric_handler_requests_total)"));
+    ///     assert_eq!(result.to_string(), String::from("stddev by (code) ({__name__=\"promhttp_metric_handler_requests_total\"})"));
     ///
     ///     Ok(())
     /// }
@@ -167,12 +167,12 @@ create_aggregation! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("promhttp_metric_handler_requests_total")?
+    ///         .metric("promhttp_metric_handler_requests_total")
     ///         .try_into()?;
     ///
     ///     let result = stdvar(vector, Some(Aggregate::By(&["code"])));
     ///
-    ///     assert_eq!(result.to_string(), String::from("stdvar by (code) (promhttp_metric_handler_requests_total)"));
+    ///     assert_eq!(result.to_string(), String::from("stdvar by (code) ({__name__=\"promhttp_metric_handler_requests_total\"})"));
     ///
     ///     Ok(())
     /// }
@@ -190,12 +190,12 @@ create_aggregation! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("node_cpu_seconds_total")?
+    ///         .metric("node_cpu_seconds_total")
     ///         .try_into()?;
     ///
     ///     let result = count(vector, None);
     ///
-    ///     assert_eq!(result.to_string(), String::from("count (node_cpu_seconds_total)"));
+    ///     assert_eq!(result.to_string(), String::from("count ({__name__=\"node_cpu_seconds_total\"})"));
     ///
     ///     Ok(())
     /// }
@@ -212,12 +212,12 @@ create_aggregation! {
 ///
 /// fn main() -> Result<(), prometheus_http_query::Error> {
 ///     let vector: InstantVector = Selector::new()
-///         .metric("promhttp_metric_handler_requests_total")?
+///         .metric("promhttp_metric_handler_requests_total")
 ///         .try_into()?;
 ///
 ///     let result = count_values(vector, None, "http_code");
 ///
-///     assert_eq!(result.to_string(), String::from("count_values (\"http_code\", promhttp_metric_handler_requests_total)"));
+///     assert_eq!(result.to_string(), String::from("count_values (\"http_code\", {__name__=\"promhttp_metric_handler_requests_total\"})"));
 ///
 ///     Ok(())
 /// }
@@ -251,12 +251,12 @@ pub fn count_values<'a>(
 ///
 /// fn main() -> Result<(), prometheus_http_query::Error> {
 ///     let vector: InstantVector = Selector::new()
-///         .metric("node_cpu_seconds_total")?
+///         .metric("node_cpu_seconds_total")
 ///         .try_into()?;
 ///
 ///     let result = bottomk(vector, None, 2);
 ///
-///     assert_eq!(result.to_string(), String::from("bottomk (2, node_cpu_seconds_total)"));
+///     assert_eq!(result.to_string(), String::from("bottomk (2, {__name__=\"node_cpu_seconds_total\"})"));
 ///
 ///     Ok(())
 /// }
@@ -285,12 +285,12 @@ pub fn bottomk(
 ///
 /// fn main() -> Result<(), prometheus_http_query::Error> {
 ///     let vector: InstantVector = Selector::new()
-///         .metric("node_cpu_seconds_total")?
+///         .metric("node_cpu_seconds_total")
 ///         .try_into()?;
 ///
 ///     let result = topk(vector, None, 2);
 ///
-///     assert_eq!(result.to_string(), String::from("topk (2, node_cpu_seconds_total)"));
+///     assert_eq!(result.to_string(), String::from("topk (2, {__name__=\"node_cpu_seconds_total\"})"));
 ///
 ///     Ok(())
 /// }
@@ -315,12 +315,12 @@ pub fn topk(vector: InstantVector, labels: Option<Aggregate<'_>>, parameter: u64
 ///
 /// fn main() -> Result<(), prometheus_http_query::Error> {
 ///     let vector: InstantVector = Selector::new()
-///         .metric("node_cpu_seconds_total")?
+///         .metric("node_cpu_seconds_total")
 ///         .try_into()?;
 ///
 ///     let result = quantile(vector, Some(Aggregate::By(&["cpu", "mode"])), 0.1);
 ///
-///     assert_eq!(result.to_string(), String::from("quantile by (cpu,mode) (0.1, node_cpu_seconds_total)"));
+///     assert_eq!(result.to_string(), String::from("quantile by (cpu,mode) (0.1, {__name__=\"node_cpu_seconds_total\"})"));
 ///
 ///     Ok(())
 /// }

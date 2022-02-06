@@ -25,7 +25,7 @@
 //!     let client: Client = Default::default();
 //!
 //!     let v: RangeVector = Selector::new()
-//!         .metric("node_cpu_seconds_total")?
+//!         .metric("node_cpu_seconds_total")
 //!         .with("mode", "user")
 //!         .range("5m")?
 //!         .try_into()?;

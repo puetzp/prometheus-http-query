@@ -5,7 +5,6 @@ use std::fmt;
 /// types of errors.
 #[derive(Debug)]
 pub enum Error {
-    IllegalMetricName,
     InvalidTimeDuration,
     IllegalTimeSeriesSelector,
     InvalidRangeVector,
@@ -22,7 +21,6 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::IllegalMetricName => IllegalMetricNameError.fmt(f),
             Self::InvalidTimeDuration => InvalidTimeDurationError.fmt(f),
             Self::IllegalTimeSeriesSelector => IllegalTimeSeriesSelectorError.fmt(f),
             Self::InvalidRangeVector => InvalidRangeVectorError.fmt(f),
@@ -39,17 +37,6 @@ impl fmt::Display for Error {
 }
 
 impl StdError for Error {}
-
-/// This error is thrown when a reserved PromQL keyword is used
-/// as metric name in a `Selector`.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct IllegalMetricNameError;
-
-impl fmt::Display for IllegalMetricNameError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "the provided metric name is a reserved PromQL keyword")
-    }
-}
 
 /// This error is thrown when a time duration is invalidated or empty.<br>
 /// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/basics/#time-durations)

@@ -26,7 +26,7 @@ impl TryFrom<Selector<'_>> for InstantVector {
     ///
     /// fn main() -> Result<(), Error> {
     ///     let v: Result<InstantVector, Error> = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .try_into();
     ///
     ///     assert!(v.is_ok());
@@ -56,12 +56,12 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), Error> {
     ///     let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let two: InstantVector = Selector::new()
-    ///         .metric("other_metric")?
+    ///         .metric("other_metric")
     ///         .with("some_label", "some_value")
     ///         .with("other_label", "other_value")
     ///         .try_into()?;
@@ -69,7 +69,7 @@ impl InstantVector {
     ///     let new = one.add(two, Some(Match::On(&["some_label"])), None);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} + on (some_label) other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} + on (some_label) {__name__="other_metric",some_label="some_value",other_label="other_value"}"#;
     ///
     ///     assert_eq!(new.to_string(), expected.to_string());
     ///
@@ -111,12 +111,12 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), Error> {
     ///      let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let two: InstantVector = Selector::new()
-    ///         .metric("other_metric")?
+    ///         .metric("other_metric")
     ///         .with("some_label", "some_value")
     ///         .with("other_label", "other_value")
     ///         .try_into()?;
@@ -124,7 +124,7 @@ impl InstantVector {
     ///     let new = one.subtract(two, Some(Match::Ignoring(&["other_label"])), None);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} - ignoring (other_label) other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} - ignoring (other_label) {__name__="other_metric",some_label="some_value",other_label="other_value"}"#;
     ///
     ///     assert_eq!(new.to_string(), expected.to_string());
     ///
@@ -166,12 +166,12 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), Error> {
     ///     let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let two: InstantVector = Selector::new()
-    ///         .metric("other_metric")?
+    ///         .metric("other_metric")
     ///         .with("some_label", "some_value")
     ///         .with("other_label", "other_value")
     ///         .try_into()?;
@@ -179,7 +179,7 @@ impl InstantVector {
     ///     let new = one.multiply(two, Some(Match::On(&["some_label"])), None);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} * on (some_label) other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} * on (some_label) {__name__="other_metric",some_label="some_value",other_label="other_value"}"#;
     ///
     ///     assert_eq!(new.to_string(), expected.to_string());
     ///
@@ -221,12 +221,12 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), Error> {
     ///     let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let two: InstantVector = Selector::new()
-    ///         .metric("other_metric")?
+    ///         .metric("other_metric")
     ///         .with("some_label", "some_value")
     ///         .with("other_label", "other_value")
     ///         .try_into()?;
@@ -234,7 +234,7 @@ impl InstantVector {
     ///     let new = one.divide(two, Some(Match::Ignoring(&["other_label"])), None);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} / ignoring (other_label) other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} / ignoring (other_label) {__name__="other_metric",some_label="some_value",other_label="other_value"}"#;
     ///
     ///     assert_eq!(new.to_string(), expected.to_string());
     ///
@@ -276,12 +276,12 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), Error> {
     ///     let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let two: InstantVector = Selector::new()
-    ///         .metric("other_metric")?
+    ///         .metric("other_metric")
     ///         .with("some_label", "some_value")
     ///         .with("other_label", "other_value")
     ///         .try_into()?;
@@ -289,7 +289,7 @@ impl InstantVector {
     ///     let new = one.modulo(two, Some(Match::Ignoring(&["other_label"])), None);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} % ignoring (other_label) other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} % ignoring (other_label) {__name__="other_metric",some_label="some_value",other_label="other_value"}"#;
     ///
     ///     assert_eq!(new.to_string(), expected.to_string());
     ///
@@ -331,12 +331,12 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), Error> {
     ///     let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let two: InstantVector = Selector::new()
-    ///         .metric("other_metric")?
+    ///         .metric("other_metric")
     ///         .with("some_label", "some_value")
     ///         .with("other_label", "other_value")
     ///         .try_into()?;
@@ -344,7 +344,7 @@ impl InstantVector {
     ///     let new = one.power(two, Some(Match::Ignoring(&["other_label"])), None);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} ^ ignoring (other_label) other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} ^ ignoring (other_label) {__name__="other_metric",some_label="some_value",other_label="other_value"}"#;
     ///
     ///     assert_eq!(new.to_string(), expected);
     ///
@@ -386,12 +386,12 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), Error> {
     ///     let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let two: InstantVector = Selector::new()
-    ///         .metric("other_metric")?
+    ///         .metric("other_metric")
     ///         .with("some_label", "some_value")
     ///         .with("other_label", "other_value")
     ///         .try_into()?;
@@ -399,7 +399,7 @@ impl InstantVector {
     ///     let new = one.and(two);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} and other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} and {__name__="other_metric",some_label="some_value",other_label="other_value"}"#;
     ///
     ///     assert_eq!(new.to_string(), expected.to_string());
     ///
@@ -428,12 +428,12 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), Error> {
     ///     let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let two: InstantVector = Selector::new()
-    ///         .metric("other_metric")?
+    ///         .metric("other_metric")
     ///         .with("some_label", "some_value")
     ///         .with("other_label", "other_value")
     ///         .try_into()?;
@@ -441,7 +441,7 @@ impl InstantVector {
     ///     let new = one.or(two);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} or other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} or {__name__="other_metric",some_label="some_value",other_label="other_value"}"#;
     ///
     ///     assert_eq!(new.to_string(), expected.to_string());
     ///
@@ -470,12 +470,12 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), Error> {
     ///     let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let two: InstantVector = Selector::new()
-    ///         .metric("other_metric")?
+    ///         .metric("other_metric")
     ///         .with("some_label", "some_value")
     ///         .with("other_label", "other_value")
     ///         .try_into()?;
@@ -483,7 +483,7 @@ impl InstantVector {
     ///     let new = one.unless(two);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} unless other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} unless {__name__="other_metric",some_label="some_value",other_label="other_value"}"#;
     ///
     ///     assert_eq!(new.to_string(), expected.to_string());
     ///
@@ -513,12 +513,12 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let two: InstantVector = Selector::new()
-    ///         .metric("other_metric")?
+    ///         .metric("other_metric")
     ///         .with("some_label", "some_value")
     ///         .with("other_label", "other_value")
     ///         .try_into()?;
@@ -526,7 +526,7 @@ impl InstantVector {
     ///     let new = one.eq_vector(two, false);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} == other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} == {__name__="other_metric",some_label="some_value",other_label="other_value"}"#;
     ///
     ///     assert_eq!(new.to_string(), expected.to_string());
     ///
@@ -560,12 +560,12 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let two: InstantVector = Selector::new()
-    ///         .metric("other_metric")?
+    ///         .metric("other_metric")
     ///         .with("some_label", "some_value")
     ///         .with("other_label", "other_value")
     ///         .try_into()?;
@@ -573,7 +573,7 @@ impl InstantVector {
     ///     let new = one.ne_vector(two, true);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} != bool other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} != bool {__name__="other_metric",some_label="some_value",other_label="other_value"}"#;
     ///
     ///     assert_eq!(new.to_string(), expected.to_string());
     ///
@@ -607,12 +607,12 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let two: InstantVector = Selector::new()
-    ///         .metric("other_metric")?
+    ///         .metric("other_metric")
     ///         .with("some_label", "some_value")
     ///         .with("other_label", "other_value")
     ///         .try_into()?;
@@ -620,7 +620,7 @@ impl InstantVector {
     ///     let new = one.gt_vector(two, false);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} > other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} > {__name__="other_metric",some_label="some_value",other_label="other_value"}"#;
     ///
     ///     assert_eq!(new.to_string(), expected.to_string());
     ///
@@ -654,12 +654,12 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let two: InstantVector = Selector::new()
-    ///         .metric("other_metric")?
+    ///         .metric("other_metric")
     ///         .with("some_label", "some_value")
     ///         .with("other_label", "other_value")
     ///         .try_into()?;
@@ -667,7 +667,7 @@ impl InstantVector {
     ///     let new = one.lt_vector(two, false);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} < other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} < {__name__="other_metric",some_label="some_value",other_label="other_value"}"#;
     ///
     ///     assert_eq!(new.to_string(), expected.to_string());
     ///
@@ -701,12 +701,12 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let two: InstantVector = Selector::new()
-    ///         .metric("other_metric")?
+    ///         .metric("other_metric")
     ///         .with("some_label", "some_value")
     ///         .with("other_label", "other_value")
     ///         .try_into()?;
@@ -714,7 +714,7 @@ impl InstantVector {
     ///     let new = one.ge_vector(two, false);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} >= other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} >= {__name__="other_metric",some_label="some_value",other_label="other_value"}"#;
     ///
     ///     assert_eq!(new.to_string(), expected.to_string());
     ///
@@ -748,12 +748,12 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let two: InstantVector = Selector::new()
-    ///         .metric("other_metric")?
+    ///         .metric("other_metric")
     ///         .with("some_label", "some_value")
     ///         .with("other_label", "other_value")
     ///         .try_into()?;
@@ -761,7 +761,7 @@ impl InstantVector {
     ///     let new = one.le_vector(two, false);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} <= other_metric{some_label="some_value",other_label="other_value"}"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} <= {__name__="other_metric",some_label="some_value",other_label="other_value"}"#;
     ///
     ///     assert_eq!(new.to_string(), expected.to_string());
     ///
@@ -795,14 +795,14 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let new = one.eq_scalar(8.5, true);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} == bool 8.5"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} == bool 8.5"#;
     ///
     ///     assert_eq!(new.to_string(), expected.to_string());
     ///
@@ -835,14 +835,14 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let new = one.ne_scalar(8.5, true);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} != bool 8.5"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} != bool 8.5"#;
     ///
     ///     assert_eq!(new.to_string(), expected.to_string());
     ///
@@ -875,14 +875,14 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let new = one.gt_scalar(8.5, false);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} > 8.5"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} > 8.5"#;
     ///
     ///     assert_eq!(new.to_string(), expected.to_string());
     ///
@@ -915,14 +915,14 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let new = one.lt_scalar(8.5, false);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} < 8.5"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} < 8.5"#;
     ///
     ///     assert_eq!(new.to_string(), expected.to_string());
     ///
@@ -955,14 +955,14 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let new = one.ge_scalar(8.5, false);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} >= 8.5"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} >= 8.5"#;
     ///
     ///     assert_eq!(new.to_string(), expected.to_string());
     ///
@@ -995,14 +995,14 @@ impl InstantVector {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let one: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let new = one.le_scalar(8.5, false);
     ///
     ///     // This would ultimately be the query string posted to the HTTP API.
-    ///     let expected = r#"some_metric{some_label="some_value"} <= 8.5"#;
+    ///     let expected = r#"{__name__="some_metric",some_label="some_value"} <= 8.5"#;
     ///
     ///     assert_eq!(new.to_string(), expected.to_string());
     ///
@@ -1035,13 +1035,13 @@ impl std::ops::Add<f64> for InstantVector {
     ///
     /// fn main() -> Result<(), Error> {
     ///     let v: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let v = v + 4.0;
     ///
-    ///     assert_eq!(v.to_string(), String::from("some_metric{some_label=\"some_value\"} + 4"));
+    ///     assert_eq!(v.to_string(), String::from("{__name__=\"some_metric\",some_label=\"some_value\"} + 4"));
     ///
     ///     Ok(())
     /// }
@@ -1064,13 +1064,13 @@ impl std::ops::Sub<f64> for InstantVector {
     ///
     /// fn main() -> Result<(), Error> {
     ///     let v: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let v = v - 4.5;
     ///
-    ///     assert_eq!(v.to_string(), String::from("some_metric{some_label=\"some_value\"} - 4.5"));
+    ///     assert_eq!(v.to_string(), String::from("{__name__=\"some_metric\",some_label=\"some_value\"} - 4.5"));
     ///
     ///     Ok(())
     /// }
@@ -1093,13 +1093,13 @@ impl std::ops::Mul<f64> for InstantVector {
     ///
     /// fn main() -> Result<(), Error> {
     ///     let v: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let v = v * 2.0;
     ///
-    ///     assert_eq!(v.to_string(), String::from("some_metric{some_label=\"some_value\"} * 2"));
+    ///     assert_eq!(v.to_string(), String::from("{__name__=\"some_metric\",some_label=\"some_value\"} * 2"));
     ///
     ///     Ok(())
     /// }
@@ -1122,13 +1122,13 @@ impl std::ops::Div<f64> for InstantVector {
     ///
     /// fn main() -> Result<(), Error> {
     ///     let v: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let v = v / 2.0;
     ///
-    ///     assert_eq!(v.to_string(), String::from("some_metric{some_label=\"some_value\"} / 2"));
+    ///     assert_eq!(v.to_string(), String::from("{__name__=\"some_metric\",some_label=\"some_value\"} / 2"));
     ///
     ///     Ok(())
     /// }
@@ -1152,13 +1152,13 @@ impl std::ops::Rem<f64> for InstantVector {
     ///
     /// fn main() -> Result<(), Error> {
     ///     let v: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let v = v % 2.0;
     ///
-    ///     assert_eq!(v.to_string(), String::from("some_metric{some_label=\"some_value\"} % 2"));
+    ///     assert_eq!(v.to_string(), String::from("{__name__=\"some_metric\",some_label=\"some_value\"} % 2"));
     ///
     ///     Ok(())
     /// }
@@ -1181,13 +1181,13 @@ impl std::ops::BitXor<f64> for InstantVector {
     ///
     /// fn main() -> Result<(), Error> {
     ///     let v: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let v = v ^ 2.0;
     ///
-    ///     assert_eq!(v.to_string(), String::from("some_metric{some_label=\"some_value\"} ^ 2"));
+    ///     assert_eq!(v.to_string(), String::from("{__name__=\"some_metric\",some_label=\"some_value\"} ^ 2"));
     ///
     ///     Ok(())
     /// }
@@ -1222,7 +1222,7 @@ impl TryFrom<Selector<'_>> for RangeVector {
     ///
     /// fn main() -> Result<(), Error> {
     ///     let v: Result<RangeVector, Error> = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .range("1m30s")?
     ///         .try_into();
     ///

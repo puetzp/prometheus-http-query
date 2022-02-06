@@ -9,7 +9,6 @@ fn test_query_1() {
 
     let v: InstantVector = Selector::new()
         .metric("node_cpu_seconds_total")
-        .unwrap()
         .try_into()
         .unwrap();
 
@@ -26,7 +25,6 @@ fn test_query_2() {
 
     let v: RangeVector = Selector::new()
         .metric("node_cpu_seconds_total")
-        .unwrap()
         .with("mode", "user")
         .range("5m")
         .unwrap()
@@ -46,7 +44,6 @@ fn test_query_3() {
 
     let v: RangeVector = Selector::new()
         .metric("node_node_cpu_seconds_total")
-        .unwrap()
         .with("mode", "user")
         .range("5m")
         .unwrap()
@@ -71,7 +68,6 @@ fn test_query_4() {
 
     let v: RangeVector = Selector::new()
         .metric("node_node_cpu_seconds_total")
-        .unwrap()
         .with("mode", "user")
         .range("5m")
         .unwrap()
@@ -92,7 +88,6 @@ fn test_query_5() {
 
     let v: RangeVector = Selector::new()
         .metric("node_cpu_seconds_total")
-        .unwrap()
         .range("20m")
         .unwrap()
         .try_into()
@@ -111,7 +106,6 @@ fn test_query_6() {
 
     let v: InstantVector = Selector::new()
         .metric("node_cpu_seconds_total")
-        .unwrap()
         .try_into()
         .unwrap();
 
@@ -128,7 +122,6 @@ fn test_query_7() {
 
     let v: InstantVector = Selector::new()
         .metric("node_cpu_seconds_total")
-        .unwrap()
         .try_into()
         .unwrap();
 

@@ -23,13 +23,13 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let result = abs(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "abs(some_metric{some_label=\"some_value\"})");
+    ///     assert_eq!(&result.to_string(), "abs({__name__=\"some_metric\",some_label=\"some_value\"})");
     ///
     ///     Ok(())
     /// }
@@ -47,13 +47,13 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("nonexistent")?
+    ///         .metric("nonexistent")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let result = absent(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "absent(nonexistent{some_label=\"some_value\"})");
+    ///     assert_eq!(&result.to_string(), "absent({__name__=\"nonexistent\",some_label=\"some_value\"})");
     ///
     ///     Ok(())
     /// }
@@ -71,14 +71,14 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("nonexistent")?
+    ///         .metric("nonexistent")
     ///         .with("some_label", "some_value")
     ///         .range("5m")?
     ///         .try_into()?;
     ///
     ///     let result = absent_over_time(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "absent_over_time(nonexistent{some_label=\"some_value\"}[5m])");
+    ///     assert_eq!(&result.to_string(), "absent_over_time({__name__=\"nonexistent\",some_label=\"some_value\"}[5m])");
     ///
     ///     Ok(())
     /// }
@@ -96,13 +96,13 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let result = ceil(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "ceil(some_metric{some_label=\"some_value\"})");
+    ///     assert_eq!(&result.to_string(), "ceil({__name__=\"some_metric\",some_label=\"some_value\"})");
     ///
     ///     Ok(())
     /// }
@@ -120,14 +120,14 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .range("5m")?
     ///         .try_into()?;
     ///
     ///     let result = changes(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "changes(some_metric{some_label=\"some_value\"}[5m])");
+    ///     assert_eq!(&result.to_string(), "changes({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
     ///
     ///     Ok(())
     /// }
@@ -144,13 +144,13 @@ create_function! {
 ///
 /// fn main() -> Result<(), prometheus_http_query::Error> {
 ///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
+///         .metric("some_metric")
 ///         .with("some_label", "some_value")
 ///         .try_into()?;
 ///
 ///     let result = clamp(vector, 0.5, 0.75);
 ///
-///     assert_eq!(&result.to_string(), "clamp(some_metric{some_label=\"some_value\"}, 0.5, 0.75)");
+///     assert_eq!(&result.to_string(), "clamp({__name__=\"some_metric\",some_label=\"some_value\"}, 0.5, 0.75)");
 ///
 ///     Ok(())
 /// }
@@ -170,13 +170,13 @@ pub fn clamp(vector: InstantVector, min: f64, max: f64) -> InstantVector {
 ///
 /// fn main() -> Result<(), prometheus_http_query::Error> {
 ///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
+///         .metric("some_metric")
 ///         .with("some_label", "some_value")
 ///         .try_into()?;
 ///
 ///     let result = clamp_max(vector, 0.75);
 ///
-///     assert_eq!(&result.to_string(), "clamp_max(some_metric{some_label=\"some_value\"}, 0.75)");
+///     assert_eq!(&result.to_string(), "clamp_max({__name__=\"some_metric\",some_label=\"some_value\"}, 0.75)");
 ///
 ///     Ok(())
 /// }
@@ -196,13 +196,13 @@ pub fn clamp_max(vector: InstantVector, max: f64) -> InstantVector {
 ///
 /// fn main() -> Result<(), prometheus_http_query::Error> {
 ///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
+///         .metric("some_metric")
 ///         .with("some_label", "some_value")
 ///         .try_into()?;
 ///
 ///     let result = clamp_min(vector, 0.5);
 ///
-///     assert_eq!(&result.to_string(), "clamp_min(some_metric{some_label=\"some_value\"}, 0.5)");
+///     assert_eq!(&result.to_string(), "clamp_min({__name__=\"some_metric\",some_label=\"some_value\"}, 0.5)");
 ///
 ///     Ok(())
 /// }
@@ -223,13 +223,13 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let result = day_of_month(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "day_of_month(some_metric{some_label=\"some_value\"})");
+    ///     assert_eq!(&result.to_string(), "day_of_month({__name__=\"some_metric\",some_label=\"some_value\"})");
     ///
     ///     Ok(())
     /// }
@@ -247,13 +247,13 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let result = day_of_week(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "day_of_week(some_metric{some_label=\"some_value\"})");
+    ///     assert_eq!(&result.to_string(), "day_of_week({__name__=\"some_metric\",some_label=\"some_value\"})");
     ///
     ///     Ok(())
     /// }
@@ -271,13 +271,13 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let result = days_in_month(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "days_in_month(some_metric{some_label=\"some_value\"})");
+    ///     assert_eq!(&result.to_string(), "days_in_month({__name__=\"some_metric\",some_label=\"some_value\"})");
     ///
     ///     Ok(())
     /// }
@@ -295,14 +295,14 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .range("5m")?
     ///         .try_into()?;
     ///
     ///     let result = delta(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "delta(some_metric{some_label=\"some_value\"}[5m])");
+    ///     assert_eq!(&result.to_string(), "delta({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
     ///
     ///     Ok(())
     /// }
@@ -320,14 +320,14 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .range("5m")?
     ///         .try_into()?;
     ///
     ///     let result = deriv(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "deriv(some_metric{some_label=\"some_value\"}[5m])");
+    ///     assert_eq!(&result.to_string(), "deriv({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
     ///
     ///     Ok(())
     /// }
@@ -345,13 +345,13 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let result = exp(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "exp(some_metric{some_label=\"some_value\"})");
+    ///     assert_eq!(&result.to_string(), "exp({__name__=\"some_metric\",some_label=\"some_value\"})");
     ///
     ///     Ok(())
     /// }
@@ -369,13 +369,13 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let result = floor(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "floor(some_metric{some_label=\"some_value\"})");
+    ///     assert_eq!(&result.to_string(), "floor({__name__=\"some_metric\",some_label=\"some_value\"})");
     ///
     ///     Ok(())
     /// }
@@ -392,13 +392,13 @@ create_function! {
 ///
 /// fn main() -> Result<(), prometheus_http_query::Error> {
 ///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
+///         .metric("some_metric")
 ///         .with("some_label", "some_value")
 ///         .try_into()?;
 ///
 ///     let result = histogram_quantile(0.95, vector);
 ///
-///     assert_eq!(&result.to_string(), "histogram_quantile(0.95, some_metric{some_label=\"some_value\"})");
+///     assert_eq!(&result.to_string(), "histogram_quantile(0.95, {__name__=\"some_metric\",some_label=\"some_value\"})");
 ///
 ///     Ok(())
 /// }
@@ -418,14 +418,14 @@ pub fn histogram_quantile(quantile: f64, vector: InstantVector) -> InstantVector
 ///
 /// fn main() -> Result<(), prometheus_http_query::Error> {
 ///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")?
+///         .metric("some_metric")
 ///         .with("some_label", "some_value")
 ///         .range("5m")?
 ///         .try_into()?;
 ///
 ///     let result = holt_winters(vector, 0.5, 0.9)?;
 ///
-///     assert_eq!(&result.to_string(), "holt_winters(some_metric{some_label=\"some_value\"}[5m], 0.5, 0.9)");
+///     assert_eq!(&result.to_string(), "holt_winters({__name__=\"some_metric\",some_label=\"some_value\"}[5m], 0.5, 0.9)");
 ///
 ///     Ok(())
 /// }
@@ -454,13 +454,13 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let result = hour(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "hour(some_metric{some_label=\"some_value\"})");
+    ///     assert_eq!(&result.to_string(), "hour({__name__=\"some_metric\",some_label=\"some_value\"})");
     ///
     ///     Ok(())
     /// }
@@ -478,14 +478,14 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .range("5m")?
     ///         .try_into()?;
     ///
     ///     let result = idelta(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "idelta(some_metric{some_label=\"some_value\"}[5m])");
+    ///     assert_eq!(&result.to_string(), "idelta({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
     ///
     ///     Ok(())
     /// }
@@ -503,14 +503,14 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .range("5m")?
     ///         .try_into()?;
     ///
     ///     let result = increase(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "increase(some_metric{some_label=\"some_value\"}[5m])");
+    ///     assert_eq!(&result.to_string(), "increase({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
     ///
     ///     Ok(())
     /// }
@@ -528,14 +528,14 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .range("5m")?
     ///         .try_into()?;
     ///
     ///     let result = irate(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "irate(some_metric{some_label=\"some_value\"}[5m])");
+    ///     assert_eq!(&result.to_string(), "irate({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
     ///
     ///     Ok(())
     /// }
@@ -552,14 +552,14 @@ create_function! {
 ///
 /// fn main() -> Result<(), prometheus_http_query::Error> {
 ///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
+///         .metric("some_metric")
 ///         .with("label1", "value1")
 ///         .with("label2", "value2")
 ///         .try_into()?;
 ///
 ///     let result = label_join(vector, "new_label", ":", &["label1", "label2"])?;
 ///
-///     let promql = r#"label_join(some_metric{label1="value1",label2="value2"}, "new_label", ":", "label1", "label2")"#;
+///     let promql = r#"label_join({__name__="some_metric",label1="value1",label2="value2"}, "new_label", ":", "label1", "label2")"#;
 ///
 ///     assert_eq!(&result.to_string(), promql);
 ///
@@ -609,13 +609,13 @@ pub fn label_join(
 ///
 /// fn main() -> Result<(), prometheus_http_query::Error> {
 ///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
+///         .metric("some_metric")
 ///         .with("some_label", "some_value")
 ///         .try_into()?;
 ///
 ///     let result = label_replace(vector, "new_label", "$1", "some_label", "(.*):.*")?;
 ///
-///     let promql = r#"label_replace(some_metric{some_label="some_value"}, "new_label", "$1", "some_label", "(.*):.*")"#;
+///     let promql = r#"label_replace({__name__="some_metric",some_label="some_value"}, "new_label", "$1", "some_label", "(.*):.*")"#;
 ///
 ///     assert_eq!(&result.to_string(), promql);
 ///
@@ -653,13 +653,13 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let result = ln(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "ln(some_metric{some_label=\"some_value\"})");
+    ///     assert_eq!(&result.to_string(), "ln({__name__=\"some_metric\",some_label=\"some_value\"})");
     ///
     ///     Ok(())
     /// }
@@ -677,13 +677,13 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let result = log2(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "log2(some_metric{some_label=\"some_value\"})");
+    ///     assert_eq!(&result.to_string(), "log2({__name__=\"some_metric\",some_label=\"some_value\"})");
     ///
     ///     Ok(())
     /// }
@@ -701,13 +701,13 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let result = log10(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "log10(some_metric{some_label=\"some_value\"})");
+    ///     assert_eq!(&result.to_string(), "log10({__name__=\"some_metric\",some_label=\"some_value\"})");
     ///
     ///     Ok(())
     /// }
@@ -725,13 +725,13 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let result = minute(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "minute(some_metric{some_label=\"some_value\"})");
+    ///     assert_eq!(&result.to_string(), "minute({__name__=\"some_metric\",some_label=\"some_value\"})");
     ///
     ///     Ok(())
     /// }
@@ -749,13 +749,13 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let result = month(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "month(some_metric{some_label=\"some_value\"})");
+    ///     assert_eq!(&result.to_string(), "month({__name__=\"some_metric\",some_label=\"some_value\"})");
     ///
     ///     Ok(())
     /// }
@@ -772,14 +772,14 @@ create_function! {
 ///
 /// fn main() -> Result<(), prometheus_http_query::Error> {
 ///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")?
+///         .metric("some_metric")
 ///         .with("some_label", "some_value")
 ///         .range("5m")?
 ///         .try_into()?;
 ///
 ///     let result = predict_linear(vector, 300.0);
 ///
-///     assert_eq!(&result.to_string(), "predict_linear(some_metric{some_label=\"some_value\"}[5m], 300)");
+///     assert_eq!(&result.to_string(), "predict_linear({__name__=\"some_metric\",some_label=\"some_value\"}[5m], 300)");
 ///
 ///     Ok(())
 /// }
@@ -800,14 +800,14 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .range("5m")?
     ///         .try_into()?;
     ///
     ///     let result = rate(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "rate(some_metric{some_label=\"some_value\"}[5m])");
+    ///     assert_eq!(&result.to_string(), "rate({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
     ///
     ///     Ok(())
     /// }
@@ -825,14 +825,14 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .range("5m")?
     ///         .try_into()?;
     ///
     ///     let result = resets(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "resets(some_metric{some_label=\"some_value\"}[5m])");
+    ///     assert_eq!(&result.to_string(), "resets({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
     ///
     ///     Ok(())
     /// }
@@ -849,13 +849,13 @@ create_function! {
 ///
 /// fn main() -> Result<(), prometheus_http_query::Error> {
 ///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")?
+///         .metric("some_metric")
 ///         .with("some_label", "some_value")
 ///         .try_into()?;
 ///
 ///     let result = round(vector, None);
 ///
-///     assert_eq!(&result.to_string(), "round(some_metric{some_label=\"some_value\"})");
+///     assert_eq!(&result.to_string(), "round({__name__=\"some_metric\",some_label=\"some_value\"})");
 ///
 ///     Ok(())
 /// }
@@ -880,13 +880,13 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let result = scalar(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "scalar(some_metric{some_label=\"some_value\"})");
+    ///     assert_eq!(&result.to_string(), "scalar({__name__=\"some_metric\",some_label=\"some_value\"})");
     ///
     ///     Ok(())
     /// }
@@ -904,13 +904,13 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let result = sgn(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "sgn(some_metric{some_label=\"some_value\"})");
+    ///     assert_eq!(&result.to_string(), "sgn({__name__=\"some_metric\",some_label=\"some_value\"})");
     ///
     ///     Ok(())
     /// }
@@ -928,13 +928,13 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let result = sort(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "sort(some_metric{some_label=\"some_value\"})");
+    ///     assert_eq!(&result.to_string(), "sort({__name__=\"some_metric\",some_label=\"some_value\"})");
     ///
     ///     Ok(())
     /// }
@@ -952,13 +952,13 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let result = sort_desc(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "sort_desc(some_metric{some_label=\"some_value\"})");
+    ///     assert_eq!(&result.to_string(), "sort_desc({__name__=\"some_metric\",some_label=\"some_value\"})");
     ///
     ///     Ok(())
     /// }
@@ -976,13 +976,13 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let result = timestamp(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "timestamp(some_metric{some_label=\"some_value\"})");
+    ///     assert_eq!(&result.to_string(), "timestamp({__name__=\"some_metric\",some_label=\"some_value\"})");
     ///
     ///     Ok(())
     /// }
@@ -1000,13 +1000,13 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .try_into()?;
     ///
     ///     let result = year(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "year(some_metric{some_label=\"some_value\"})");
+    ///     assert_eq!(&result.to_string(), "year({__name__=\"some_metric\",some_label=\"some_value\"})");
     ///
     ///     Ok(())
     /// }
@@ -1024,14 +1024,14 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .range("5m")?
     ///         .try_into()?;
     ///
     ///     let result = avg_over_time(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "avg_over_time(some_metric{some_label=\"some_value\"}[5m])");
+    ///     assert_eq!(&result.to_string(), "avg_over_time({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
     ///
     ///     Ok(())
     /// }
@@ -1049,14 +1049,14 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .range("5m")?
     ///         .try_into()?;
     ///
     ///     let result = min_over_time(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "min_over_time(some_metric{some_label=\"some_value\"}[5m])");
+    ///     assert_eq!(&result.to_string(), "min_over_time({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
     ///
     ///     Ok(())
     /// }
@@ -1074,14 +1074,14 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .range("5m")?
     ///         .try_into()?;
     ///
     ///     let result = max_over_time(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "max_over_time(some_metric{some_label=\"some_value\"}[5m])");
+    ///     assert_eq!(&result.to_string(), "max_over_time({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
     ///
     ///     Ok(())
     /// }
@@ -1099,14 +1099,14 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .range("5m")?
     ///         .try_into()?;
     ///
     ///     let result = sum_over_time(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "sum_over_time(some_metric{some_label=\"some_value\"}[5m])");
+    ///     assert_eq!(&result.to_string(), "sum_over_time({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
     ///
     ///     Ok(())
     /// }
@@ -1124,14 +1124,14 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .range("5m")?
     ///         .try_into()?;
     ///
     ///     let result = count_over_time(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "count_over_time(some_metric{some_label=\"some_value\"}[5m])");
+    ///     assert_eq!(&result.to_string(), "count_over_time({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
     ///
     ///     Ok(())
     /// }
@@ -1148,14 +1148,14 @@ create_function! {
 ///
 /// fn main() -> Result<(), prometheus_http_query::Error> {
 ///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")?
+///         .metric("some_metric")
 ///         .with("some_label", "some_value")
 ///         .range("5m")?
 ///         .try_into()?;
 ///
 ///     let result = quantile_over_time(0.95, vector);
 ///
-///     assert_eq!(&result.to_string(), "quantile_over_time(0.95, some_metric{some_label=\"some_value\"}[5m])");
+///     assert_eq!(&result.to_string(), "quantile_over_time(0.95, {__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
 ///
 ///     Ok(())
 /// }
@@ -1176,14 +1176,14 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .range("5m")?
     ///         .try_into()?;
     ///
     ///     let result = stddev_over_time(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "stddev_over_time(some_metric{some_label=\"some_value\"}[5m])");
+    ///     assert_eq!(&result.to_string(), "stddev_over_time({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
     ///
     ///     Ok(())
     /// }
@@ -1201,14 +1201,14 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .range("5m")?
     ///         .try_into()?;
     ///
     ///     let result = stdvar_over_time(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "stdvar_over_time(some_metric{some_label=\"some_value\"}[5m])");
+    ///     assert_eq!(&result.to_string(), "stdvar_over_time({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
     ///
     ///     Ok(())
     /// }
@@ -1226,14 +1226,14 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .range("5m")?
     ///         .try_into()?;
     ///
     ///     let result = last_over_time(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "last_over_time(some_metric{some_label=\"some_value\"}[5m])");
+    ///     assert_eq!(&result.to_string(), "last_over_time({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
     ///
     ///     Ok(())
     /// }
@@ -1251,14 +1251,14 @@ create_function! {
     ///
     /// fn main() -> Result<(), prometheus_http_query::Error> {
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")?
+    ///         .metric("some_metric")
     ///         .with("some_label", "some_value")
     ///         .range("5m")?
     ///         .try_into()?;
     ///
     ///     let result = present_over_time(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "present_over_time(some_metric{some_label=\"some_value\"}[5m])");
+    ///     assert_eq!(&result.to_string(), "present_over_time({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
     ///
     ///     Ok(())
     /// }
