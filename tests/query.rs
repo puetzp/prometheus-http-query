@@ -1,11 +1,11 @@
 use prometheus_http_query::aggregations::*;
 use prometheus_http_query::functions::*;
-use prometheus_http_query::{Aggregate, Client, InstantVector, RangeVector, Scheme, Selector};
+use prometheus_http_query::{Aggregate, Client, InstantVector, RangeVector, Selector};
 use std::convert::TryInto;
 
 #[test]
 fn test_query_1() {
-    let client = Client::new(Scheme::Http, "localhost", 9090);
+    let client = Client::default();
 
     let v: InstantVector = Selector::new()
         .metric("node_cpu_seconds_total")
@@ -22,7 +22,7 @@ fn test_query_1() {
 
 #[test]
 fn test_query_2() {
-    let client = Client::new(Scheme::Http, "localhost", 9090);
+    let client = Client::default();
 
     let v: RangeVector = Selector::new()
         .metric("node_cpu_seconds_total")
@@ -42,7 +42,7 @@ fn test_query_2() {
 
 #[test]
 fn test_query_3() {
-    let client = Client::new(Scheme::Http, "localhost", 9090);
+    let client = Client::default();
 
     let v: RangeVector = Selector::new()
         .metric("node_node_cpu_seconds_total")
@@ -67,7 +67,7 @@ fn test_query_3() {
 
 #[test]
 fn test_query_4() {
-    let client = Client::new(Scheme::Http, "localhost", 9090);
+    let client = Client::default();
 
     let v: RangeVector = Selector::new()
         .metric("node_node_cpu_seconds_total")
@@ -88,7 +88,7 @@ fn test_query_4() {
 
 #[test]
 fn test_query_5() {
-    let client = Client::new(Scheme::Http, "localhost", 9090);
+    let client = Client::default();
 
     let v: RangeVector = Selector::new()
         .metric("node_cpu_seconds_total")
@@ -107,7 +107,7 @@ fn test_query_5() {
 
 #[test]
 fn test_query_6() {
-    let client = Client::new(Scheme::Http, "localhost", 9090);
+    let client = Client::default();
 
     let v: InstantVector = Selector::new()
         .metric("node_cpu_seconds_total")
@@ -124,7 +124,7 @@ fn test_query_6() {
 
 #[test]
 fn test_query_7() {
-    let client = Client::new(Scheme::Http, "localhost", 9090);
+    let client = Client::default();
 
     let v: InstantVector = Selector::new()
         .metric("node_cpu_seconds_total")

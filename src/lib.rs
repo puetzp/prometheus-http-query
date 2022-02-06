@@ -166,7 +166,6 @@ mod selector;
 mod util;
 mod vector;
 pub use self::client::Client;
-pub use self::client::Scheme;
 pub use self::error::Error;
 pub use self::selector::Selector;
 pub use self::util::Aggregate;

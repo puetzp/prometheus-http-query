@@ -6,34 +6,7 @@ use crate::response::*;
 use crate::selector::Selector;
 use crate::util::{validate_duration, RuleType, TargetState};
 use std::collections::HashMap;
-use std::fmt;
 use url::Url;
-
-/// A helper enum that is passed to the [Client::new] function in
-/// order to avoid errors on unsupported connection schemes.
-#[derive(Debug)]
-pub enum Scheme {
-    Http,
-    Https,
-}
-
-impl Scheme {
-    fn as_str(&self) -> &str {
-        match self {
-            Scheme::Http => "http",
-            Scheme::Https => "https",
-        }
-    }
-}
-
-impl fmt::Display for Scheme {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Http => write!(f, "http"),
-            Self::Https => write!(f, "https"),
-        }
-    }
-}
 
 /// A client used to execute queries. It uses a [reqwest::Client] internally
 /// that manages connections for us.
@@ -134,54 +107,35 @@ impl std::convert::TryFrom<String> for Client {
 }
 
 impl Client {
-    /// Create a Client that connects to a Prometheus instance at the
-    /// given FQDN/domain and port, using either HTTP or HTTPS.
+    /// Create a Client from a custom [reqwest::Client] and URL.
+    /// This way you can account for all extra parameters (e.g. x509 authentication)
+    /// that may be needed to connect to Prometheus or an intermediate proxy,
+    /// by building it into the [reqwest::Client].
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Scheme};
+    /// use prometheus_http_query::Client;
     ///
-    /// let client = Client::new(Scheme::Http, "localhost", 9090);
-    /// ```
-    pub fn new(scheme: Scheme, host: &str, port: u16) -> Self {
-        Client {
-            base_url: format!("{}://{}:{}/api/v1", scheme.as_str(), host, port),
-            ..Default::default()
-        }
-    }
-
-    /// Create a Client that connects to a Prometheus instance at the
-    /// given URL.
-    ///
-    /// ```rust
-    /// let client = prometheus_http_query::Client::from("https://prometheus.example.com");
+    /// let client = {
+    ///     let c = reqwest::Client::builder().no_proxy().build().unwrap();
+    ///     Client::from(c, "https://prometheus.example.com")
+    /// };
     ///
     /// assert!(client.is_ok());
     /// ```
-    pub fn from(url: &str) -> Result<Self, Error> {
-        let mut base_url = Url::parse(url)
-            .map_err(Error::UrlParse)?
-            .as_str()
-            .to_string();
-
-        base_url.push_str("/api/v1");
-
-        let client = Client {
-            base_url,
-            ..Default::default()
-        };
-
-        Ok(client)
+    pub fn from(client: reqwest::Client, url: &str) -> Result<Self, Error> {
+        let base_url = format!("{}/api/v1", Url::parse(url).map_err(Error::UrlParse)?);
+        Ok(Client { base_url, client })
     }
 
     /// Perform an instant query using a [crate::RangeVector] or [crate::InstantVector].
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Scheme, InstantVector, Selector, Aggregate, Error};
+    /// use prometheus_http_query::{Client, InstantVector, Selector, Aggregate, Error};
     /// use prometheus_http_query::aggregations::sum;
     /// use std::convert::TryInto;
     ///
     /// fn main() -> Result<(), Error> {
-    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///     let client = Client::default();
     ///
     ///     let v: InstantVector = Selector::new()
     ///         .metric("node_cpu_seconds_total")?
@@ -279,10 +233,10 @@ impl Client {
     /// Find time series that match certain label sets ([Selector]s).
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Scheme, Selector, Error};
+    /// use prometheus_http_query::{Client, Selector, Error};
     ///
     /// fn main() -> Result<(), Error> {
-    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///     let client = Client::default();
     ///
     ///     let s1 = Selector::new()
     ///         .with("handler", "/api/v1/query");
@@ -365,10 +319,10 @@ impl Client {
     /// Retrieve all label names (or use [Selector]s to select time series to read label names from).
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Scheme, Selector, Error};
+    /// use prometheus_http_query::{Client, Selector, Error};
     ///
     /// fn main() -> Result<(), Error> {
-    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///     let client = Client::default();
     ///
     ///     // To retrieve a list of all labels:
     ///     let response = tokio_test::block_on( async { client.label_names(None, None, None).await });
@@ -453,10 +407,10 @@ impl Client {
     /// Retrieve all label values for a label name (or use [Selector]s to select the time series to read label values from)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Scheme, Selector, Error};
+    /// use prometheus_http_query::{Client, Selector, Error};
     ///
     /// fn main() -> Result<(), Error> {
-    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///     let client = Client::default();
     ///
     ///     // To retrieve a list of all label values for a specific label name:
     ///     let response = tokio_test::block_on( async { client.label_values("job", None, None, None).await });
@@ -538,11 +492,11 @@ impl Client {
     /// Query the current state of target discovery.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Scheme, Error, TargetState};
+    /// use prometheus_http_query::{Client, Error, TargetState};
     /// use std::convert::TryInto;
     ///
     /// fn main() -> Result<(), Error> {
-    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///     let client = Client::default();
     ///
     ///     let response = tokio_test::block_on( async { client.targets(None).await });
     ///
@@ -587,11 +541,11 @@ impl Client {
     /// Retrieve a list of rule groups of recording and alerting rules.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Scheme, Error, RuleType};
+    /// use prometheus_http_query::{Client, Error, RuleType};
     /// use std::convert::TryInto;
     ///
     /// fn main() -> Result<(), Error> {
-    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///     let client = Client::default();
     ///
     ///     let response = tokio_test::block_on( async { client.rules(None).await });
     ///
@@ -646,11 +600,11 @@ impl Client {
     /// Retrieve a list of active alerts.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Scheme, Error};
+    /// use prometheus_http_query::{Client, Error};
     /// use std::convert::TryInto;
     ///
     /// fn main() -> Result<(), Error> {
-    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///     let client = Client::default();
     ///
     ///     let response = tokio_test::block_on( async { client.alerts().await });
     ///
@@ -691,11 +645,11 @@ impl Client {
     /// Retrieve a list of flags that Prometheus was configured with.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Scheme, Error};
+    /// use prometheus_http_query::{Client, Error};
     /// use std::convert::TryInto;
     ///
     /// fn main() -> Result<(), Error> {
-    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///     let client = Client::default();
     ///
     ///     let response = tokio_test::block_on( async { client.flags().await });
     ///
@@ -727,11 +681,11 @@ impl Client {
     /// Query the current state of alertmanager discovery.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Scheme, Error, TargetState};
+    /// use prometheus_http_query::{Client, Error, TargetState};
     /// use std::convert::TryInto;
     ///
     /// fn main() -> Result<(), Error> {
-    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///     let client = Client::default();
     ///
     ///     let response = tokio_test::block_on( async { client.alertmanagers().await });
     ///
@@ -808,11 +762,11 @@ impl Client {
     /// Retrieve metadata about metrics that are currently scraped from targets, along with target information.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Scheme, Error, Selector};
+    /// use prometheus_http_query::{Client, Error, Selector};
     /// use std::convert::TryInto;
     ///
     /// fn main() -> Result<(), Error> {
-    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///     let client = Client::default();
     ///
     ///     // Retrieve metadata for a specific metric from all targets.
     ///     let response = tokio_test::block_on( async { client.target_metadata(Some("go_routines"), None, None).await });
@@ -885,11 +839,11 @@ impl Client {
     /// Retrieve metadata about metrics that are currently scraped from targets.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Scheme, Error};
+    /// use prometheus_http_query::{Client, Error};
     /// use std::convert::TryInto;
     ///
     /// fn main() -> Result<(), Error> {
-    ///     let client = Client::new(Scheme::Http, "localhost", 9090);
+    ///     let client = Client::default();
     ///
     ///     // Retrieve metadata for a all metrics.
     ///     let response = tokio_test::block_on( async { client.metric_metadata(None, None).await });
