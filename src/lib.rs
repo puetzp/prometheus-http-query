@@ -72,7 +72,7 @@
 //! use prometheus_http_query::{Client, Selector, Error};
 //!
 //! fn main() -> Result<(), Error> {
-//!     let client = Client::defaut();
+//!     let client = Client::default();
 //!
 //!     let s1 = Selector::new()
 //!         .with("handler", "/api/v1/query");
@@ -99,7 +99,7 @@
 //! use prometheus_http_query::{Client, Error, RuleType};
 //!
 //! fn main() -> Result<(), Error> {
-//!     let client = Client::defaut();
+//!     let client = Client::default();
 //!
 //!     let response = tokio_test::block_on( async { client.rules(None).await });
 //!
