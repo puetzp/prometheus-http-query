@@ -1267,3 +1267,173 @@ create_function! {
     /// Requires Prometheus server >= 2.29.0.
     => present_over_time, RangeVector, InstantVector
 }
+
+create_function! {
+    /// Apply the PromQL `acos` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
+    /// use prometheus_http_query::functions::acos;
+    /// use std::convert::TryInto;
+    /// use std::str::FromStr;
+    ///
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client: Client = Default::default();
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("up")
+    ///         .with("job", "prometheus")
+    ///         .try_into()?;
+    ///
+    ///     let q = acos(vector);
+    ///
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
+    ///
+    ///     assert_eq!(f64::from_str(value).unwrap(), 0.0);
+    ///     Ok(())
+    /// }
+    /// ```
+    => acos, InstantVector, InstantVector
+}
+
+create_function! {
+    /// Apply the PromQL `acosh` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
+    /// use prometheus_http_query::functions::acosh;
+    /// use std::convert::TryInto;
+    /// use std::str::FromStr;
+    ///
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client: Client = Default::default();
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("up")
+    ///         .with("job", "prometheus")
+    ///         .try_into()?;
+    ///
+    ///     let q = acosh(vector);
+    ///
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
+    ///
+    ///     assert_eq!(f64::from_str(value).unwrap(), 0.0);
+    ///     Ok(())
+    /// }
+    /// ```
+    => acosh, InstantVector, InstantVector
+}
+
+create_function! {
+    /// Apply the PromQL `asin` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
+    /// use prometheus_http_query::functions::asin;
+    /// use std::convert::TryInto;
+    /// use std::str::FromStr;
+    ///
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client: Client = Default::default();
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("up")
+    ///         .with("job", "prometheus")
+    ///         .try_into()?;
+    ///
+    ///     let q = asin(vector - 1.0);
+    ///
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
+    ///
+    ///     assert_eq!(f64::from_str(value).unwrap(), 0.0);
+    ///     Ok(())
+    /// }
+    /// ```
+    => asin, InstantVector, InstantVector
+}
+
+create_function! {
+    /// Apply the PromQL `asinh` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
+    /// use prometheus_http_query::functions::asinh;
+    /// use std::convert::TryInto;
+    /// use std::str::FromStr;
+    ///
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client: Client = Default::default();
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("up")
+    ///         .with("job", "prometheus")
+    ///         .try_into()?;
+    ///
+    ///     let q = asinh(vector - 1.0);
+    ///
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
+    ///
+    ///     assert_eq!(f64::from_str(value).unwrap(), 0.0);
+    ///     Ok(())
+    /// }
+    /// ```
+    => asinh, InstantVector, InstantVector
+}
+
+create_function! {
+    /// Apply the PromQL `atanh` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
+    /// use prometheus_http_query::functions::atanh;
+    /// use std::convert::TryInto;
+    /// use std::str::FromStr;
+    ///
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client: Client = Default::default();
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("up")
+    ///         .with("job", "prometheus")
+    ///         .try_into()?;
+    ///
+    ///     let q = atanh(vector);
+    ///
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
+    ///
+    ///     assert_eq!(f64::from_str(value).unwrap(), f64::INFINITY);
+    ///     Ok(())
+    /// }
+    /// ```
+    => atanh, InstantVector, InstantVector
+}
