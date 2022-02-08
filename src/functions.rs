@@ -1295,7 +1295,7 @@ create_function! {
     ///         .sample()
     ///         .value();
     ///
-    ///     assert_eq!(f64::from_str(value).unwrap(), 0.0);
+    ///     assert_eq!(value, 0.0);
     ///     Ok(())
     /// }
     /// ```
@@ -1329,7 +1329,7 @@ create_function! {
     ///         .sample()
     ///         .value();
     ///
-    ///     assert_eq!(f64::from_str(value).unwrap(), 0.0);
+    ///     assert_eq!(value, 0.0);
     ///     Ok(())
     /// }
     /// ```
@@ -1363,7 +1363,7 @@ create_function! {
     ///         .sample()
     ///         .value();
     ///
-    ///     assert_eq!(f64::from_str(value).unwrap(), 0.0);
+    ///     assert_eq!(value, 0.0);
     ///     Ok(())
     /// }
     /// ```
@@ -1397,7 +1397,7 @@ create_function! {
     ///         .sample()
     ///         .value();
     ///
-    ///     assert_eq!(f64::from_str(value).unwrap(), 0.0);
+    ///     assert_eq!(value, 0.0);
     ///     Ok(())
     /// }
     /// ```
@@ -1431,7 +1431,7 @@ create_function! {
     ///         .sample()
     ///         .value();
     ///
-    ///     assert_eq!(f64::from_str(value).unwrap(), 0.0);
+    ///     assert_eq!(value, 0.0);
     ///     Ok(())
     /// }
     /// ```
@@ -1465,7 +1465,7 @@ create_function! {
     ///         .sample()
     ///         .value();
     ///
-    ///     assert_eq!(f64::from_str(value).unwrap(), f64::INFINITY);
+    ///     assert_eq!(value, f64::INFINITY);
     ///     Ok(())
     /// }
     /// ```
@@ -1499,7 +1499,7 @@ create_function! {
     ///         .sample()
     ///         .value();
     ///
-    ///     assert_eq!(f64::from_str(value).unwrap(), 1.0);
+    ///     assert_eq!(value, 1.0);
     ///     Ok(())
     /// }
     /// ```
@@ -1533,7 +1533,7 @@ create_function! {
     ///         .sample()
     ///         .value();
     ///
-    ///     assert_eq!(f64::from_str(value).unwrap(), 1.0);
+    ///     assert_eq!(value, 1.0);
     ///     Ok(())
     /// }
     /// ```
@@ -1567,7 +1567,7 @@ create_function! {
     ///         .sample()
     ///         .value();
     ///
-    ///     assert_eq!(f64::from_str(value).unwrap(), 0.0);
+    ///     assert_eq!(value, 0.0);
     ///     Ok(())
     /// }
     /// ```
@@ -1601,7 +1601,7 @@ create_function! {
     ///         .sample()
     ///         .value();
     ///
-    ///     assert_eq!(f64::from_str(value).unwrap(), 0.0);
+    ///     assert_eq!(value, 0.0);
     ///     Ok(())
     /// }
     /// ```
@@ -1635,7 +1635,7 @@ create_function! {
     ///         .sample()
     ///         .value();
     ///
-    ///     assert_eq!(f64::from_str(value).unwrap(), 0.0);
+    ///     assert_eq!(value, 0.0);
     ///     Ok(())
     /// }
     /// ```
@@ -1669,7 +1669,7 @@ create_function! {
     ///         .sample()
     ///         .value();
     ///
-    ///     assert_eq!(f64::from_str(value).unwrap(), 0.0);
+    ///     assert_eq!(value, 0.0);
     ///     Ok(())
     /// }
     /// ```
@@ -1703,7 +1703,7 @@ create_function! {
     ///         .sample()
     ///         .value();
     ///
-    ///     assert_eq!(f64::from_str(value).unwrap(), 45.0);
+    ///     assert_eq!(value, 45.0);
     ///     Ok(())
     /// }
     /// ```
@@ -1737,7 +1737,7 @@ create_function! {
     ///         .sample()
     ///         .value();
     ///
-    ///     assert_eq!(f64::from_str(value).unwrap(), f64::INFINITY);
+    ///     assert_eq!(value, f64::INFINITY);
     ///     Ok(())
     /// }
     /// ```
