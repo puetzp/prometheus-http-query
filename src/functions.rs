@@ -1405,6 +1405,40 @@ create_function! {
 }
 
 create_function! {
+    /// Apply the PromQL `atan` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
+    /// use prometheus_http_query::functions::atan;
+    /// use std::convert::TryInto;
+    /// use std::str::FromStr;
+    ///
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client: Client = Default::default();
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("up")
+    ///         .with("job", "prometheus")
+    ///         .try_into()?;
+    ///
+    ///     let q = atan(vector - 1.0);
+    ///
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
+    ///
+    ///     assert_eq!(f64::from_str(value).unwrap(), 0.0);
+    ///     Ok(())
+    /// }
+    /// ```
+    => atan, InstantVector, InstantVector
+}
+
+create_function! {
     /// Apply the PromQL `atanh` function.
     ///
     /// ```rust
@@ -1640,4 +1674,72 @@ create_function! {
     /// }
     /// ```
     => tanh, InstantVector, InstantVector
+}
+
+create_function! {
+    /// Apply the PromQL `deg` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
+    /// use prometheus_http_query::functions::{atan,deg};
+    /// use std::convert::TryInto;
+    /// use std::str::FromStr;
+    ///
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client: Client = Default::default();
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("up")
+    ///         .with("job", "prometheus")
+    ///         .try_into()?;
+    ///
+    ///     let q = deg(atan(vector));
+    ///
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
+    ///
+    ///     assert_eq!(f64::from_str(value).unwrap(), 45.0);
+    ///     Ok(())
+    /// }
+    /// ```
+    => deg, InstantVector, InstantVector
+}
+
+create_function! {
+    /// Apply the PromQL `rad` function.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
+    /// use prometheus_http_query::functions::{atanh,rad};
+    /// use std::convert::TryInto;
+    /// use std::str::FromStr;
+    ///
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client: Client = Default::default();
+    ///     let vector: InstantVector = Selector::new()
+    ///         .metric("up")
+    ///         .with("job", "prometheus")
+    ///         .try_into()?;
+    ///
+    ///     let q = rad(atanh(vector));
+    ///
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
+    ///
+    ///     assert_eq!(f64::from_str(value).unwrap(), f64::INFINITY);
+    ///     Ok(())
+    /// }
+    /// ```
+    => rad, InstantVector, InstantVector
 }
