@@ -8,9 +8,19 @@ use url::Url;
 
 mod de {
     use serde::{Deserialize, Deserializer};
+    use std::str::FromStr;
     use time::format_description::well_known::Rfc3339;
     use time::OffsetDateTime;
     use url::Url;
+
+    pub(crate) fn deserialize_f64<'de, D>(deserializer: D) -> Result<f64, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let raw = String::deserialize(deserializer)?;
+        let num = f64::from_str(&raw).map_err(serde::de::Error::custom)?;
+        Ok(num)
+    }
 
     pub(crate) fn deserialize_url<'de, D>(deserializer: D) -> Result<Url, D::Error>
     where
@@ -103,7 +113,8 @@ impl RangeVector {
 #[derive(Debug, PartialEq, Deserialize)]
 pub struct Sample {
     pub(crate) timestamp: f64,
-    pub(crate) value: String,
+    #[serde(deserialize_with = "de::deserialize_f64")]
+    pub(crate) value: f64,
 }
 
 impl Sample {
@@ -113,8 +124,8 @@ impl Sample {
     }
 
     /// Returns the value contained in this sample.
-    pub fn value(&self) -> &str {
-        &self.value
+    pub fn value(&self) -> f64 {
+        self.value
     }
 }
 
