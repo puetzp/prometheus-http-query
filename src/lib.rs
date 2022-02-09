@@ -156,6 +156,13 @@
 //!
 //! These are a few examples. See [Client] for examples of other types of metadata queries.
 //!
+//! # Compatibility
+//!
+//! This version of the crate is compatible with Prometheus server >= v2.31.
+//! Versions as "old" as v2.26 are compatible as well when some features are not used. For example trigonometric functions
+//! were only introduced with v2.31. [Client::targets] will fail as well because the result as returned by the API
+//! changed between v2.26 and v2.31.
+//!
 //! # Supported operations
 //!
 //! - [x] Building PromQL expressions using time series selectors, functions and operators (aggregation/binary/vector matching ...)
@@ -167,11 +174,11 @@
 //! - [x] Retrieve alerting + recording rules
 //! - [x] Retrieve active alerts
 //! - [x] Retrieve configured flags & values
-//! - [x] Target metadata (still experimental as of Prometheus v2.28)
-//! - [x] Metric metadata (still experimental as of Prometheus v2.28)
+//! - [x] Target metadata
+//! - [x] Metric metadata
 //! - [x] Alertmanager service discovery status
 //! - [ ] Prometheus config
-//! - [ ] Prometheus runtime & build information (still unstable as of Prometheus v2.28)
+//! - [ ] Prometheus runtime & build information
 //!
 //! # Notes
 //!
@@ -189,9 +196,8 @@
 //!
 //! # Limitations
 //!
-//! * reqwest client configuration cannot be customized (yet)
 //! * Subqueries are not supported (only as custom query)
-//! * PromQL functions that do not take a range / instant vector as an argument are not supported (only as custom query)
+//! * PromQL functions that do not take a range / instant vector as an argument are not supported (only as custom query), e.g. pi()
 pub mod aggregations;
 mod client;
 mod error;
