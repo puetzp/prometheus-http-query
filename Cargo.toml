@@ -15,9 +15,9 @@ reqwest = { version = "0.11", features = ["json"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 url = "2.2"
-time = { version = "0.3.6", features = ["parsing", "macros"] }
+time = { version = "0.3.7", features = ["parsing", "macros"] }
 
 [dev-dependencies]
 serde_test = "1"
 tokio-test = "0.4"
-tokio = { version = "1.5", features = ["macros", "rt"] }
+tokio = { version = "1.16", features = ["macros", "rt"] }
