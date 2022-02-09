@@ -556,21 +556,31 @@ pub fn histogram_quantile(quantile: f64, vector: InstantVector) -> InstantVector
 /// Apply the PromQL `holt_winters` function.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
+/// use prometheus_http_query::{Client, Selector, RangeVector};
 /// use prometheus_http_query::functions::holt_winters;
 /// use std::convert::TryInto;
 ///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
+/// #[tokio::main(flavor = "current_thread")]
+/// async fn main() -> Result<(), prometheus_http_query::Error> {
+///     let client = Client::default();
 ///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")
-///         .with("some_label", "some_value")
-///         .range("5m")?
+///         .metric("prometheus_http_requests_total")
+///         .with("job", "prometheus")
+///         .with("handler", "/metrics")
+///         .range("1m")?
 ///         .try_into()?;
 ///
-///     let result = holt_winters(vector, 0.5, 0.9)?;
+///     let q = holt_winters(vector, 0.8, 0.9)?;
 ///
-///     assert_eq!(&result.to_string(), "holt_winters({__name__=\"some_metric\",some_label=\"some_value\"}[5m], 0.5, 0.9)");
+///     let response = client.query(q, None, None).await?;
+///     let value = response.as_instant()
+///         .unwrap()
+///         .get(0)
+///         .unwrap()
+///         .sample()
+///         .value();
 ///
+///     assert!(value.is_normal());
 ///     Ok(())
 /// }
 /// ```
@@ -592,20 +602,29 @@ create_function! {
     /// Apply the PromQL `hour` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector};
-    /// use prometheus_http_query::functions::hour;
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
+    /// use prometheus_http_query::functions::{hour, timestamp};
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
+    ///         .metric("up")
+    ///         .with("job", "prometheus")
     ///         .try_into()?;
     ///
-    ///     let result = hour(vector);
+    ///     let q = hour(timestamp(vector));
     ///
-    ///     assert_eq!(&result.to_string(), "hour({__name__=\"some_metric\",some_label=\"some_value\"})");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!((0.0..=23.0).contains(&value));
     ///     Ok(())
     /// }
     /// ```
@@ -616,21 +635,31 @@ create_function! {
     /// Apply the PromQL `idelta` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::{Client, Selector, RangeVector};
     /// use prometheus_http_query::functions::idelta;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
-    ///         .range("5m")?
+    ///         .metric("prometheus_http_requests_total")
+    ///         .with("job", "prometheus")
+    ///         .with("handler", "/metrics")
+    ///         .range("1m")?
     ///         .try_into()?;
     ///
-    ///     let result = idelta(vector);
+    ///     let q = idelta(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "idelta({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert_eq!(value, 1.0);
     ///     Ok(())
     /// }
     /// ```
@@ -641,21 +670,31 @@ create_function! {
     /// Apply the PromQL `increase` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::{Client, Selector, RangeVector};
     /// use prometheus_http_query::functions::increase;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
-    ///         .range("5m")?
+    ///         .metric("prometheus_http_requests_total")
+    ///         .with("job", "prometheus")
+    ///         .with("handler", "/metrics")
+    ///         .range("1m")?
     ///         .try_into()?;
     ///
-    ///     let result = increase(vector);
+    ///     let q = increase(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "increase({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!(value.is_normal());
     ///     Ok(())
     /// }
     /// ```
@@ -666,47 +705,63 @@ create_function! {
     /// Apply the PromQL `irate` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::{Client, Selector, RangeVector};
     /// use prometheus_http_query::functions::irate;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
-    ///         .range("5m")?
+    ///         .metric("prometheus_http_requests_total")
+    ///         .with("job", "prometheus")
+    ///         .with("handler", "/metrics")
+    ///         .range("1m")?
     ///         .try_into()?;
     ///
-    ///     let result = irate(vector);
+    ///     let q = irate(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "irate({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!(value.is_normal());
     ///     Ok(())
     /// }
     /// ```
     => irate, RangeVector, InstantVector
 }
 
-/// Apply the PromQL `label_join` function.
+/// Apply the PromQL `lable_join` function.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
+/// use prometheus_http_query::{Client, Selector, InstantVector};
 /// use prometheus_http_query::functions::label_join;
 /// use std::convert::TryInto;
 ///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
+/// #[tokio::main(flavor = "current_thread")]
+/// async fn main() -> Result<(), prometheus_http_query::Error> {
+///     let client = Client::default();
 ///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")
-///         .with("label1", "value1")
-///         .with("label2", "value2")
+///         .metric("up")
+///         .with("job", "prometheus")
 ///         .try_into()?;
 ///
-///     let result = label_join(vector, "new_label", ":", &["label1", "label2"])?;
+///     let q = label_join(vector, "example_label", " on ", &["job", "instance"])?;
 ///
-///     let promql = r#"label_join({__name__="some_metric",label1="value1",label2="value2"}, "new_label", ":", "label1", "label2")"#;
+///     let response = client.query(q, None, None).await?;
+///     let label = response.as_instant()
+///         .unwrap()
+///         .get(0)
+///         .unwrap()
+///         .metric()
+///         .get(&"example_label".to_string());
 ///
-///     assert_eq!(&result.to_string(), promql);
-///
+///     assert_eq!(label, Some(&"prometheus on localhost:9090".to_string()));
 ///     Ok(())
 /// }
 /// ```
@@ -744,25 +799,32 @@ pub fn label_join(
     Ok(InstantVector(new))
 }
 
-/// Apply the PromQL `label_replace` function.
+/// Apply the PromQL `lable_replace` function.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
+/// use prometheus_http_query::{Client, Selector, InstantVector};
 /// use prometheus_http_query::functions::label_replace;
 /// use std::convert::TryInto;
 ///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
+/// #[tokio::main(flavor = "current_thread")]
+/// async fn main() -> Result<(), prometheus_http_query::Error> {
+///     let client = Client::default();
 ///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")
-///         .with("some_label", "some_value")
+///         .metric("up")
+///         .with("job", "prometheus")
 ///         .try_into()?;
 ///
-///     let result = label_replace(vector, "new_label", "$1", "some_label", "(.*):.*")?;
+///     let q = label_replace(vector, "example_label", "$1", "instance", "(.*):.*")?;
 ///
-///     let promql = r#"label_replace({__name__="some_metric",some_label="some_value"}, "new_label", "$1", "some_label", "(.*):.*")"#;
+///     let response = client.query(q, None, None).await?;
+///     let label = response.as_instant()
+///         .unwrap()
+///         .get(0)
+///         .unwrap()
+///         .metric()
+///         .get(&"example_label".to_string());
 ///
-///     assert_eq!(&result.to_string(), promql);
-///
+///     assert_eq!(label, Some(&"localhost".to_string()));
 ///     Ok(())
 /// }
 /// ```
@@ -791,20 +853,29 @@ create_function! {
     /// Apply the PromQL `ln` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::ln;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
+    ///         .metric("up")
+    ///         .with("job", "prometheus")
     ///         .try_into()?;
     ///
-    ///     let result = ln(vector);
+    ///     let q = ln(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "ln({__name__=\"some_metric\",some_label=\"some_value\"})");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert_eq!(value, 0.0);
     ///     Ok(())
     /// }
     /// ```
@@ -815,20 +886,29 @@ create_function! {
     /// Apply the PromQL `log2` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::log2;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
+    ///         .metric("up")
+    ///         .with("job", "prometheus")
     ///         .try_into()?;
     ///
-    ///     let result = log2(vector);
+    ///     let q = log2(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "log2({__name__=\"some_metric\",some_label=\"some_value\"})");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert_eq!(value, 0.0);
     ///     Ok(())
     /// }
     /// ```
@@ -839,20 +919,29 @@ create_function! {
     /// Apply the PromQL `log10` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::log10;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
+    ///         .metric("up")
+    ///         .with("job", "prometheus")
     ///         .try_into()?;
     ///
-    ///     let result = log10(vector);
+    ///     let q = log10(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "log10({__name__=\"some_metric\",some_label=\"some_value\"})");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert_eq!(value, 0.0);
     ///     Ok(())
     /// }
     /// ```
@@ -863,20 +952,29 @@ create_function! {
     /// Apply the PromQL `minute` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector};
-    /// use prometheus_http_query::functions::minute;
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
+    /// use prometheus_http_query::functions::{minute, timestamp};
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
+    ///         .metric("up")
+    ///         .with("job", "prometheus")
     ///         .try_into()?;
     ///
-    ///     let result = minute(vector);
+    ///     let q = minute(timestamp(vector));
     ///
-    ///     assert_eq!(&result.to_string(), "minute({__name__=\"some_metric\",some_label=\"some_value\"})");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!((0.0..=59.0).contains(&value));
     ///     Ok(())
     /// }
     /// ```
@@ -887,20 +985,29 @@ create_function! {
     /// Apply the PromQL `month` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector};
-    /// use prometheus_http_query::functions::month;
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
+    /// use prometheus_http_query::functions::{month, timestamp};
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
+    ///         .metric("up")
+    ///         .with("job", "prometheus")
     ///         .try_into()?;
     ///
-    ///     let result = month(vector);
+    ///     let q = month(timestamp(vector));
     ///
-    ///     assert_eq!(&result.to_string(), "month({__name__=\"some_metric\",some_label=\"some_value\"})");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!((1.0..=12.0).contains(&value));
     ///     Ok(())
     /// }
     /// ```
@@ -910,21 +1017,29 @@ create_function! {
 /// Apply the PromQL `predict_linear` function.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
+/// use prometheus_http_query::{Client, Selector, RangeVector};
 /// use prometheus_http_query::functions::predict_linear;
 /// use std::convert::TryInto;
 ///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
+/// #[tokio::main(flavor = "current_thread")]
+/// async fn main() -> Result<(), prometheus_http_query::Error> {
+///     let client = Client::default();
 ///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")
-///         .with("some_label", "some_value")
-///         .range("5m")?
+///         .metric("prometheus_http_requests_total")
+///         .range("1m")?
 ///         .try_into()?;
 ///
-///     let result = predict_linear(vector, 300.0);
+///     let q = predict_linear(vector, 300.0);
 ///
-///     assert_eq!(&result.to_string(), "predict_linear({__name__=\"some_metric\",some_label=\"some_value\"}[5m], 300)");
+///     let response = client.query(q, None, None).await?;
+///     let value = response.as_instant()
+///         .unwrap()
+///         .get(0)
+///         .unwrap()
+///         .sample()
+///         .value();
 ///
+///     assert!(value.is_normal());
 ///     Ok(())
 /// }
 /// ```
@@ -938,21 +1053,29 @@ create_function! {
     /// Apply the PromQL `rate` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::{Client, Selector, RangeVector};
     /// use prometheus_http_query::functions::rate;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
-    ///         .range("5m")?
+    ///         .metric("prometheus_http_requests_total")
+    ///         .range("1m")?
     ///         .try_into()?;
     ///
-    ///     let result = rate(vector);
+    ///     let q = rate(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "rate({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!(value.is_normal());
     ///     Ok(())
     /// }
     /// ```
@@ -963,21 +1086,29 @@ create_function! {
     /// Apply the PromQL `resets` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::{Client, Selector, RangeVector};
     /// use prometheus_http_query::functions::resets;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
-    ///         .range("5m")?
+    ///         .metric("prometheus_http_requests_total")
+    ///         .range("1d")?
     ///         .try_into()?;
     ///
-    ///     let result = resets(vector);
+    ///     let q = resets(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "resets({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!(value.is_normal());
     ///     Ok(())
     /// }
     /// ```
@@ -987,20 +1118,29 @@ create_function! {
 /// Apply the PromQL `round` function.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
+/// use prometheus_http_query::{Client, Selector, InstantVector};
 /// use prometheus_http_query::functions::round;
 /// use std::convert::TryInto;
 ///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
+/// #[tokio::main(flavor = "current_thread")]
+/// async fn main() -> Result<(), prometheus_http_query::Error> {
+///     let client = Client::default();
 ///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")
-///         .with("some_label", "some_value")
+///         .metric("up")
+///         .with("job", "prometheus")
 ///         .try_into()?;
 ///
-///     let result = round(vector, None);
+///     let q = round(vector, None);
 ///
-///     assert_eq!(&result.to_string(), "round({__name__=\"some_metric\",some_label=\"some_value\"})");
+///     let response = client.query(q, None, None).await?;
+///     let value = response.as_instant()
+///         .unwrap()
+///         .get(0)
+///         .unwrap()
+///         .sample()
+///         .value();
 ///
+///     assert_eq!(value, 1.0);
 ///     Ok(())
 /// }
 /// ```
