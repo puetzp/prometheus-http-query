@@ -403,11 +403,14 @@ create_function! {
     ///     let q = delta(vector);
     ///
     ///     let response = client.query(q, None, None).await?;
-    ///     let first_item = response.as_instant()
+    ///     let value = response.as_instant()
     ///         .unwrap()
-    ///         .get(0);
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
-    ///     assert!(first_item.is_some());
+    ///     assert!(value.is_normal());
     ///     Ok(())
     /// }
     /// ```
@@ -433,11 +436,14 @@ create_function! {
     ///     let q = deriv(vector);
     ///
     ///     let response = client.query(q, None, None).await?;
-    ///     let first_item = response.as_instant()
+    ///     let value = response.as_instant()
     ///         .unwrap()
-    ///         .get(0);
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
-    ///     assert!(first_item.is_some());
+    ///     assert!(value.is_normal());
     ///     Ok(())
     /// }
     /// ```
@@ -470,7 +476,7 @@ create_function! {
     ///         .sample()
     ///         .value();
     ///
-    ///     assert!((2.7..=2.8).contains(&value));
+    ///     assert!(value.is_normal());
     ///     Ok(())
     /// }
     /// ```
@@ -513,20 +519,31 @@ create_function! {
 /// Apply the PromQL `histogram_quantile` function.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
-/// use prometheus_http_query::functions::histogram_quantile;
+/// use prometheus_http_query::{Client, Selector, RangeVector};
+/// use prometheus_http_query::functions::{histogram_quantile, rate};
 /// use std::convert::TryInto;
 ///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
-///     let vector: InstantVector = Selector::new()
-///         .metric("some_metric")
-///         .with("some_label", "some_value")
+/// #[tokio::main(flavor = "current_thread")]
+/// async fn main() -> Result<(), prometheus_http_query::Error> {
+///     let client = Client::default();
+///     let vector: RangeVector = Selector::new()
+///         .metric("prometheus_http_request_duration_seconds_bucket")
+///         .with("job", "prometheus")
+///         .with("handler", "/metrics")
+///         .range("1m")?
 ///         .try_into()?;
 ///
-///     let result = histogram_quantile(0.95, vector);
+///     let q = histogram_quantile(0.9, rate(vector));
 ///
-///     assert_eq!(&result.to_string(), "histogram_quantile(0.95, {__name__=\"some_metric\",some_label=\"some_value\"})");
+///     let response = client.query(q, None, None).await?;
+///     let value = response.as_instant()
+///         .unwrap()
+///         .get(0)
+///         .unwrap()
+///         .sample()
+///         .value();
 ///
+///     assert!(value.is_normal());
 ///     Ok(())
 /// }
 /// ```
@@ -1586,7 +1603,7 @@ create_function! {
     ///         .sample()
     ///         .value();
     ///
-    ///     assert_eq!(value, f64::INFINITY);
+    ///     assert!(value.is_infinite());
     ///     Ok(())
     /// }
     /// ```
@@ -1850,7 +1867,7 @@ create_function! {
     ///         .sample()
     ///         .value();
     ///
-    ///     assert_eq!(value, f64::INFINITY);
+    ///     assert!(value.is_infinite());
     ///     Ok(())
     /// }
     /// ```
