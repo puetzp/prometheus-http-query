@@ -15,7 +15,9 @@ use std::convert::TryInto;
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Error> {
     let client = Client::default();
-    
+
+    // Construct an instant vector, execute a query, interpret the result
+    // again as an instant vector.
     let vector: InstantVector = Selector::new()
         .metric("prometheus_http_requests_total")
         .try_into()?;
@@ -26,6 +28,8 @@ async fn main() -> Result<(), Error> {
 
     assert!(response.as_instant().is_some());
 
+    // Construct a range vector, execute a query, interpret the result
+    // as an instant vector.
     let vector: RangeVector = Selector::new()
         .metric("node_cpu_seconds_total")?
         .with("mode", "user")
