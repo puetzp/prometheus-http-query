@@ -19,23 +19,28 @@ macro_rules! create_aggregation {
 }
 
 create_aggregation! {
-    /// Use the `$func_name` aggregation operator on an instant vector.
+    /// Use the `sum` aggregation operator on an instant vector.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector, Aggregate};
+    /// use prometheus_http_query::{Client, Selector, InstantVector, Aggregate};
     /// use prometheus_http_query::aggregations::sum;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("http_requests_total")
-    ///         .with("job", "apiserver")
+    ///         .metric("prometheus_http_requests_total")
     ///         .try_into()?;
     ///
-    ///     let result = sum(vector, Some(Aggregate::By(&["code"])));
+    ///     let q = sum(vector, Some(Aggregate::By(&["code"])));
     ///
-    ///     assert_eq!(result.to_string(), String::from("sum by (code) ({__name__=\"http_requests_total\",job=\"apiserver\"})"));
+    ///     let response = client.query(q, None, None).await?;
+    ///     let first_item = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0);
     ///
+    ///     assert!(first_item.is_some());
     ///     Ok(())
     /// }
     /// ```
@@ -46,19 +51,25 @@ create_aggregation! {
     /// Use the `min` aggregation operator on an instant vector.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector, Aggregate};
+    /// use prometheus_http_query::{Client, Selector, InstantVector, Aggregate};
     /// use prometheus_http_query::aggregations::min;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("node_cpu_seconds_total")
+    ///         .metric("prometheus_http_requests_total")
     ///         .try_into()?;
     ///
-    ///     let result = min(vector, Some(Aggregate::By(&["cpu"])));
+    ///     let q = min(vector, Some(Aggregate::By(&["code"])));
     ///
-    ///     assert_eq!(result.to_string(), String::from("min by (cpu) ({__name__=\"node_cpu_seconds_total\"})"));
+    ///     let response = client.query(q, None, None).await?;
+    ///     let first_item = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0);
     ///
+    ///     assert!(first_item.is_some());
     ///     Ok(())
     /// }
     /// ```
@@ -69,19 +80,25 @@ create_aggregation! {
     /// Use the `max` aggregation operator on an instant vector.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector, Aggregate};
+    /// use prometheus_http_query::{Client, Selector, InstantVector, Aggregate};
     /// use prometheus_http_query::aggregations::max;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("node_cpu_seconds_total")
+    ///         .metric("prometheus_http_requests_total")
     ///         .try_into()?;
     ///
-    ///     let result = max(vector, Some(Aggregate::By(&["cpu"])));
+    ///     let q = max(vector, Some(Aggregate::By(&["code"])));
     ///
-    ///     assert_eq!(result.to_string(), String::from("max by (cpu) ({__name__=\"node_cpu_seconds_total\"})"));
+    ///     let response = client.query(q, None, None).await?;
+    ///     let first_item = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0);
     ///
+    ///     assert!(first_item.is_some());
     ///     Ok(())
     /// }
     /// ```
@@ -92,19 +109,25 @@ create_aggregation! {
     /// Use the `avg` aggregation operator on an instant vector.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::aggregations::avg;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("node_memory_Active_bytes")
+    ///         .metric("prometheus_http_requests_total")
     ///         .try_into()?;
     ///
-    ///     let result = avg(vector, None);
+    ///     let q = avg(vector, None);
     ///
-    ///     assert_eq!(result.to_string(), String::from("avg ({__name__=\"node_memory_Active_bytes\"})"));
+    ///     let response = client.query(q, None, None).await?;
+    ///     let first_item = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0);
     ///
+    ///     assert!(first_item.is_some());
     ///     Ok(())
     /// }
     /// ```
@@ -115,19 +138,28 @@ create_aggregation! {
     /// Use the `group` aggregation operator on an instant vector.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector, Aggregate};
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::aggregations::group;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("node_cpu_seconds_total")
+    ///         .metric("prometheus_http_requests_total")
     ///         .try_into()?;
     ///
-    ///     let result = group(vector, Some(Aggregate::Without(&["mode"])));
+    ///     let q = group(vector, None);
     ///
-    ///     assert_eq!(result.to_string(), String::from("group without (mode) ({__name__=\"node_cpu_seconds_total\"})"));
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert_eq!(value, 1.0);
     ///     Ok(())
     /// }
     /// ```
@@ -138,19 +170,25 @@ create_aggregation! {
     /// Use the `stddev` aggregation operator on an instant vector.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector, Aggregate};
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::aggregations::stddev;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("promhttp_metric_handler_requests_total")
+    ///         .metric("prometheus_http_requests_total")
     ///         .try_into()?;
     ///
-    ///     let result = stddev(vector, Some(Aggregate::By(&["code"])));
+    ///     let q = stddev(vector, None);
     ///
-    ///     assert_eq!(result.to_string(), String::from("stddev by (code) ({__name__=\"promhttp_metric_handler_requests_total\"})"));
+    ///     let response = client.query(q, None, None).await?;
+    ///     let first_item = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0);
     ///
+    ///     assert!(first_item.is_some());
     ///     Ok(())
     /// }
     /// ```
@@ -161,19 +199,25 @@ create_aggregation! {
     /// Use the `stdvar` aggregation operator on an instant vector.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector, Aggregate};
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::aggregations::stdvar;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("promhttp_metric_handler_requests_total")
+    ///         .metric("prometheus_http_requests_total")
     ///         .try_into()?;
     ///
-    ///     let result = stdvar(vector, Some(Aggregate::By(&["code"])));
+    ///     let q = stdvar(vector, None);
     ///
-    ///     assert_eq!(result.to_string(), String::from("stdvar by (code) ({__name__=\"promhttp_metric_handler_requests_total\"})"));
+    ///     let response = client.query(q, None, None).await?;
+    ///     let first_item = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0);
     ///
+    ///     assert!(first_item.is_some());
     ///     Ok(())
     /// }
     /// ```
@@ -184,19 +228,28 @@ create_aggregation! {
     /// Use the `count` aggregation operator on an instant vector.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::aggregations::count;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("node_cpu_seconds_total")
+    ///         .metric("prometheus_http_requests_total")
     ///         .try_into()?;
     ///
-    ///     let result = count(vector, None);
+    ///     let q = count(vector, None);
     ///
-    ///     assert_eq!(result.to_string(), String::from("count ({__name__=\"node_cpu_seconds_total\"})"));
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!(value.is_normal());
     ///     Ok(())
     /// }
     /// ```
@@ -206,19 +259,29 @@ create_aggregation! {
 /// Use the `count_values` aggregation operator on an instant vector.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
+/// use prometheus_http_query::{Client, Selector, InstantVector};
 /// use prometheus_http_query::aggregations::count_values;
+/// use prometheus_http_query::functions::round;
 /// use std::convert::TryInto;
 ///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
+/// #[tokio::main(flavor = "current_thread")]
+/// async fn main() -> Result<(), prometheus_http_query::Error> {
+///     let client = Client::default();
 ///     let vector: InstantVector = Selector::new()
-///         .metric("promhttp_metric_handler_requests_total")
+///         .metric("prometheus_target_interval_length_seconds")
 ///         .try_into()?;
 ///
-///     let result = count_values(vector, None, "http_code");
+///     let q = count_values(round(vector, None), None, "interval_length");
 ///
-///     assert_eq!(result.to_string(), String::from("count_values (\"http_code\", {__name__=\"promhttp_metric_handler_requests_total\"})"));
+///     let response = client.query(q, None, None).await?;
+///     let value = response.as_instant()
+///         .unwrap()
+///         .get(0)
+///         .unwrap()
+///         .sample()
+///         .value();
 ///
+///     assert!(value.is_normal());
 ///     Ok(())
 /// }
 /// ```
@@ -245,19 +308,22 @@ pub fn count_values<'a>(
 /// Use the `bottomk` aggregation operator on an instant vector.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
+/// use prometheus_http_query::{Client, Selector, InstantVector};
 /// use prometheus_http_query::aggregations::bottomk;
 /// use std::convert::TryInto;
 ///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
+/// #[tokio::main(flavor = "current_thread")]
+/// async fn main() -> Result<(), prometheus_http_query::Error> {
+///     let client = Client::default();
 ///     let vector: InstantVector = Selector::new()
-///         .metric("node_cpu_seconds_total")
+///         .metric("prometheus_engine_query_duration_seconds")
 ///         .try_into()?;
 ///
-///     let result = bottomk(vector, None, 2);
+///     let q = bottomk(vector, None, 5);
 ///
-///     assert_eq!(result.to_string(), String::from("bottomk (2, {__name__=\"node_cpu_seconds_total\"})"));
+///     let response = client.query(q, None, None).await?;
 ///
+///     assert!(response.as_instant().is_some());
 ///     Ok(())
 /// }
 /// ```
@@ -279,19 +345,22 @@ pub fn bottomk(
 /// Use the `topk` aggregation operator on an instant vector.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, InstantVector};
+/// use prometheus_http_query::{Client, Selector, InstantVector};
 /// use prometheus_http_query::aggregations::topk;
 /// use std::convert::TryInto;
 ///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
+/// #[tokio::main(flavor = "current_thread")]
+/// async fn main() -> Result<(), prometheus_http_query::Error> {
+///     let client = Client::default();
 ///     let vector: InstantVector = Selector::new()
-///         .metric("node_cpu_seconds_total")
+///         .metric("prometheus_engine_query_duration_seconds")
 ///         .try_into()?;
 ///
-///     let result = topk(vector, None, 2);
+///     let q = topk(vector, None, 5);
 ///
-///     assert_eq!(result.to_string(), String::from("topk (2, {__name__=\"node_cpu_seconds_total\"})"));
+///     let response = client.query(q, None, None).await?;
 ///
+///     assert!(response.as_instant().is_some());
 ///     Ok(())
 /// }
 /// ```
@@ -309,19 +378,28 @@ pub fn topk(vector: InstantVector, labels: Option<Aggregate<'_>>, parameter: u64
 /// Use the `quantile` aggregation operator on an instant vector.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, InstantVector, Aggregate};
+/// use prometheus_http_query::{Client, Selector, InstantVector, Aggregate};
 /// use prometheus_http_query::aggregations::quantile;
 /// use std::convert::TryInto;
 ///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
+/// #[tokio::main(flavor = "current_thread")]
+/// async fn main() -> Result<(), prometheus_http_query::Error> {
+///     let client = Client::default();
 ///     let vector: InstantVector = Selector::new()
-///         .metric("node_cpu_seconds_total")
+///         .metric("prometheus_target_interval_length_seconds")
 ///         .try_into()?;
 ///
-///     let result = quantile(vector, Some(Aggregate::By(&["cpu", "mode"])), 0.1);
+///     let q = quantile(vector, Some(Aggregate::By(&["prepare_time"])), 0.9);
 ///
-///     assert_eq!(result.to_string(), String::from("quantile by (cpu,mode) (0.1, {__name__=\"node_cpu_seconds_total\"})"));
+///     let response = client.query(q, None, None).await?;
+///     let value = response.as_instant()
+///         .unwrap()
+///         .get(0)
+///         .unwrap()
+///         .sample()
+///         .value();
 ///
+///     assert!(value.is_normal());
 ///     Ok(())
 /// }
 /// ```
