@@ -17,20 +17,29 @@ create_function! {
     /// Apply the PromQL `abs` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::abs;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client: Client = Default::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
+    ///         .metric("up")
+    ///         .with("job", "prometheus")
     ///         .try_into()?;
     ///
-    ///     let result = abs(vector);
+    ///     let q = abs(vector - 2.0);
     ///
-    ///     assert_eq!(&result.to_string(), "abs({__name__=\"some_metric\",some_label=\"some_value\"})");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert_eq!(value, 1.0);
     ///     Ok(())
     /// }
     /// ```
@@ -41,20 +50,29 @@ create_function! {
     /// Apply the PromQL `absent` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::absent;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client: Client = Default::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("nonexistent")
-    ///         .with("some_label", "some_value")
+    ///         .metric("up")
+    ///         .with("job", "foobar")
     ///         .try_into()?;
     ///
-    ///     let result = absent(vector);
+    ///     let q = absent(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "absent({__name__=\"nonexistent\",some_label=\"some_value\"})");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert_eq!(value, 1.0);
     ///     Ok(())
     /// }
     /// ```
@@ -65,21 +83,30 @@ create_function! {
     /// Apply the PromQL `absent_over_time` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::{Client, Selector, RangeVector};
     /// use prometheus_http_query::functions::absent_over_time;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client: Client = Default::default();
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("nonexistent")
-    ///         .with("some_label", "some_value")
+    ///         .metric("up")
+    ///         .with("job", "foobar")
     ///         .range("5m")?
     ///         .try_into()?;
     ///
-    ///     let result = absent_over_time(vector);
+    ///     let q = absent_over_time(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "absent_over_time({__name__=\"nonexistent\",some_label=\"some_value\"}[5m])");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert_eq!(value, 1.0);
     ///     Ok(())
     /// }
     /// ```
@@ -90,20 +117,29 @@ create_function! {
     /// Apply the PromQL `ceil` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::ceil;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client: Client = Default::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
+    ///         .metric("up")
+    ///         .with("job", "prometheus")
     ///         .try_into()?;
     ///
-    ///     let result = ceil(vector);
+    ///     let q = ceil(vector / 2.0);
     ///
-    ///     assert_eq!(&result.to_string(), "ceil({__name__=\"some_metric\",some_label=\"some_value\"})");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert_eq!(value, 1.0);
     ///     Ok(())
     /// }
     /// ```
@@ -114,21 +150,30 @@ create_function! {
     /// Apply the PromQL `changes` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::{Client, Selector, RangeVector};
     /// use prometheus_http_query::functions::changes;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
-    ///         .range("5m")?
+    ///         .metric("up")
+    ///         .with("job", "prometheus")
+    ///         .range("1m")?
     ///         .try_into()?;
     ///
-    ///     let result = changes(vector);
+    ///     let q = changes(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "changes({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert_eq!(value, 0.0);
     ///     Ok(())
     /// }
     /// ```
