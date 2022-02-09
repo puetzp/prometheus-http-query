@@ -1275,7 +1275,6 @@ create_function! {
     /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::acos;
     /// use std::convert::TryInto;
-    /// use std::str::FromStr;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), prometheus_http_query::Error> {
@@ -1309,7 +1308,6 @@ create_function! {
     /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::acosh;
     /// use std::convert::TryInto;
-    /// use std::str::FromStr;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), prometheus_http_query::Error> {
@@ -1343,7 +1341,6 @@ create_function! {
     /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::asin;
     /// use std::convert::TryInto;
-    /// use std::str::FromStr;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), prometheus_http_query::Error> {
@@ -1377,7 +1374,6 @@ create_function! {
     /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::asinh;
     /// use std::convert::TryInto;
-    /// use std::str::FromStr;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), prometheus_http_query::Error> {
@@ -1411,7 +1407,6 @@ create_function! {
     /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::atan;
     /// use std::convert::TryInto;
-    /// use std::str::FromStr;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), prometheus_http_query::Error> {
@@ -1445,7 +1440,6 @@ create_function! {
     /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::atanh;
     /// use std::convert::TryInto;
-    /// use std::str::FromStr;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), prometheus_http_query::Error> {
@@ -1479,7 +1473,6 @@ create_function! {
     /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::cos;
     /// use std::convert::TryInto;
-    /// use std::str::FromStr;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), prometheus_http_query::Error> {
@@ -1513,7 +1506,6 @@ create_function! {
     /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::cosh;
     /// use std::convert::TryInto;
-    /// use std::str::FromStr;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), prometheus_http_query::Error> {
@@ -1547,7 +1539,6 @@ create_function! {
     /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::sin;
     /// use std::convert::TryInto;
-    /// use std::str::FromStr;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), prometheus_http_query::Error> {
@@ -1581,7 +1572,6 @@ create_function! {
     /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::sinh;
     /// use std::convert::TryInto;
-    /// use std::str::FromStr;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), prometheus_http_query::Error> {
@@ -1615,7 +1605,6 @@ create_function! {
     /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::tan;
     /// use std::convert::TryInto;
-    /// use std::str::FromStr;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), prometheus_http_query::Error> {
@@ -1649,7 +1638,6 @@ create_function! {
     /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::tanh;
     /// use std::convert::TryInto;
-    /// use std::str::FromStr;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), prometheus_http_query::Error> {
@@ -1683,7 +1671,6 @@ create_function! {
     /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::{atan,deg};
     /// use std::convert::TryInto;
-    /// use std::str::FromStr;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), prometheus_http_query::Error> {
@@ -1717,7 +1704,6 @@ create_function! {
     /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::{atanh,rad};
     /// use std::convert::TryInto;
-    /// use std::str::FromStr;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), prometheus_http_query::Error> {
