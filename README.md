@@ -14,7 +14,7 @@ use std::convert::TryInto;
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), prometheus_http_query::Error> {
-    let client: Client = Default::default();
+    let client = Client::default();
     
     let v: RangeVector = Selector::new()
         .metric("node_cpu_seconds_total")?
