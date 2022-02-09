@@ -198,6 +198,7 @@
 //!
 //! * Subqueries are not supported (only as custom query)
 //! * PromQL functions that do not take a range / instant vector as an argument are not supported (only as custom query), e.g. pi()
+//! * The [String](https://prometheus.io/docs/prometheus/latest/querying/api/#strings) result type is not supported
 pub mod aggregations;
 mod client;
 mod error;
