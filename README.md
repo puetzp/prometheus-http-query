@@ -7,22 +7,32 @@ Tested with Prometheus v2.31.
 ## Example
 
 ```rust
-use prometheus_http_query::{Client, Selector, RangeVector, Aggregate};
-use prometheus_http_query::aggregations::sum;
+use prometheus_http_query::{Aggregate, Client, Error, InstantVector, RangeVector, Selector};
+use prometheus_http_query::aggregations::{sum, topk};
 use prometheus_http_query::functions::rate;
 use std::convert::TryInto;
 
 #[tokio::main(flavor = "current_thread")]
-async fn main() -> Result<(), prometheus_http_query::Error> {
+async fn main() -> Result<(), Error> {
     let client = Client::default();
     
-    let v: RangeVector = Selector::new()
+    let vector: InstantVector = Selector::new()
+        .metric("prometheus_http_requests_total")
+        .try_into()?;
+
+    let q = topk(vector, Some(Aggregate::By(&["code"])), 5);
+
+    let response = client.query(q, None, None).await?;
+
+    assert!(response.as_instant().is_some());
+
+    let vector: RangeVector = Selector::new()
         .metric("node_cpu_seconds_total")?
         .with("mode", "user")
         .range("5m")?
         .try_into()?;
 	
-    let q = sum(rate(v), Some(Aggregate::By(&["cpu"])));
+    let q = sum(rate(vector), Some(Aggregate::By(&["cpu"])));
     
     let response = client.query(q, None, None).await?;
     
