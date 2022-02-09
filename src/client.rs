@@ -984,6 +984,10 @@ fn convert_query_response(
                 serde_json::from_value(data).map_err(Error::ResponseParse)?;
             Ok(QueryResultType::Matrix(result))
         }
+        "scalar" => {
+            let result: Sample = serde_json::from_value(data).map_err(Error::ResponseParse)?;
+            Ok(QueryResultType::Scalar(result))
+        }
         _ => Err(Error::UnsupportedQueryResultType(
             UnsupportedQueryResultType(data_type.to_string()),
         )),

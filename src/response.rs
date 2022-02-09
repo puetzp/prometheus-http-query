@@ -47,6 +47,7 @@ mod de {
 pub enum QueryResultType {
     Vector(Vec<InstantVector>),
     Matrix(Vec<RangeVector>),
+    Scalar(Sample),
 }
 
 impl QueryResultType {
@@ -62,6 +63,14 @@ impl QueryResultType {
     pub fn as_range(&self) -> Option<&[RangeVector]> {
         match self {
             QueryResultType::Matrix(v) => Some(v.as_ref()),
+            _ => None,
+        }
+    }
+
+    /// If the result type of the query is `scalar`, returns a single [Sample]. Returns `None` otherwise.
+    pub fn as_scalar(&self) -> Option<&Sample> {
+        match self {
+            QueryResultType::Scalar(v) => Some(&v),
             _ => None,
         }
     }
