@@ -403,14 +403,11 @@ create_function! {
     ///     let q = delta(vector);
     ///
     ///     let response = client.query(q, None, None).await?;
-    ///     let value = response.as_instant()
+    ///     let first_item = response.as_instant()
     ///         .unwrap()
-    ///         .get(0)
-    ///         .unwrap()
-    ///         .sample()
-    ///         .value();
+    ///         .get(0);
     ///
-    ///     assert!(value.is_normal());
+    ///     assert!(first_item.is_some());
     ///     Ok(())
     /// }
     /// ```
@@ -436,14 +433,11 @@ create_function! {
     ///     let q = deriv(vector);
     ///
     ///     let response = client.query(q, None, None).await?;
-    ///     let value = response.as_instant()
+    ///     let first_item = response.as_instant()
     ///         .unwrap()
-    ///         .get(0)
-    ///         .unwrap()
-    ///         .sample()
-    ///         .value();
+    ///         .get(0);
     ///
-    ///     assert!(value.is_normal());
+    ///     assert!(first_item.is_some());
     ///     Ok(())
     /// }
     /// ```
@@ -1068,14 +1062,11 @@ create_function! {
     ///     let q = rate(vector);
     ///
     ///     let response = client.query(q, None, None).await?;
-    ///     let value = response.as_instant()
+    ///     let first_item = response.as_instant()
     ///         .unwrap()
-    ///         .get(0)
-    ///         .unwrap()
-    ///         .sample()
-    ///         .value();
+    ///         .get(0);
     ///
-    ///     assert!(value.is_normal());
+    ///     assert!(first_item.is_some());
     ///     Ok(())
     /// }
     /// ```
@@ -1095,20 +1086,17 @@ create_function! {
     ///     let client = Client::default();
     ///     let vector: RangeVector = Selector::new()
     ///         .metric("prometheus_http_requests_total")
-    ///         .range("1d")?
+    ///         .range("1m")?
     ///         .try_into()?;
     ///
     ///     let q = resets(vector);
     ///
     ///     let response = client.query(q, None, None).await?;
-    ///     let value = response.as_instant()
+    ///     let first_item = response.as_instant()
     ///         .unwrap()
-    ///         .get(0)
-    ///         .unwrap()
-    ///         .sample()
-    ///         .value();
+    ///         .get(0);
     ///
-    ///     assert!(value.is_normal());
+    ///     assert!(first_item.is_some());
     ///     Ok(())
     /// }
     /// ```
@@ -1563,14 +1551,11 @@ create_function! {
     ///     let q = stddev_over_time(vector);
     ///
     ///     let response = client.query(q, None, None).await?;
-    ///     let value = response.as_instant()
+    ///     let first_item = response.as_instant()
     ///         .unwrap()
-    ///         .get(0)
-    ///         .unwrap()
-    ///         .sample()
-    ///         .value();
+    ///         .get(0);
     ///
-    ///     assert!(value.is_normal());
+    ///     assert!(first_item.is_some());
     ///     Ok(())
     /// }
     /// ```
@@ -1596,14 +1581,11 @@ create_function! {
     ///     let q = stdvar_over_time(vector);
     ///
     ///     let response = client.query(q, None, None).await?;
-    ///     let value = response.as_instant()
+    ///     let first_item = response.as_instant()
     ///         .unwrap()
-    ///         .get(0)
-    ///         .unwrap()
-    ///         .sample()
-    ///         .value();
+    ///         .get(0);
     ///
-    ///     assert!(value.is_normal());
+    ///     assert!(first_item.is_some());
     ///     Ok(())
     /// }
     /// ```

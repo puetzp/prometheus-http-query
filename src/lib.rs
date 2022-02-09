@@ -3,10 +3,33 @@
 //! Most of the features of PromQL are mirrored in this library. Queries are gradually built from time series selectors, aggregations
 //! and functions and then passed to an HTTP client to execute. Methods to retrieve various kinds of metadata and configuration are also implemented.
 //!
-//! Behind the scenes this library uses the [reqwest] crate as HTTP client. Thus its features and limitations also
-//! apply to this library.
+//! The [Client] uses as [reqwest::Client] as HTTP client internally as you will see in the usage section. Thus its features and limitations also apply to this library.
 //!
 //! # Usage
+//!
+//! ## Initialize a client
+//!
+//! The [Client] can be constructed in various ways depending on your need to add customizations.
+//!
+//! ```rust
+//! use prometheus_http_query::Client;
+//! use std::str::FromStr;
+//!
+//! // In the most general case the default implementation is used to create the client.
+//! // Requests will be sent to "http://127.0.0.1:9090 (the default listen address and port of the Prometheus server).
+//! let client = Client::default();
+//!
+//! // Provide an alternative URL if you need to. The URL will be checked for correctness.
+//! use std::convert::TryFrom;
+//! let client = Client::try_from("https://prometheus.example.com").unwrap();
+//!
+//! // The greatest flexibility is offered by initializing a reqwest::Client first with
+//! // all needed customizations and passing it along.
+//! let client = {
+//!     let c = reqwest::Client::builder().no_proxy().build().unwrap();
+//!     Client::from(c, "https://prometheus.example.com").unwrap();
+//! };
+//! ```
 //!
 //! ## Construct PromQL queries
 //!
@@ -15,27 +38,37 @@
 //! or a range of time ([Client::query_range]).
 //!
 //! ```rust
-//! use prometheus_http_query::{Client, Selector, RangeVector, Aggregate};
-//! use prometheus_http_query::aggregations::sum;
-//! use prometheus_http_query::functions::rate;
+//! use prometheus_http_query::{Aggregate, Client, Error, InstantVector, Selector};
+//! use prometheus_http_query::aggregations::{sum, topk};
 //! use std::convert::TryInto;
 //!
 //! #[tokio::main(flavor = "current_thread")]
-//! async fn main() -> Result<(), prometheus_http_query::Error> {
-//!     let client: Client = Default::default();
+//! async fn main() -> Result<(), Error> {
+//!     let client = Client::default();
 //!
-//!     let v: RangeVector = Selector::new()
-//!         .metric("node_cpu_seconds_total")
-//!         .with("mode", "user")
-//!         .range("5m")?
+//!     let vector: InstantVector = Selector::new()
+//!         .metric("prometheus_http_requests_total")
 //!         .try_into()?;
 //!
-//!     let q = sum(rate(v), Some(Aggregate::By(&["cpu"])));
+//!     let q = topk(vector, Some(Aggregate::By(&["code"])), 5);
 //!
 //!     let response = client.query(q, None, None).await?;
 //!
 //!     assert!(response.as_instant().is_some());
-//!    
+//!
+//!     let vector: InstantVector = Selector::new()
+//!         .metric("prometheus_http_requests_total")
+//!         .with("code", "200")
+//!         .try_into()?;
+//!
+//!     let q = sum(vector, None);
+//!
+//!     let response = client.query(q, None, None).await?;
+//!
+//!     if let Some(result) = response.as_instant() {
+//!         let first = result.get(0).unwrap();
+//!         println!("Received a total of {} HTTP requests", first.sample().value());
+//!     }
 //!     Ok(())
 //! }
 //! ```
@@ -46,11 +79,11 @@
 //! a custom query directly to the [InstantVector] / [RangeVector] types.
 //!
 //! ```rust
-//! use prometheus_http_query::{Client, RangeVector};
+//! use prometheus_http_query::{Client, Error, RangeVector};
 //!
 //! #[tokio::main(flavor = "current_thread")]
-//! async fn main() -> Result<(), prometheus_http_query::Error> {
-//!     let client: Client = Default::default();
+//! async fn main() -> Result<(), Error> {
+//!     let client = Client::default();
 //!
 //!     let q = r#"sum by(cpu) (rate(node_cpu_seconds_total{mode="user"}[5m]))"#;
 //!
@@ -69,9 +102,10 @@
 //! Retrieve a list of time series that match a certain label set by providing one or more series [Selector]s.
 //!
 //! ```rust
-//! use prometheus_http_query::{Client, Selector, Error};
+//! use prometheus_http_query::{Client, Error, Selector};
 //!
-//! fn main() -> Result<(), Error> {
+//! #[tokio::main(flavor = "current_thread")]
+//! async fn main() -> Result<(), Error> {
 //!     let client = Client::default();
 //!
 //!     let s1 = Selector::new()
@@ -83,7 +117,7 @@
 //!
 //!     let set = vec![s1, s2];
 //!
-//!     let response = tokio_test::block_on( async { client.series(&set, None, None).await });
+//!     let response = client.series(&set, None, None).await;
 //!
 //!     assert!(response.is_ok());
 //!
@@ -98,20 +132,21 @@
 //! ```rust
 //! use prometheus_http_query::{Client, Error, RuleType};
 //!
-//! fn main() -> Result<(), Error> {
+//! #[tokio::main(flavor = "current_thread")]
+//! async fn main() -> Result<(), Error> {
 //!     let client = Client::default();
 //!
-//!     let response = tokio_test::block_on( async { client.rules(None).await });
+//!     let response = client.rules(None).await;
 //!
 //!     assert!(response.is_ok());
 //!
 //!     // Only request alerting rules instead:
-//!     let response = tokio_test::block_on( async { client.rules(Some(RuleType::Alert)).await });
+//!     let response = client.rules(Some(RuleType::Alert)).await;
 //!
 //!     assert!(response.is_ok());
 //!
 //!     // Request active alerts:
-//!     let response = tokio_test::block_on( async { client.alerts().await });
+//!     let response = client.alerts().await;
 //!
 //!     assert!(response.is_ok());
 //!
@@ -119,7 +154,7 @@
 //! }
 //! ```
 //!
-//! This is just one example. See [Client] for examples of other types of metadata queries.
+//! These are a few examples. See [Client] for examples of other types of metadata queries.
 //!
 //! # Supported operations
 //!
