@@ -952,7 +952,7 @@ async fn check_response(
 }
 
 // Parses the API response from a map to a Response enum that
-// encapsulates a vector of samples of type "vector" or "matrix"
+// encapsulates a result type of "vector", "matrix", or "scalar".
 fn convert_query_response(
     response: HashMap<String, serde_json::Value>,
 ) -> Result<QueryResultType, Error> {
