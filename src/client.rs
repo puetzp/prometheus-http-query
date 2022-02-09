@@ -186,7 +186,8 @@ impl Client {
     /// use prometheus_http_query::aggregations::sum;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), Error> {
     ///     let client = Client::default();
     ///
     ///     let v: InstantVector = Selector::new()
@@ -195,7 +196,7 @@ impl Client {
     ///
     ///     let s = sum(v, Some(Aggregate::By(&["cpu"])));
     ///
-    ///     let response = tokio_test::block_on( async { client.query(s, None, None).await.unwrap() });
+    ///     let response = client.query(s, None, None).await?;
     ///
     ///     assert!(response.as_instant().is_some());
     ///
@@ -287,7 +288,8 @@ impl Client {
     /// ```rust
     /// use prometheus_http_query::{Client, Selector, Error};
     ///
-    /// fn main() -> Result<(), Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), Error> {
     ///     let client = Client::default();
     ///
     ///     let s1 = Selector::new()
@@ -299,7 +301,7 @@ impl Client {
     ///
     ///     let set = vec![s1, s2];
     ///
-    ///     let response = tokio_test::block_on( async { client.series(&set, None, None).await });
+    ///     let response = client.series(&set, None, None).await;
     ///
     ///     assert!(response.is_ok());
     ///
@@ -373,11 +375,12 @@ impl Client {
     /// ```rust
     /// use prometheus_http_query::{Client, Selector, Error};
     ///
-    /// fn main() -> Result<(), Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), Error> {
     ///     let client = Client::default();
     ///
     ///     // To retrieve a list of all labels:
-    ///     let response = tokio_test::block_on( async { client.label_names(None, None, None).await });
+    ///     let response = client.label_names(None, None, None).await;
     ///
     ///     assert!(response.is_ok());
     ///
@@ -391,7 +394,7 @@ impl Client {
     ///
     ///     let set = Some(vec![s1, s2]);
     ///
-    ///     let response = tokio_test::block_on( async { client.label_names(set, None, None).await });
+    ///     let response = client.label_names(set, None, None).await;
     ///
     ///     assert!(response.is_ok());
     ///
@@ -461,11 +464,12 @@ impl Client {
     /// ```rust
     /// use prometheus_http_query::{Client, Selector, Error};
     ///
-    /// fn main() -> Result<(), Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), Error> {
     ///     let client = Client::default();
     ///
     ///     // To retrieve a list of all label values for a specific label name:
-    ///     let response = tokio_test::block_on( async { client.label_values("job", None, None, None).await });
+    ///     let response = client.label_values("job", None, None, None).await;
     ///
     ///     assert!(response.is_ok());
     ///
@@ -475,7 +479,7 @@ impl Client {
     ///
     ///     let set = Some(vec![s1]);
     ///
-    ///     let response = tokio_test::block_on( async { client.label_values("job", set, None, None).await });
+    ///     let response = client.label_values("job", set, None, None).await;
     ///
     ///     assert!(response.is_ok());
     ///
@@ -547,15 +551,16 @@ impl Client {
     /// use prometheus_http_query::{Client, Error, TargetState};
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), Error> {
     ///     let client = Client::default();
     ///
-    ///     let response = tokio_test::block_on( async { client.targets(None).await });
+    ///     let response = client.targets(None).await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     // Filter targets by type:
-    ///     let response = tokio_test::block_on( async { client.targets(Some(TargetState::Active)).await });
+    ///     let response = client.targets(Some(TargetState::Active)).await;
     ///
     ///     assert!(response.is_ok());
     ///
@@ -596,15 +601,16 @@ impl Client {
     /// use prometheus_http_query::{Client, Error, RuleType};
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), Error> {
     ///     let client = Client::default();
     ///
-    ///     let response = tokio_test::block_on( async { client.rules(None).await });
+    ///     let response = client.rules(None).await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     // Filter rules by type:
-    ///     let response = tokio_test::block_on( async { client.rules(Some(RuleType::Alert)).await });
+    ///     let response = client.rules(Some(RuleType::Alert)).await;
     ///
     ///     assert!(response.is_ok());
     ///
@@ -655,10 +661,11 @@ impl Client {
     /// use prometheus_http_query::{Client, Error};
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), Error> {
     ///     let client = Client::default();
     ///
-    ///     let response = tokio_test::block_on( async { client.alerts().await });
+    ///     let response = client.alerts().await;
     ///
     ///     assert!(response.is_ok());
     ///
@@ -700,10 +707,11 @@ impl Client {
     /// use prometheus_http_query::{Client, Error};
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), Error> {
     ///     let client = Client::default();
     ///
-    ///     let response = tokio_test::block_on( async { client.flags().await });
+    ///     let response = client.flags().await;
     ///
     ///     assert!(response.is_ok());
     ///
@@ -736,10 +744,11 @@ impl Client {
     /// use prometheus_http_query::{Client, Error, TargetState};
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), Error> {
     ///     let client = Client::default();
     ///
-    ///     let response = tokio_test::block_on( async { client.alertmanagers().await });
+    ///     let response = client.alertmanagers().await;
     ///
     ///     assert!(response.is_ok());
     ///
@@ -817,25 +826,26 @@ impl Client {
     /// use prometheus_http_query::{Client, Error, Selector};
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), Error> {
     ///     let client = Client::default();
     ///
     ///     // Retrieve metadata for a specific metric from all targets.
-    ///     let response = tokio_test::block_on( async { client.target_metadata(Some("go_routines"), None, None).await });
+    ///     let response = client.target_metadata(Some("go_routines"), None, None).await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     // Retrieve metric metadata from specific targets.
     ///     let s = Selector::new().with("job", "prometheus");
     ///
-    ///     let response = tokio_test::block_on( async { client.target_metadata(None, Some(&s), None).await });
+    ///     let response = client.target_metadata(None, Some(&s), None).await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     // Retrieve metadata for a specific metric from targets that match a specific label set.
     ///     let s = Selector::new().with("job", "node");
     ///
-    ///     let response = tokio_test::block_on( async { client.target_metadata(Some("node_cpu_seconds_total"), Some(&s), None).await });
+    ///     let response = client.target_metadata(Some("node_cpu_seconds_total"), Some(&s), None).await;
     ///
     ///     assert!(response.is_ok());
     ///
@@ -894,21 +904,22 @@ impl Client {
     /// use prometheus_http_query::{Client, Error};
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), Error> {
     ///     let client = Client::default();
     ///
     ///     // Retrieve metadata for a all metrics.
-    ///     let response = tokio_test::block_on( async { client.metric_metadata(None, None).await });
+    ///     let response = client.metric_metadata(None, None).await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     // Limit the number of returned metrics
-    ///     let response = tokio_test::block_on( async { client.metric_metadata(None, Some(10)).await });
+    ///     let response = client.metric_metadata(None, Some(10)).await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     // Retrieve metadata of a specific metric.
-    ///     let response = tokio_test::block_on( async { client.metric_metadata(Some("go_routines"), None).await });
+    ///     let response = client.metric_metadata(Some("go_routines"), None).await;
     ///
     ///     assert!(response.is_ok());
     ///
