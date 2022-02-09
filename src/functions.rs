@@ -1158,20 +1158,26 @@ create_function! {
     /// Apply the PromQL `scalar` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::scalar;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
+    ///         .metric("up")
+    ///         .with("job", "prometheus")
     ///         .try_into()?;
     ///
-    ///     let result = scalar(vector);
+    ///     let q = scalar(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "scalar({__name__=\"some_metric\",some_label=\"some_value\"})");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_scalar()
+    ///         .unwrap()
+    ///         .value();
     ///
+    ///     assert_eq!(value, 1.0);
     ///     Ok(())
     /// }
     /// ```
@@ -1182,20 +1188,28 @@ create_function! {
     /// Apply the PromQL `sgn` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::sgn;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
+    ///         .metric("prometheus_http_requests_total")
     ///         .try_into()?;
     ///
-    ///     let result = sgn(vector);
+    ///     let q = sgn(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "sgn({__name__=\"some_metric\",some_label=\"some_value\"})");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert_eq!(value, 1.0);
     ///     Ok(())
     /// }
     /// ```
@@ -1206,20 +1220,28 @@ create_function! {
     /// Apply the PromQL `sort` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::sort;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
+    ///         .metric("prometheus_http_requests_total")
     ///         .try_into()?;
     ///
-    ///     let result = sort(vector);
+    ///     let q = sort(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "sort({__name__=\"some_metric\",some_label=\"some_value\"})");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!(value.is_normal());
     ///     Ok(())
     /// }
     /// ```
@@ -1230,20 +1252,28 @@ create_function! {
     /// Apply the PromQL `sort_desc` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::sort_desc;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
+    ///         .metric("prometheus_http_requests_total")
     ///         .try_into()?;
     ///
-    ///     let result = sort_desc(vector);
+    ///     let q = sort_desc(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "sort_desc({__name__=\"some_metric\",some_label=\"some_value\"})");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!(value.is_normal());
     ///     Ok(())
     /// }
     /// ```
@@ -1254,20 +1284,28 @@ create_function! {
     /// Apply the PromQL `timestamp` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector};
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
     /// use prometheus_http_query::functions::timestamp;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
+    ///         .metric("prometheus_http_requests_total")
     ///         .try_into()?;
     ///
-    ///     let result = timestamp(vector);
+    ///     let q = timestamp(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "timestamp({__name__=\"some_metric\",some_label=\"some_value\"})");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!(value > 1644417828.0);
     ///     Ok(())
     /// }
     /// ```
@@ -1278,20 +1316,28 @@ create_function! {
     /// Apply the PromQL `year` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, InstantVector};
-    /// use prometheus_http_query::functions::year;
+    /// use prometheus_http_query::{Client, Selector, InstantVector};
+    /// use prometheus_http_query::functions::{timestamp, year};
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: InstantVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
+    ///         .metric("prometheus_http_requests_total")
     ///         .try_into()?;
     ///
-    ///     let result = year(vector);
+    ///     let q = year(timestamp(vector));
     ///
-    ///     assert_eq!(&result.to_string(), "year({__name__=\"some_metric\",some_label=\"some_value\"})");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!(value >= 2022.0);
     ///     Ok(())
     /// }
     /// ```
@@ -1302,21 +1348,29 @@ create_function! {
     /// Apply the PromQL `avg_over_time` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::{Client, Selector, RangeVector};
     /// use prometheus_http_query::functions::avg_over_time;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
-    ///         .range("5m")?
+    ///         .metric("prometheus_http_requests_total")
+    ///         .range("1m")?
     ///         .try_into()?;
     ///
-    ///     let result = avg_over_time(vector);
+    ///     let q = avg_over_time(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "avg_over_time({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!(value.is_normal());
     ///     Ok(())
     /// }
     /// ```
@@ -1327,21 +1381,29 @@ create_function! {
     /// Apply the PromQL `min_over_time` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::{Client, Selector, RangeVector};
     /// use prometheus_http_query::functions::min_over_time;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
-    ///         .range("5m")?
+    ///         .metric("prometheus_http_requests_total")
+    ///         .range("1m")?
     ///         .try_into()?;
     ///
-    ///     let result = min_over_time(vector);
+    ///     let q = min_over_time(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "min_over_time({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!(value.is_normal());
     ///     Ok(())
     /// }
     /// ```
@@ -1352,21 +1414,29 @@ create_function! {
     /// Apply the PromQL `max_over_time` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::{Client, Selector, RangeVector};
     /// use prometheus_http_query::functions::max_over_time;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
-    ///         .range("5m")?
+    ///         .metric("prometheus_http_requests_total")
+    ///         .range("1m")?
     ///         .try_into()?;
     ///
-    ///     let result = max_over_time(vector);
+    ///     let q = max_over_time(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "max_over_time({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!(value.is_normal());
     ///     Ok(())
     /// }
     /// ```
@@ -1377,21 +1447,29 @@ create_function! {
     /// Apply the PromQL `sum_over_time` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::{Client, Selector, RangeVector};
     /// use prometheus_http_query::functions::sum_over_time;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
-    ///         .range("5m")?
+    ///         .metric("prometheus_http_requests_total")
+    ///         .range("1m")?
     ///         .try_into()?;
     ///
-    ///     let result = sum_over_time(vector);
+    ///     let q = sum_over_time(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "sum_over_time({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!(value.is_normal());
     ///     Ok(())
     /// }
     /// ```
@@ -1402,21 +1480,29 @@ create_function! {
     /// Apply the PromQL `count_over_time` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::{Client, Selector, RangeVector};
     /// use prometheus_http_query::functions::count_over_time;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
-    ///         .range("5m")?
+    ///         .metric("prometheus_http_requests_total")
+    ///         .range("1m")?
     ///         .try_into()?;
     ///
-    ///     let result = count_over_time(vector);
+    ///     let q = count_over_time(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "count_over_time({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!(value.is_normal());
     ///     Ok(())
     /// }
     /// ```
@@ -1426,21 +1512,29 @@ create_function! {
 /// Apply the PromQL `quantile_over_time` function.
 ///
 /// ```rust
-/// use prometheus_http_query::{Selector, RangeVector};
+/// use prometheus_http_query::{Client, Selector, RangeVector};
 /// use prometheus_http_query::functions::quantile_over_time;
 /// use std::convert::TryInto;
 ///
-/// fn main() -> Result<(), prometheus_http_query::Error> {
+/// #[tokio::main(flavor = "current_thread")]
+/// async fn main() -> Result<(), prometheus_http_query::Error> {
+///     let client = Client::default();
 ///     let vector: RangeVector = Selector::new()
-///         .metric("some_metric")
-///         .with("some_label", "some_value")
-///         .range("5m")?
+///         .metric("prometheus_http_requests_total")
+///         .range("1m")?
 ///         .try_into()?;
 ///
-///     let result = quantile_over_time(0.95, vector);
+///     let q = quantile_over_time(0.95, vector);
 ///
-///     assert_eq!(&result.to_string(), "quantile_over_time(0.95, {__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
+///     let response = client.query(q, None, None).await?;
+///     let value = response.as_instant()
+///         .unwrap()
+///         .get(0)
+///         .unwrap()
+///         .sample()
+///         .value();
 ///
+///     assert!(value.is_normal());
 ///     Ok(())
 /// }
 /// ```
@@ -1454,21 +1548,29 @@ create_function! {
     /// Apply the PromQL `stddev_over_time` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::{Client, Selector, RangeVector};
     /// use prometheus_http_query::functions::stddev_over_time;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
-    ///         .range("5m")?
+    ///         .metric("prometheus_http_requests_total")
+    ///         .range("1m")?
     ///         .try_into()?;
     ///
-    ///     let result = stddev_over_time(vector);
+    ///     let q = stddev_over_time(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "stddev_over_time({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!(value.is_normal());
     ///     Ok(())
     /// }
     /// ```
@@ -1479,21 +1581,29 @@ create_function! {
     /// Apply the PromQL `stdvar_over_time` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::{Client, Selector, RangeVector};
     /// use prometheus_http_query::functions::stdvar_over_time;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
-    ///         .range("5m")?
+    ///         .metric("prometheus_http_requests_total")
+    ///         .range("1m")?
     ///         .try_into()?;
     ///
-    ///     let result = stdvar_over_time(vector);
+    ///     let q = stdvar_over_time(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "stdvar_over_time({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!(value.is_normal());
     ///     Ok(())
     /// }
     /// ```
@@ -1504,21 +1614,29 @@ create_function! {
     /// Apply the PromQL `last_over_time` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::{Client, Selector, RangeVector};
     /// use prometheus_http_query::functions::last_over_time;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
-    ///         .range("5m")?
+    ///         .metric("prometheus_http_requests_total")
+    ///         .range("1m")?
     ///         .try_into()?;
     ///
-    ///     let result = last_over_time(vector);
+    ///     let q = last_over_time(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "last_over_time({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!(value.is_normal());
     ///     Ok(())
     /// }
     /// ```
@@ -1529,26 +1647,32 @@ create_function! {
     /// Apply the PromQL `present_over_time` function.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, RangeVector};
+    /// use prometheus_http_query::{Client, Selector, RangeVector};
     /// use prometheus_http_query::functions::present_over_time;
     /// use std::convert::TryInto;
     ///
-    /// fn main() -> Result<(), prometheus_http_query::Error> {
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), prometheus_http_query::Error> {
+    ///     let client = Client::default();
     ///     let vector: RangeVector = Selector::new()
-    ///         .metric("some_metric")
-    ///         .with("some_label", "some_value")
-    ///         .range("5m")?
+    ///         .metric("prometheus_http_requests_total")
+    ///         .range("1m")?
     ///         .try_into()?;
     ///
-    ///     let result = present_over_time(vector);
+    ///     let q = present_over_time(vector);
     ///
-    ///     assert_eq!(&result.to_string(), "present_over_time({__name__=\"some_metric\",some_label=\"some_value\"}[5m])");
+    ///     let response = client.query(q, None, None).await?;
+    ///     let value = response.as_instant()
+    ///         .unwrap()
+    ///         .get(0)
+    ///         .unwrap()
+    ///         .sample()
+    ///         .value();
     ///
+    ///     assert!(value.is_normal());
     ///     Ok(())
     /// }
     /// ```
-    ///
-    /// Requires Prometheus server >= 2.29.0.
     => present_over_time, RangeVector, InstantVector
 }
 
