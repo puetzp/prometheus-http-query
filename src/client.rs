@@ -107,6 +107,52 @@ impl std::convert::TryFrom<String> for Client {
 }
 
 impl Client {
+    /// Return a reference to the wrapped [reqwest::Client], i.e. to
+    /// use it for other requests unrelated to the Prometheus API.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Error};
+    ///
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), Error> {
+    ///     let client = Client::default();
+    ///
+    ///     // An amittedly bad example, but that is not the point.
+    ///     let response = client
+    ///         .inner()
+    ///         .head("http://127.0.0.1:9090")
+    ///         .send()
+    ///         .await
+    ///         .map_err(Error::Reqwest)?;
+    ///
+    ///     // Prometheus does not allow HEAD requests.
+    ///     assert_eq!(response.status(), reqwest::StatusCode::METHOD_NOT_ALLOWED);
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn inner(&self) -> &reqwest::Client {
+        &self.client
+    }
+
+    /// Return a reference to the base URL that is used in requests to
+    /// the Prometheus API.
+    ///
+    /// ```rust
+    /// use prometheus_http_query::Client;
+    /// use std::str::FromStr;
+    ///
+    /// let client = Client::default();
+    ///
+    /// assert_eq!(client.base_url(), "http://127.0.0.1:9090/api/v1");
+    ///
+    /// let client = Client::from_str("https://proxy.example.com:8443/prometheus").unwrap();
+    ///
+    /// assert_eq!(client.base_url(), "https://proxy.example.com:8443/prometheus/api/v1");
+    /// ```
+    pub fn base_url(&self) -> &str {
+        &self.base_url
+    }
+
     /// Create a Client from a custom [reqwest::Client] and URL.
     /// This way you can account for all extra parameters (e.g. x509 authentication)
     /// that may be needed to connect to Prometheus or an intermediate proxy,
