@@ -343,5 +343,13 @@ mod tests {
         // Duplicate.
         let input = "2y5m30s1s";
         assert!(validate_duration(input, false).is_err());
+
+        // Missing unit.
+        let input = "200";
+        assert!(validate_duration(input, false).is_err());
+
+        // Missing unit.
+        let input = "1h30";
+        assert!(validate_duration(input, false).is_err());
     }
 }
