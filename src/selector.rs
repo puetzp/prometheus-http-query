@@ -197,10 +197,6 @@ impl<'a> Selector<'a> {
     /// ```
     ///
     pub fn range(mut self, duration: &'a str) -> Result<Self, Error> {
-        if duration.is_empty() {
-            return Err(Error::InvalidTimeDuration);
-        }
-
         validate_duration(duration, false)?;
 
         self.range = Some(duration);
@@ -217,25 +213,18 @@ impl<'a> Selector<'a> {
     /// use prometheus_http_query::Selector;
     ///
     /// let s = Selector::new().metric("some_metric").offset("1m30s");
-    ///
     /// assert!(s.is_ok());
-    /// ```
     ///
-    /// Providing invalid time durations will lead to an error.
+    /// // Negative offsets are allowed.
+    /// let s = Selector::new().metric("some_metric").offset("-1h30m");
+    /// assert!(s.is_ok());
     ///
-    /// ```rust
-    /// use prometheus_http_query::Selector;
-    ///
+    /// // Providing invalid time durations will lead to an error.
     /// let s = Selector::new().metric("some_metric").offset("30s1m");
-    ///
     /// assert!(s.is_err());
     /// ```
     ///
     pub fn offset(mut self, duration: &'a str) -> Result<Self, Error> {
-        if duration.is_empty() {
-            return Err(Error::InvalidTimeDuration);
-        }
-
         validate_duration(duration, true)?;
 
         self.offset = Some(duration);
