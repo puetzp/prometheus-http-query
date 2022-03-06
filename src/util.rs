@@ -183,10 +183,7 @@ pub(crate) fn validate_duration(mut duration: &str, allow_negative: bool) -> Res
     }
 
     if allow_negative {
-        duration = match duration.strip_prefix('-') {
-            Some(d) => d,
-            None => duration,
-        };
+        duration = duration.strip_prefix('-').unwrap_or(duration);
     }
 
     let valid_idents = ['y', 'w', 'd', 'h', 'm', 's'];
@@ -221,8 +218,11 @@ pub(crate) fn validate_duration(mut duration: &str, allow_negative: bool) -> Res
         };
 
         let num_slice = &scope[..unit_index];
-        let num = num_slice.parse::<i64>().unwrap();
+        let num = num_slice
+            .parse::<i64>()
+            .map_err(|_| Error::InvalidTimeDuration)?;
 
+        // Just unwrap as we know that the index is in range.
         let unit = match scope.chars().nth(unit_index).unwrap() {
             'y' => {
                 total_nanos = num
