@@ -186,11 +186,8 @@ pub(crate) fn validate_duration(mut duration: &str, allow_negative: bool) -> Res
         duration = duration.strip_prefix('-').unwrap_or(duration);
     }
 
-    let valid_idents = ['y', 'w', 'd', 'h', 'm', 's'];
-
     // Save units as they appear to check for duplicates and proper ordering.
     let mut units = vec![];
-    let mut start_index = 0;
 
     // In the go implementation the whole duration string is converted to an
     // time.Duration that is constructed from an int64. Thus the total number
@@ -203,33 +200,36 @@ pub(crate) fn validate_duration(mut duration: &str, allow_negative: bool) -> Res
     // this amount to convert it to nanoseconds.
     const MULTIPLIER: i64 = 1000 * 1000;
 
-    // Advance unit for unit and convert the value that precedes the unit
-    // to nanoseconds and add it to the total accordingly.
-    while let Some(scope) = duration.get(start_index..) {
-        let unit_index = match scope.find(|c: char| valid_idents.contains(&c)) {
-            Some(idx) => idx,
-            None => {
-                if units.is_empty() || !scope.is_empty() {
-                    return Err(Error::InvalidTimeDuration);
-                } else {
-                    break;
-                }
-            }
-        };
+    // Add each number character to a string until a unit character is encountered.
+    // This string is then cleared to process the next number + unit.
+    let mut raw_num = String::new();
 
-        let num_slice = &scope[..unit_index];
-        let num = num_slice
+    // Iterate the duration string, convert each unit to nanoseconds and add
+    // it to the total.
+    let mut duration_iter = duration.chars().peekable();
+    while let Some(item) = duration_iter.next() {
+        if ('0'..='9').contains(&item) {
+            raw_num.push(item);
+            continue;
+        }
+
+        // If the next character is not in 0..=9, it must be a unit. However
+        // a unit must be preceded by a number, so at least one index must
+        // be stored.
+        if raw_num.is_empty() {
+            return Err(Error::InvalidTimeDuration);
+        }
+
+        let num = raw_num
             .parse::<i64>()
             .map_err(|_| Error::InvalidTimeDuration)?;
 
-        // Just unwrap as we know that the index is in range.
-        let unit = match scope.chars().nth(unit_index).unwrap() {
+        let unit = match item {
             'y' => {
                 total_nanos = num
                     .checked_mul(1000 * 60 * 60 * 24 * 365 * MULTIPLIER)
                     .and_then(|n| total_nanos.checked_add(n))
                     .ok_or(Error::InvalidTimeDuration)?;
-                start_index += num_slice.len() + 1;
                 Unit::Years
             }
             'w' => {
@@ -237,7 +237,6 @@ pub(crate) fn validate_duration(mut duration: &str, allow_negative: bool) -> Res
                     .checked_mul(1000 * 60 * 60 * 24 * 7 * MULTIPLIER)
                     .and_then(|n| total_nanos.checked_add(n))
                     .ok_or(Error::InvalidTimeDuration)?;
-                start_index += num_slice.len() + 1;
                 Unit::Weeks
             }
             'd' => {
@@ -245,7 +244,6 @@ pub(crate) fn validate_duration(mut duration: &str, allow_negative: bool) -> Res
                     .checked_mul(1000 * 60 * 60 * 24 * MULTIPLIER)
                     .and_then(|n| total_nanos.checked_add(n))
                     .ok_or(Error::InvalidTimeDuration)?;
-                start_index += num_slice.len() + 1;
                 Unit::Days
             }
             'h' => {
@@ -253,23 +251,20 @@ pub(crate) fn validate_duration(mut duration: &str, allow_negative: bool) -> Res
                     .checked_mul(1000 * 60 * 60 * MULTIPLIER)
                     .and_then(|n| total_nanos.checked_add(n))
                     .ok_or(Error::InvalidTimeDuration)?;
-                start_index += num_slice.len() + 1;
                 Unit::Hours
             }
             'm' => {
-                if matches!(scope.chars().nth(unit_index + 1), Some('s')) {
+                if duration_iter.next_if(|&c| c == 's').is_some() {
                     total_nanos = num
                         .checked_mul(1000 * 60 * 60 * MULTIPLIER)
                         .and_then(|n| total_nanos.checked_add(n))
                         .ok_or(Error::InvalidTimeDuration)?;
-                    start_index += num_slice.len() + 2;
                     Unit::Milliseconds
                 } else {
                     total_nanos = num
                         .checked_mul(1000 * 60 * MULTIPLIER)
                         .and_then(|n| total_nanos.checked_add(n))
                         .ok_or(Error::InvalidTimeDuration)?;
-                    start_index += num_slice.len() + 1;
                     Unit::Minutes
                 }
             }
@@ -278,17 +273,24 @@ pub(crate) fn validate_duration(mut duration: &str, allow_negative: bool) -> Res
                     .checked_mul(1000 * MULTIPLIER)
                     .and_then(|n| total_nanos.checked_add(n))
                     .ok_or(Error::InvalidTimeDuration)?;
-                start_index += num_slice.len() + 1;
                 Unit::Seconds
             }
             _ => return Err(Error::InvalidTimeDuration),
         };
+
+        raw_num.clear();
 
         if units.contains(&unit) || matches!(units.last(), Some(x) if x > &unit) {
             return Err(Error::InvalidTimeDuration);
         } else {
             units.push(unit);
         }
+    }
+
+    // When the whole duration string has been iterated over, no more
+    // indices should be left.
+    if !raw_num.is_empty() {
+        return Err(Error::InvalidTimeDuration);
     }
 
     if total_nanos < 0 {
