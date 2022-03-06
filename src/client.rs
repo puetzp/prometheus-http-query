@@ -349,7 +349,7 @@ impl Client {
             .collect();
 
         for selector in &selectors {
-            params.push(("match[]", &selector));
+            params.push(("match[]", selector));
         }
 
         let response = self
@@ -438,7 +438,7 @@ impl Client {
 
         if let Some(ref selector_vec) = selectors {
             for selector in selector_vec {
-                params.push(("match[]", &selector));
+                params.push(("match[]", selector));
             }
         }
 
@@ -524,7 +524,7 @@ impl Client {
 
         if let Some(ref selector_vec) = selectors {
             for selector in selector_vec {
-                params.push(("match[]", &selector));
+                params.push(("match[]", selector));
             }
         }
 

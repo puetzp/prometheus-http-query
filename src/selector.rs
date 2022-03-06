@@ -201,7 +201,7 @@ impl<'a> Selector<'a> {
             return Err(Error::InvalidTimeDuration);
         }
 
-        validate_duration(&duration, false)?;
+        validate_duration(duration, false)?;
 
         self.range = Some(duration);
 
@@ -236,7 +236,7 @@ impl<'a> Selector<'a> {
             return Err(Error::InvalidTimeDuration);
         }
 
-        validate_duration(&duration, true)?;
+        validate_duration(duration, true)?;
 
         self.offset = Some(duration);
 

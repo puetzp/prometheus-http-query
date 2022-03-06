@@ -293,12 +293,7 @@ pub fn count_values<'a>(
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
-        Some(l) => format!(
-            "count_values {} (\"{}\", {})",
-            l.to_string(),
-            parameter,
-            old_vec
-        ),
+        Some(l) => format!("count_values {} (\"{}\", {})", l, parameter, old_vec),
         None => format!("count_values (\"{}\", {})", parameter, old_vec),
     };
 
@@ -335,7 +330,7 @@ pub fn bottomk(
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
-        Some(l) => format!("bottomk {} ({}, {})", l.to_string(), parameter, old_vec),
+        Some(l) => format!("bottomk {} ({}, {})", l, parameter, old_vec),
         None => format!("bottomk ({}, {})", parameter, old_vec),
     };
 
@@ -368,7 +363,7 @@ pub fn topk(vector: InstantVector, labels: Option<Aggregate<'_>>, parameter: u64
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
-        Some(l) => format!("topk {} ({}, {})", l.to_string(), parameter, old_vec),
+        Some(l) => format!("topk {} ({}, {})", l, parameter, old_vec),
         None => format!("topk ({}, {})", parameter, old_vec),
     };
 
@@ -411,7 +406,7 @@ pub fn quantile(
     let InstantVector(old_vec) = vector;
 
     let new_vec = match labels {
-        Some(l) => format!("quantile {} ({}, {})", l.to_string(), parameter, old_vec),
+        Some(l) => format!("quantile {} ({}, {})", l, parameter, old_vec),
         None => format!("quantile ({}, {})", parameter, old_vec),
     };
 

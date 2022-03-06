@@ -70,7 +70,7 @@ impl QueryResultType {
     /// If the result type of the query is `scalar`, returns a single [Sample]. Returns `None` otherwise.
     pub fn as_scalar(&self) -> Option<&Sample> {
         match self {
-            QueryResultType::Scalar(v) => Some(&v),
+            QueryResultType::Scalar(v) => Some(v),
             _ => None,
         }
     }

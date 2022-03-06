@@ -88,11 +88,11 @@ impl InstantVector {
         this.push_str(" +");
 
         if let Some(labels) = match_modifier {
-            this.push_str(&format!(" {}", labels.to_string()));
+            this.push_str(&format!(" {}", labels));
         }
 
         if let Some(labels) = group_modifier {
-            this.push_str(&format!(" {}", labels.to_string()));
+            this.push_str(&format!(" {}", labels));
         }
 
         this.push_str(&format!(" {}", other));
@@ -143,11 +143,11 @@ impl InstantVector {
         this.push_str(" -");
 
         if let Some(labels) = match_modifier {
-            this.push_str(&format!(" {}", labels.to_string()));
+            this.push_str(&format!(" {}", labels));
         }
 
         if let Some(labels) = group_modifier {
-            this.push_str(&format!(" {}", labels.to_string()));
+            this.push_str(&format!(" {}", labels));
         }
 
         this.push_str(&format!(" {}", other));
@@ -198,11 +198,11 @@ impl InstantVector {
         this.push_str(" *");
 
         if let Some(labels) = match_modifier {
-            this.push_str(&format!(" {}", labels.to_string()));
+            this.push_str(&format!(" {}", labels));
         }
 
         if let Some(labels) = group_modifier {
-            this.push_str(&format!(" {}", labels.to_string()));
+            this.push_str(&format!(" {}", labels));
         }
 
         this.push_str(&format!(" {}", other));
@@ -253,11 +253,11 @@ impl InstantVector {
         this.push_str(" /");
 
         if let Some(labels) = match_modifier {
-            this.push_str(&format!(" {}", labels.to_string()));
+            this.push_str(&format!(" {}", labels));
         }
 
         if let Some(labels) = group_modifier {
-            this.push_str(&format!(" {}", labels.to_string()));
+            this.push_str(&format!(" {}", labels));
         }
 
         this.push_str(&format!(" {}", other));
@@ -308,11 +308,11 @@ impl InstantVector {
         this.push_str(" %");
 
         if let Some(labels) = match_modifier {
-            this.push_str(&format!(" {}", labels.to_string()));
+            this.push_str(&format!(" {}", labels));
         }
 
         if let Some(labels) = group_modifier {
-            this.push_str(&format!(" {}", labels.to_string()));
+            this.push_str(&format!(" {}", labels));
         }
 
         this.push_str(&format!(" {}", other));
@@ -363,11 +363,11 @@ impl InstantVector {
         this.push_str(" ^");
 
         if let Some(labels) = match_modifier {
-            this.push_str(&format!(" {}", labels.to_string()));
+            this.push_str(&format!(" {}", labels));
         }
 
         if let Some(labels) = group_modifier {
-            this.push_str(&format!(" {}", labels.to_string()));
+            this.push_str(&format!(" {}", labels));
         }
 
         this.push_str(&format!(" {}", other));
@@ -1048,7 +1048,7 @@ impl std::ops::Add<f64> for InstantVector {
     /// ```
     fn add(self, scalar: f64) -> Self {
         let InstantVector(mut vec) = self;
-        vec.push_str(&format!(" + {}", scalar.to_string()));
+        vec.push_str(&format!(" + {}", scalar));
         InstantVector(vec)
     }
 }
@@ -1077,7 +1077,7 @@ impl std::ops::Sub<f64> for InstantVector {
     /// ```
     fn sub(self, scalar: f64) -> Self {
         let InstantVector(mut vec) = self;
-        vec.push_str(&format!(" - {}", scalar.to_string()));
+        vec.push_str(&format!(" - {}", scalar));
         InstantVector(vec)
     }
 }
@@ -1106,7 +1106,7 @@ impl std::ops::Mul<f64> for InstantVector {
     /// ```
     fn mul(self, scalar: f64) -> Self {
         let InstantVector(mut vec) = self;
-        vec.push_str(&format!(" * {}", scalar.to_string()));
+        vec.push_str(&format!(" * {}", scalar));
         InstantVector(vec)
     }
 }
@@ -1135,7 +1135,7 @@ impl std::ops::Div<f64> for InstantVector {
     /// ```
     fn div(self, scalar: f64) -> Self {
         let InstantVector(mut vec) = self;
-        vec.push_str(&format!(" / {}", scalar.to_string()));
+        vec.push_str(&format!(" / {}", scalar));
         InstantVector(vec)
     }
 }
@@ -1165,7 +1165,7 @@ impl std::ops::Rem<f64> for InstantVector {
     /// ```
     fn rem(self, scalar: f64) -> Self {
         let InstantVector(mut vec) = self;
-        vec.push_str(&format!(" % {}", scalar.to_string()));
+        vec.push_str(&format!(" % {}", scalar));
         InstantVector(vec)
     }
 }
@@ -1194,7 +1194,7 @@ impl std::ops::BitXor<f64> for InstantVector {
     /// ```
     fn bitxor(self, scalar: f64) -> Self {
         let InstantVector(mut vec) = self;
-        vec.push_str(&format!(" ^ {}", scalar.to_string()));
+        vec.push_str(&format!(" ^ {}", scalar));
         InstantVector(vec)
     }
 }
