@@ -221,7 +221,7 @@ impl Client {
         }
 
         if let Some(t) = timeout {
-            validate_duration(t)?;
+            validate_duration(t, false)?;
             params.push(("timeout", t));
         }
 
@@ -250,7 +250,7 @@ impl Client {
     ) -> Result<QueryResultType, Error> {
         let url = format!("{}/query_range", self.base_url);
 
-        validate_duration(step)?;
+        validate_duration(step, false)?;
 
         let query = vector.to_string();
         let start = start.to_string();
@@ -264,7 +264,7 @@ impl Client {
         ];
 
         if let Some(t) = timeout {
-            validate_duration(t)?;
+            validate_duration(t, false)?;
             params.push(("timeout", t));
         }
 

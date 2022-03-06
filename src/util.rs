@@ -162,161 +162,136 @@ pub(crate) enum Label<'c> {
 }
 
 #[derive(Debug, Clone, Copy, Ord, PartialOrd, Eq, PartialEq)]
-pub(crate) enum Duration {
-    Years(usize),
-    Weeks(usize),
-    Days(usize),
-    Hours(usize),
-    Minutes(usize),
-    Seconds(usize),
-    Milliseconds(usize),
+pub(crate) enum Unit {
+    Years,
+    Weeks,
+    Days,
+    Hours,
+    Minutes,
+    Seconds,
+    Milliseconds,
 }
 
-impl fmt::Display for Duration {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Duration::Years(d) => write!(f, "{}y", d),
-            Duration::Weeks(d) => write!(f, "{}w", d),
-            Duration::Days(d) => write!(f, "{}d", d),
-            Duration::Hours(d) => write!(f, "{}h", d),
-            Duration::Minutes(d) => write!(f, "{}m", d),
-            Duration::Seconds(d) => write!(f, "{}s", d),
-            Duration::Milliseconds(d) => write!(f, "{}ms", d),
-        }
+// This basically does the same as the Go implementation in
+// https://github.com/prometheus/common/blob/00591a3ea9c0d18f6bc983818a23901d4154077f/model/time.go#L190
+// However there is no reason to store the duration in another type
+// as it is posted to the HTTP API as-is anyway.
+// Thus the duration string is only validated.
+pub(crate) fn validate_duration(mut duration: &str, allow_negative: bool) -> Result<(), Error> {
+    if duration.is_empty() {
+        return Err(Error::InvalidTimeDuration);
     }
-}
 
-pub(crate) fn validate_duration(duration: &str) -> Result<(), Error> {
-    let raw_duration = duration.trim_start_matches('-');
+    if allow_negative {
+        duration = match duration.strip_prefix('-') {
+            Some(d) => d,
+            None => duration,
+        };
+    }
 
-    let chars = ['s', 'm', 'h', 'd', 'w', 'y'];
+    let valid_idents = ['y', 'w', 'd', 'h', 'm', 's'];
 
-    let raw_durations: Vec<&str> = raw_duration
-        .split_inclusive(chars.as_ref())
-        .map(|s| s.split_inclusive("ms"))
-        .flatten()
-        .collect();
+    // Save units as they appear to check for duplicates and proper ordering.
+    let mut units = vec![];
+    let mut start_index = 0;
 
-    let mut durations: Vec<Duration> = vec![];
+    // In the go implementation the whole duration string is converted to an
+    // time.Duration that is constructed from an int64. Thus the total number
+    // of nanoseconds (when each unit is converted to nanoseconds) may not exceed
+    // i64::MAX.
+    let mut total_nanos: i64 = 0;
 
-    for d in raw_durations {
-        if d.ends_with("ms") {
-            match d.strip_suffix("ms").unwrap().parse::<usize>() {
-                Ok(num) => {
-                    let val = Duration::Milliseconds(num);
+    // Each unit is converted to nanoseconds. As "ms" is the most precise unit
+    // that can be used, we need to multiply _every_ unit, "ms" and above, by
+    // this amount to convert it to nanoseconds.
+    const MULTIPLIER: i64 = 1000 * 1000;
 
-                    let predicate = durations
-                        .iter()
-                        .any(|x| matches!(x, Duration::Milliseconds(_)));
-
-                    if !predicate {
-                        durations.push(val);
-                    } else {
-                        return Err(Error::InvalidTimeDuration);
-                    }
+    // Advance unit for unit and convert the value that precedes the unit
+    // to nanoseconds and add it to the total accordingly.
+    while let Some(scope) = duration.get(start_index..) {
+        let unit_index = match scope.find(|c: char| valid_idents.contains(&c)) {
+            Some(idx) => idx,
+            None => {
+                if units.is_empty() || !scope.is_empty() {
+                    return Err(Error::InvalidTimeDuration);
+                } else {
+                    break;
                 }
-                Err(_) => return Err(Error::InvalidTimeDuration),
             }
-        } else if d.ends_with('s') {
-            match d.strip_suffix('s').unwrap().parse::<usize>() {
-                Ok(num) => {
-                    let val = Duration::Seconds(num);
+        };
 
-                    let predicate = durations.iter().any(|x| matches!(x, Duration::Seconds(_)));
+        let num_slice = &scope[..unit_index];
+        let num = num_slice.parse::<i64>().unwrap();
 
-                    if !predicate {
-                        durations.push(val);
-                    } else {
-                        return Err(Error::InvalidTimeDuration);
-                    }
+        let unit = match scope.chars().nth(unit_index).unwrap() {
+            'y' => {
+                total_nanos = num
+                    .checked_mul(1000 * 60 * 60 * 24 * 365 * MULTIPLIER)
+                    .and_then(|n| total_nanos.checked_add(n))
+                    .ok_or(Error::InvalidTimeDuration)?;
+                start_index += num_slice.len() + 1;
+                Unit::Years
+            }
+            'w' => {
+                total_nanos = num
+                    .checked_mul(1000 * 60 * 60 * 24 * 7 * MULTIPLIER)
+                    .and_then(|n| total_nanos.checked_add(n))
+                    .ok_or(Error::InvalidTimeDuration)?;
+                start_index += num_slice.len() + 1;
+                Unit::Weeks
+            }
+            'd' => {
+                total_nanos = num
+                    .checked_mul(1000 * 60 * 60 * 24 * MULTIPLIER)
+                    .and_then(|n| total_nanos.checked_add(n))
+                    .ok_or(Error::InvalidTimeDuration)?;
+                start_index += num_slice.len() + 1;
+                Unit::Days
+            }
+            'h' => {
+                total_nanos = num
+                    .checked_mul(1000 * 60 * 60 * MULTIPLIER)
+                    .and_then(|n| total_nanos.checked_add(n))
+                    .ok_or(Error::InvalidTimeDuration)?;
+                start_index += num_slice.len() + 1;
+                Unit::Hours
+            }
+            'm' => {
+                if matches!(scope.chars().nth(unit_index + 1), Some('s')) {
+                    total_nanos = num
+                        .checked_mul(1000 * 60 * 60 * MULTIPLIER)
+                        .and_then(|n| total_nanos.checked_add(n))
+                        .ok_or(Error::InvalidTimeDuration)?;
+                    start_index += num_slice.len() + 2;
+                    Unit::Milliseconds
+                } else {
+                    total_nanos = num
+                        .checked_mul(1000 * 60 * MULTIPLIER)
+                        .and_then(|n| total_nanos.checked_add(n))
+                        .ok_or(Error::InvalidTimeDuration)?;
+                    start_index += num_slice.len() + 1;
+                    Unit::Minutes
                 }
-                Err(_) => return Err(Error::InvalidTimeDuration),
             }
-        } else if d.ends_with('m') {
-            match d.strip_suffix('m').unwrap().parse::<usize>() {
-                Ok(num) => {
-                    let val = Duration::Minutes(num);
-
-                    let predicate = durations.iter().any(|x| matches!(x, Duration::Minutes(_)));
-
-                    if !predicate {
-                        durations.push(val);
-                    } else {
-                        return Err(Error::InvalidTimeDuration);
-                    }
-                }
-                Err(_) => return Err(Error::InvalidTimeDuration),
+            's' => {
+                total_nanos = num
+                    .checked_mul(1000 * MULTIPLIER)
+                    .and_then(|n| total_nanos.checked_add(n))
+                    .ok_or(Error::InvalidTimeDuration)?;
+                start_index += num_slice.len() + 1;
+                Unit::Seconds
             }
-        } else if d.ends_with('h') {
-            match d.strip_suffix('h').unwrap().parse::<usize>() {
-                Ok(num) => {
-                    let val = Duration::Hours(num);
+            _ => return Err(Error::InvalidTimeDuration),
+        };
 
-                    let predicate = durations.iter().any(|x| matches!(x, Duration::Hours(_)));
-
-                    if !predicate {
-                        durations.push(val);
-                    } else {
-                        return Err(Error::InvalidTimeDuration);
-                    }
-                }
-                Err(_) => return Err(Error::InvalidTimeDuration),
-            }
-        } else if d.ends_with('d') {
-            match d.strip_suffix('d').unwrap().parse::<usize>() {
-                Ok(num) => {
-                    let val = Duration::Days(num);
-
-                    let predicate = durations.iter().any(|x| matches!(x, Duration::Days(_)));
-
-                    if !predicate {
-                        durations.push(val);
-                    } else {
-                        return Err(Error::InvalidTimeDuration);
-                    }
-                }
-                Err(_) => return Err(Error::InvalidTimeDuration),
-            }
-        } else if d.ends_with('w') {
-            match d.strip_suffix('w').unwrap().parse::<usize>() {
-                Ok(num) => {
-                    let val = Duration::Weeks(num);
-
-                    let predicate = durations.iter().any(|x| matches!(x, Duration::Weeks(_)));
-
-                    if !predicate {
-                        durations.push(val);
-                    } else {
-                        return Err(Error::InvalidTimeDuration);
-                    }
-                }
-                Err(_) => return Err(Error::InvalidTimeDuration),
-            }
-        } else if d.ends_with('y') {
-            match d.strip_suffix('y').unwrap().parse::<usize>() {
-                Ok(num) => {
-                    let val = Duration::Years(num);
-
-                    let predicate = durations.iter().any(|x| matches!(x, Duration::Years(_)));
-
-                    if !predicate {
-                        durations.push(val);
-                    } else {
-                        return Err(Error::InvalidTimeDuration);
-                    }
-                }
-                Err(_) => return Err(Error::InvalidTimeDuration),
-            }
-        } else {
+        if units.contains(&unit) || matches!(units.last(), Some(x) if x > &unit) {
             return Err(Error::InvalidTimeDuration);
+        } else {
+            units.push(unit);
         }
     }
 
-    let tmp_cpy = durations.clone();
-
-    durations.sort_unstable();
-
-    if tmp_cpy != durations {
+    if total_nanos < 0 {
         return Err(Error::InvalidTimeDuration);
     }
 
@@ -329,7 +304,44 @@ mod tests {
 
     #[test]
     fn test_validate_duration() {
+        // Large duration, but still in range.
+        let input = "292y";
+        assert!(validate_duration(input, false).is_ok());
+
+        // Large duration, but still in range.
+        let input = "9223372036s";
+        assert!(validate_duration(input, false).is_ok());
+
+        // Out of range (greater than i64::MAX when converted to ns).
+        let input = "293y";
+        assert!(validate_duration(input, false).is_err());
+
+        // Out of range (greater than i64::MAX when converted to ns).
+        let input = "9223372037s";
+        assert!(validate_duration(input, false).is_err());
+
+        //  Normal range with multiple units and in proper order.
         let input = "2y5m30s";
-        assert_eq!(validate_duration(input).unwrap(), ());
+        assert!(validate_duration(input, false).is_ok());
+
+        // Same as the prior but negative.
+        let input = "-2y5m30s";
+        assert!(validate_duration(input, true).is_ok());
+
+        // Same as the prior but negative is not allowed.
+        let input = "-2y5m30s";
+        assert!(validate_duration(input, false).is_err());
+
+        // Only exactly one minus is stripped.
+        let input = "--2y5m30s";
+        assert!(validate_duration(input, true).is_err());
+
+        // Wrong order.
+        let input = "2y5m1h30s";
+        assert!(validate_duration(input, false).is_err());
+
+        // Duplicate.
+        let input = "2y5m30s1s";
+        assert!(validate_duration(input, false).is_err());
     }
 }
