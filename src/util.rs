@@ -322,8 +322,12 @@ mod tests {
         let input = "9223372037s";
         assert!(validate_duration(input, false).is_err());
 
-        //  Normal range with multiple units and in proper order.
+        // Normal range with multiple units and in proper order.
         let input = "2y5m30s";
+        assert!(validate_duration(input, false).is_ok());
+
+        // Normal range with multiple units and in proper order.
+        let input = "2y5m30s15ms";
         assert!(validate_duration(input, false).is_ok());
 
         // Same as the prior but negative.
@@ -346,11 +350,11 @@ mod tests {
         let input = "2y5m30s1s";
         assert!(validate_duration(input, false).is_err());
 
-        // Missing unit.
+        // No unit at all.
         let input = "200";
         assert!(validate_duration(input, false).is_err());
 
-        // Missing unit.
+        // Missing unit in trailing number.
         let input = "1h30";
         assert!(validate_duration(input, false).is_err());
     }
