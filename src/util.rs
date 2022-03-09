@@ -182,6 +182,8 @@ pub(crate) fn validate_duration(mut duration: &str, allow_negative: bool) -> Res
         return Err(Error::InvalidTimeDuration);
     }
 
+    // Note: As per the Prometheus documentation negative durations are only allowed
+    // in the context of an offset.
     if allow_negative {
         duration = duration.strip_prefix('-').unwrap_or(duration);
     }
@@ -292,8 +294,9 @@ pub(crate) fn validate_duration(mut duration: &str, allow_negative: bool) -> Res
         }
     }
 
-    // When the whole duration string has been iterated over, no more
-    // indices should be left.
+    // When the whole duration string has been iterated over this "buffer"
+    // should be empty, i.e. no number should be left that is not followed
+    // by a unit.
     if !raw_num.is_empty() {
         return Err(Error::InvalidTimeDuration);
     }
