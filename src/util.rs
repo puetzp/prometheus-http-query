@@ -163,13 +163,13 @@ pub(crate) enum Label<'c> {
 
 #[derive(Debug, Clone, Copy, Ord, PartialOrd, Eq, PartialEq)]
 pub(crate) enum Unit {
-    Years,
-    Weeks,
-    Days,
-    Hours,
-    Minutes,
-    Seconds,
     Milliseconds,
+    Seconds,
+    Minutes,
+    Hours,
+    Days,
+    Weeks,
+    Years,
 }
 
 // This basically does the same as the Go implementation in
@@ -186,8 +186,11 @@ pub(crate) fn validate_duration(mut duration: &str, allow_negative: bool) -> Res
         duration = duration.strip_prefix('-').unwrap_or(duration);
     }
 
-    // Save units as they appear to check for duplicates and proper ordering.
-    let mut units = vec![];
+    // Remember the last encountered unit to check for duplicates and proper ordering.
+    // Actually checking for proper ordering is sufficient here because the following
+    // unit must be lesser than the leading unit, i.e. the leading unit must be
+    // greater or equal the following unit.
+    let mut last_unit: Option<Unit> = None;
 
     // In the go implementation the whole duration string is converted to an
     // time.Duration that is constructed from an int64. Thus the total number
@@ -280,10 +283,12 @@ pub(crate) fn validate_duration(mut duration: &str, allow_negative: bool) -> Res
 
         raw_num.clear();
 
-        if units.contains(&unit) || matches!(units.last(), Some(x) if x > &unit) {
+        // Check for duplicates and ordering.
+        if matches!(last_unit, Some(x) if x <= unit) {
+            println!("matches");
             return Err(Error::InvalidTimeDuration);
         } else {
-            units.push(unit);
+            last_unit = Some(unit);
         }
     }
 
