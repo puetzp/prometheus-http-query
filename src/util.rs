@@ -259,7 +259,7 @@ pub(crate) fn validate_duration(mut duration: &str, allow_negative: bool) -> Res
                 Unit::Hours
             }
             'm' => {
-                if duration_iter.next_if(|&c| c == 's').is_some() {
+                if duration_iter.next_if_eq(&'s').is_some() {
                     total_nanos = num
                         .checked_mul(1000 * 60 * 60 * MULTIPLIER)
                         .and_then(|n| total_nanos.checked_add(n))
@@ -287,7 +287,6 @@ pub(crate) fn validate_duration(mut duration: &str, allow_negative: bool) -> Res
 
         // Check for duplicates and ordering.
         if matches!(last_unit, Some(x) if x <= unit) {
-            println!("matches");
             return Err(Error::InvalidTimeDuration);
         } else {
             last_unit = Some(unit);
