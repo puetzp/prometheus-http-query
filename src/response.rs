@@ -259,7 +259,7 @@ impl DroppedTarget {
 }
 
 /// A group of rules.
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct RuleGroup {
     pub(crate) rules: Vec<Rule>,
     pub(crate) file: String,
@@ -290,7 +290,7 @@ impl RuleGroup {
 }
 
 /// A wrapper for different types of rules that the HTTP API may return.
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(tag = "type")]
 pub enum Rule {
     #[serde(alias = "recording")]
@@ -300,7 +300,7 @@ pub enum Rule {
 }
 
 /// An alerting rule.
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct AlertingRule {
     pub(crate) alerts: Vec<Alert>,
     pub(crate) annotations: HashMap<String, String>,
@@ -349,7 +349,7 @@ impl AlertingRule {
 }
 
 /// A recording rule.
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct RecordingRule {
     pub(crate) health: RuleHealth,
     pub(crate) name: String,
@@ -380,7 +380,7 @@ impl RecordingRule {
 }
 
 /// A single alert.
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Alert {
     #[serde(alias = "activeAt")]
     #[serde(deserialize_with = "de::deserialize_rfc3339")]
@@ -512,7 +512,7 @@ impl TargetMetadata {
 }
 
 /// A metric metadata object
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct MetricMetadata {
     #[serde(alias = "type")]
     pub(crate) metric_type: MetricType,
