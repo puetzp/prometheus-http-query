@@ -59,21 +59,21 @@ async fn main() -> Result<(), Error> {
 
 The table below depicts the compatibility of this library with various versions of the Prometheus server.
 
-| Features | v2.33 | v2.32 | v2.31 | v2.30 | v2.29 |
-|---|---|---|---|---|---|
-| [Instant queries](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries) | yes | yes | yes | yes | yes |
-| [Range queries](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries) | yes | yes | yes | yes | yes |
-| [Time series metadata](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers) | yes | yes | yes | yes | yes |
-| [Label name metadata](https://prometheus.io/docs/prometheus/latest/querying/api/#getting-label-names) | yes | yes | yes | yes | yes |
-| [Label value metadata](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-label-values) | yes | yes | yes | yes | yes |
-| [Targets](https://prometheus.io/docs/prometheus/latest/querying/api/#targets) | yes | yes | yes | yes | yes |
-| [Rules](https://prometheus.io/docs/prometheus/latest/querying/api/#rules) | yes | yes | yes | yes | yes |
-| [Alerts](https://prometheus.io/docs/prometheus/latest/querying/api/#alerts) | yes | yes | yes | yes | yes |
-| [Alertmanagers](https://prometheus.io/docs/prometheus/latest/querying/api/#alertmanagers) | yes | yes | yes | yes | yes |
-| [Runtime flags](https://prometheus.io/docs/prometheus/latest/querying/api/#flags) | yes | yes | yes | yes | yes |
-| [Metric metadata](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-metric-metadata) | yes | yes | yes | yes | yes |
-| [Target metadata](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-target-metadata) | yes | yes | yes | yes | no |
-| [Trigonometric functions](https://prometheus.io/docs/prometheus/latest/querying/functions/#trigonometric-functions) | yes | yes | yes | no | no |
+| Features | v2.34 | v2.33 | v2.32 | v2.31 | v2.30 | v2.29 |
+|---|---|---|---|---|---|---|
+| [Instant queries](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries) | yes | yes | yes | yes | yes | yes |
+| [Range queries](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries) | yes | yes | yes | yes | yes | yes |
+| [Time series metadata](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers) | yes | yes | yes | yes | yes | yes |
+| [Label name metadata](https://prometheus.io/docs/prometheus/latest/querying/api/#getting-label-names) | yes | yes | yes | yes | yes | yes |
+| [Label value metadata](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-label-values) | yes | yes | yes | yes | yes | yes |
+| [Targets](https://prometheus.io/docs/prometheus/latest/querying/api/#targets) | yes | yes | yes | yes | yes | yes |
+| [Rules](https://prometheus.io/docs/prometheus/latest/querying/api/#rules) | yes | yes | yes | yes | yes | yes |
+| [Alerts](https://prometheus.io/docs/prometheus/latest/querying/api/#alerts) | yes | yes | yes | yes | yes | yes |
+| [Alertmanagers](https://prometheus.io/docs/prometheus/latest/querying/api/#alertmanagers) | yes | yes | yes | yes | yes | yes |
+| [Runtime flags](https://prometheus.io/docs/prometheus/latest/querying/api/#flags) | yes | yes | yes | yes | yes | yes |
+| [Metric metadata](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-metric-metadata) | yes | yes | yes | yes | yes | yes |
+| [Target metadata](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-target-metadata) | yes | yes | yes | yes | yes | no |
+| [Trigonometric functions](https://prometheus.io/docs/prometheus/latest/querying/functions/#trigonometric-functions) | yes | yes | yes | yes | no | no |
 
 Server versions below v2.29 are untested.
 
