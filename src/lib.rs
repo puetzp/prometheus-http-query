@@ -158,10 +158,7 @@
 //!
 //! # Compatibility
 //!
-//! This version of the crate is compatible with Prometheus server >= v2.31.
-//! Versions as "old" as v2.26 are compatible as well when some features are not used. For example trigonometric functions
-//! were only introduced with v2.31. [Client::targets] will fail as well because the result as returned by the API
-//! changed between v2.26 and v2.31.
+//! See the `README` for details on this matter.
 //!
 //! # Supported operations
 //!
