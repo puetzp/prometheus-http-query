@@ -43,7 +43,7 @@ mod de {
 }
 
 /// A wrapper for possible result types of expression queries ([crate::Client::query] and [crate::Client::query_range]).
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum QueryResultType {
     Vector(Vec<InstantVector>),
     Matrix(Vec<RangeVector>),
@@ -77,7 +77,7 @@ impl QueryResultType {
 }
 
 /// A single time series containing a single data point/sample.
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct InstantVector {
     pub(crate) metric: HashMap<String, String>,
     #[serde(alias = "value")]
@@ -98,7 +98,7 @@ impl InstantVector {
 }
 
 /// A single time series containing a range of data points/samples.
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct RangeVector {
     pub(crate) metric: HashMap<String, String>,
     #[serde(alias = "values")]
@@ -119,7 +119,7 @@ impl RangeVector {
 }
 
 /// A single data point.
-#[derive(Debug, PartialEq, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Deserialize)]
 pub struct Sample {
     pub(crate) timestamp: f64,
     #[serde(deserialize_with = "de::deserialize_f64")]
@@ -139,7 +139,7 @@ impl Sample {
 }
 
 /// Collection of active and dropped targets as returned by the API.
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Targets {
     #[serde(alias = "activeTargets")]
     pub(crate) active: Vec<ActiveTarget>,
@@ -160,7 +160,7 @@ impl Targets {
 }
 
 /// A single active target.
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct ActiveTarget {
     #[serde(alias = "discoveredLabels")]
     pub(crate) discovered_labels: HashMap<String, String>,
@@ -245,7 +245,7 @@ impl ActiveTarget {
 }
 
 /// A single dropped target.
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct DroppedTarget {
     #[serde(alias = "discoveredLabels")]
     pub(crate) discovered_labels: HashMap<String, String>,
@@ -419,7 +419,7 @@ impl Alert {
 }
 
 /// Collection of active and dropped alertmanagers as returned by the API.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Alertmanagers {
     pub(crate) active: Vec<Url>,
     pub(crate) dropped: Vec<Url>,
@@ -474,7 +474,7 @@ impl fmt::Display for MetricType {
 }
 
 /// A target metadata object.
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct TargetMetadata {
     pub(crate) target: HashMap<String, String>,
     #[serde(alias = "type")]
