@@ -15,7 +15,7 @@ pub enum Error {
     InvalidFunctionArgument(InvalidFunctionArgument),
     UrlParse(url::ParseError),
     ResponseParse(serde_json::Error),
-    MissingField,
+    MissingField(MissingFieldError),
 }
 
 impl fmt::Display for Error {
@@ -31,7 +31,7 @@ impl fmt::Display for Error {
             Self::InvalidFunctionArgument(e) => e.fmt(f),
             Self::UrlParse(e) => e.fmt(f),
             Self::ResponseParse(e) => e.fmt(f),
-            Self::MissingField => MissingFieldError.fmt(f),
+            Self::MissingField(e) => e.fmt(f),
         }
     }
 }
@@ -130,14 +130,16 @@ impl fmt::Display for InvalidFunctionArgument {
 }
 
 /// This error is thrown when a field is unexpectedly not part of the API response.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct MissingFieldError;
+#[derive(Debug, Clone, PartialEq)]
+pub struct MissingFieldError(pub &'static str);
 
 impl fmt::Display for MissingFieldError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let MissingFieldError(field) = self;
         write!(
             f,
-            "the response cannot be parsed as an expected field is missing"
+            "expected field '{}' is missing from the JSON payload",
+            field
         )
     }
 }
