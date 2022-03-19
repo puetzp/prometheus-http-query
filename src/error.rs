@@ -77,8 +77,8 @@ impl fmt::Display for InvalidRangeVectorError {
 /// The error-related information in the response is included in this error.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ResponseError {
-    pub kind: String,
-    pub message: String,
+    pub(crate) kind: String,
+    pub(crate) message: String,
 }
 
 impl fmt::Display for ResponseError {
@@ -120,7 +120,7 @@ impl fmt::Display for UnknownResponseStatus {
 /// invalid values and would result in an API error.
 #[derive(Debug, Clone, PartialEq)]
 pub struct InvalidFunctionArgument {
-    pub message: String,
+    pub(crate) message: String,
 }
 
 impl fmt::Display for InvalidFunctionArgument {
