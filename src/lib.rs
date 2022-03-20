@@ -1,8 +1,5 @@
 //! The goal of this crate is to provide a query interface to the [Prometheus HTTP API](https://prometheus.io/docs/prometheus/latest/querying/api/) and leverage Rust's type system in the process. Thus mistakes while building a query can be caught at compile-time (or at least before actually sending the query to Prometheus).
 //!
-//! Most of the features of PromQL are mirrored in this library. Queries are gradually built from time series selectors, aggregations
-//! and functions and then passed to an HTTP client to execute. Methods to retrieve various kinds of metadata and configuration are also implemented.
-//!
 //! The [Client] uses as [reqwest::Client] as HTTP client internally as you will see in the usage section. Thus its features and limitations also apply to this library.
 //!
 //! # Usage
@@ -31,37 +28,22 @@
 //! };
 //! ```
 //!
-//! ## Construct PromQL queries
-//!
-//! Gradually build PromQL expressions using [Selector], turn it into a [RangeVector] or [InstantVector],
-//! apply additional [aggregations] or [functions] on them and evaluate the final expression at an instant ([Client::query])
-//! or a range of time ([Client::query_range]).
+//! ## Execute PromQL queries
 //!
 //! ```rust
-//! use prometheus_http_query::{Aggregate, Client, Error, InstantVector, Selector};
-//! use prometheus_http_query::aggregations::{sum, topk};
-//! use std::convert::TryInto;
+//! use prometheus_http_query::{Client, Error, Selector};
 //!
 //! #[tokio::main(flavor = "current_thread")]
 //! async fn main() -> Result<(), Error> {
 //!     let client = Client::default();
 //!
-//!     let vector: InstantVector = Selector::new()
-//!         .metric("prometheus_http_requests_total")
-//!         .try_into()?;
-//!
-//!     let q = topk(vector, Some(Aggregate::By(&["code"])), 5);
+//!     let q = "topk by (code) (5, prometheus_http_requests_total)";
 //!
 //!     let response = client.query(q, None, None).await?;
 //!
 //!     assert!(response.as_instant().is_some());
 //!
-//!     let vector: InstantVector = Selector::new()
-//!         .metric("prometheus_http_requests_total")
-//!         .with("code", "200")
-//!         .try_into()?;
-//!
-//!     let q = sum(vector, None);
+//!     let q = r#"sum(prometheus_http_requests_total{code="200"})"#;
 //!
 //!     let response = client.query(q, None, None).await?;
 //!
@@ -69,30 +51,6 @@
 //!         let first = result.get(0).unwrap();
 //!         println!("Received a total of {} HTTP requests", first.sample().value());
 //!     }
-//!     Ok(())
-//! }
-//! ```
-//!
-//! ## Custom non-validated PromQL queries
-//!
-//! It is also possible to bypass every kind of validation by supplying
-//! a custom query directly to the [InstantVector] / [RangeVector] types.
-//!
-//! ```rust
-//! use prometheus_http_query::{Client, Error, RangeVector};
-//!
-//! #[tokio::main(flavor = "current_thread")]
-//! async fn main() -> Result<(), Error> {
-//!     let client = Client::default();
-//!
-//!     let q = r#"sum by(cpu) (rate(node_cpu_seconds_total{mode="user"}[5m]))"#;
-//!
-//!     let v = RangeVector(q.to_string());
-//!
-//!     let response = client.query(v, None, None).await?;
-//!
-//!     assert!(response.as_instant().is_some());
-//!    
 //!     Ok(())
 //! }
 //! ```
@@ -109,11 +67,11 @@
 //!     let client = Client::default();
 //!
 //!     let s1 = Selector::new()
-//!         .with("handler", "/api/v1/query");
+//!         .eq("handler", "/api/v1/query");
 //!
 //!     let s2 = Selector::new()
-//!         .with("job", "node")
-//!         .regex_match("mode", ".+");
+//!         .eq("job", "node")
+//!         .regex_eq("mode", ".+");
 //!
 //!     let set = vec![s1, s2];
 //!
@@ -162,20 +120,19 @@
 //!
 //! # Supported operations
 //!
-//! - [x] Building PromQL expressions using time series selectors, functions and operators (aggregation/binary/vector matching ...)
-//! - [x] Evaluating expressions as instant queries
-//! - [x] Evaluating expressions as range queries
-//! - [x] Executing series metadata queries
-//! - [x] Executing label metadata queries (names/values)
-//! - [x] Retrieving target discovery status
+//! - [x] Execute instant and range queries and properly parse the results (vector/matrix/scalar)
+//! - [x] Execute series metadata queries
+//! - [x] Execute label metadata queries (names/values)
+//! - [x] Retrieve target discovery status
 //! - [x] Retrieve alerting + recording rules
 //! - [x] Retrieve active alerts
 //! - [x] Retrieve configured flags & values
-//! - [x] Target metadata
-//! - [x] Metric metadata
-//! - [x] Alertmanager service discovery status
-//! - [ ] Prometheus config
-//! - [ ] Prometheus runtime & build information
+//! - [x] Query target metadata
+//! - [x] Query metric metadata
+//! - [x] Query alertmanager service discovery status
+//! - [x] Prometheus server flags
+//! - [ ] Prometheus server config
+//! - [ ] Prometheus server runtime & build information
 //!
 //! # Notes
 //!
@@ -187,23 +144,15 @@
 //! with the provided query string. Thus any syntax problems etc. that cannot be caught at compile time
 //! or before executing the query will at least be propagated as returned by the HTTP API.
 //!
-//! ## On types
-//!
-//! This library uses two versions of instant vector and range vector types. [InstantVector] to build queries and be passed to [Client::query] or [Client::query_range] to execute. And [crate::response::InstantVector] as part of the result of these methods. The same applies to range vectors.
-//!
 //! # Limitations
 //!
-//! * Subqueries are not supported (only as custom query)
-//! * PromQL functions that do not take a range / instant vector as an argument are not supported (only as custom query), e.g. pi()
+//! * Some [Client] methods may not work with older versions of the Prometheus server
 //! * The [String](https://prometheus.io/docs/prometheus/latest/querying/api/#strings) result type is not supported
-pub mod aggregations;
 mod client;
 mod error;
-pub mod functions;
 pub mod response;
 mod selector;
 mod util;
-mod vector;
 pub use self::client::Client;
 pub use self::error::Error;
 pub use self::selector::Selector;
@@ -212,5 +161,3 @@ pub use self::util::Group;
 pub use self::util::Match;
 pub use self::util::RuleType;
 pub use self::util::TargetState;
-pub use self::vector::InstantVector;
-pub use self::vector::RangeVector;

@@ -4,16 +4,12 @@ use crate::error::{
 };
 use crate::response::*;
 use crate::selector::Selector;
-use crate::util::{validate_duration, RuleType, TargetState};
+use crate::util::{RuleType, TargetState};
 use std::collections::HashMap;
 use url::Url;
 
 /// A client used to execute queries. It uses a [reqwest::Client] internally
 /// that manages connections for us.
-///
-/// Note that possible errors regarding domain name resolution or
-/// connection establishment will only be propagated from the underlying
-/// [reqwest::Client] when a query is executed.
 #[derive(Clone)]
 pub struct Client {
     pub(crate) client: reqwest::Client,
@@ -179,24 +175,20 @@ impl Client {
         Ok(Client { base_url, client })
     }
 
-    /// Perform an instant query using a [crate::RangeVector] or [crate::InstantVector].
+    /// Execute an instant query.
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, InstantVector, Selector, Aggregate, Error};
-    /// use prometheus_http_query::aggregations::sum;
-    /// use std::convert::TryInto;
+    /// use prometheus_http_query::{Selector, Error, Client};
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), Error> {
     ///     let client = Client::default();
     ///
-    ///     let v: InstantVector = Selector::new()
-    ///         .metric("node_cpu_seconds_total")
-    ///         .try_into()?;
+    ///     let q = Selector::new()
+    ///         .metric("node_cpu_seconds_total");
     ///
-    ///     let s = sum(v, Some(Aggregate::By(&["cpu"])));
-    ///
-    ///     let response = client.query(s, None, None).await?;
+    ///     let response = client.query(q, None, None).await?;
     ///
     ///     assert!(response.as_instant().is_some());
     ///
@@ -205,23 +197,24 @@ impl Client {
     /// ```
     pub async fn query(
         &self,
-        vector: impl std::fmt::Display,
+        query: impl std::string::ToString,
         time: Option<i64>,
-        timeout: Option<&str>,
+        timeout: Option<i64>,
     ) -> Result<QueryResultType, Error> {
         let url = format!("{}/query", self.base_url);
 
-        let query = vector.to_string();
-        let mut params = vec![("query", query.as_str())];
+        let query = query.to_string();
+        let mut params = vec![("query", query)];
 
         let time = time.map(|t| t.to_string());
 
-        if let Some(t) = &time {
-            params.push(("time", t.as_str()));
+        if let Some(t) = time {
+            params.push(("time", t));
         }
 
+        let timeout = timeout.map(|t| t.to_string());
+
         if let Some(t) = timeout {
-            validate_duration(t, false)?;
             params.push(("timeout", t));
         }
 
@@ -240,31 +233,33 @@ impl Client {
             .and_then(convert_query_response)
     }
 
+    /// Execute a range query.
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries)
     pub async fn query_range(
         &self,
-        vector: impl std::fmt::Display,
+        vector: impl std::string::ToString,
         start: i64,
         end: i64,
-        step: &str,
-        timeout: Option<&str>,
+        step: f64,
+        timeout: Option<i64>,
     ) -> Result<QueryResultType, Error> {
         let url = format!("{}/query_range", self.base_url);
-
-        validate_duration(step, false)?;
 
         let query = vector.to_string();
         let start = start.to_string();
         let end = end.to_string();
+        let step = step.to_string();
 
         let mut params = vec![
-            ("query", query.as_str()),
-            ("start", start.as_str()),
-            ("end", end.as_str()),
+            ("query", query),
+            ("start", start),
+            ("end", end),
             ("step", step),
         ];
 
+        let timeout = timeout.map(|t| t.to_string());
+
         if let Some(t) = timeout {
-            validate_duration(t, false)?;
             params.push(("timeout", t));
         }
 
@@ -284,6 +279,7 @@ impl Client {
     }
 
     /// Find time series that match certain label sets ([Selector]s).
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers)
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Selector, Error};
@@ -293,11 +289,11 @@ impl Client {
     ///     let client = Client::default();
     ///
     ///     let s1 = Selector::new()
-    ///         .with("handler", "/api/v1/query");
+    ///         .eq("handler", "/api/v1/query");
     ///
     ///     let s2 = Selector::new()
-    ///         .with("job", "node")
-    ///         .regex_match("mode", ".+");
+    ///         .eq("job", "node")
+    ///         .regex_eq("mode", ".+");
     ///
     ///     let set = vec![s1, s2];
     ///
@@ -371,6 +367,7 @@ impl Client {
     }
 
     /// Retrieve all label names (or use [Selector]s to select time series to read label names from).
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#getting-label-names)
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Selector, Error};
@@ -384,13 +381,13 @@ impl Client {
     ///
     ///     assert!(response.is_ok());
     ///
-    ///     // To retrieve a list of labels that appear in specific time series, use Selectors:
+    ///     // Use a selector to retrieve a list of labels that appear in specific time series:
     ///     let s1 = Selector::new()
-    ///         .with("handler", "/api/v1/query");
+    ///         .eq("handler", "/api/v1/query");
     ///
     ///     let s2 = Selector::new()
-    ///         .with("job", "node")
-    ///         .regex_match("mode", ".+");
+    ///         .eq("job", "node")
+    ///         .regex_eq("mode", ".+");
     ///
     ///     let set = Some(vec![s1, s2]);
     ///
@@ -461,6 +458,7 @@ impl Client {
     }
 
     /// Retrieve all label values for a label name (or use [Selector]s to select the time series to read label values from)
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-label-values)
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Selector, Error};
@@ -474,9 +472,9 @@ impl Client {
     ///
     ///     assert!(response.is_ok());
     ///
-    ///     // To retrieve a list of label values of labels in specific time series instead:
+    ///     // To retrieve a list of label values of labels that appear in specific time series:
     ///     let s1 = Selector::new()
-    ///         .regex_match("instance", ".+");
+    ///         .regex_eq("instance", ".+");
     ///
     ///     let set = Some(vec![s1]);
     ///
@@ -548,10 +546,10 @@ impl Client {
     }
 
     /// Query the current state of target discovery.
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#targets)
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Error, TargetState};
-    /// use std::convert::TryInto;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), Error> {
@@ -599,10 +597,10 @@ impl Client {
     }
 
     /// Retrieve a list of rule groups of recording and alerting rules.
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#rules)
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Error, RuleType};
-    /// use std::convert::TryInto;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), Error> {
@@ -653,10 +651,10 @@ impl Client {
     }
 
     /// Retrieve a list of active alerts.
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#alerts)
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Error};
-    /// use std::convert::TryInto;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), Error> {
@@ -693,10 +691,10 @@ impl Client {
     }
 
     /// Retrieve a list of flags that Prometheus was configured with.
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#flags)
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Error};
-    /// use std::convert::TryInto;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), Error> {
@@ -730,10 +728,10 @@ impl Client {
     }
 
     /// Query the current state of alertmanager discovery.
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#alertmanagers)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Error, TargetState};
-    /// use std::convert::TryInto;
+    /// use prometheus_http_query::{Client, Error};
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), Error> {
@@ -816,10 +814,10 @@ impl Client {
     }
 
     /// Retrieve metadata about metrics that are currently scraped from targets, along with target information.
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-target-metadata)
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Error, Selector};
-    /// use std::convert::TryInto;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), Error> {
@@ -831,14 +829,14 @@ impl Client {
     ///     assert!(response.is_ok());
     ///
     ///     // Retrieve metric metadata from specific targets.
-    ///     let s = Selector::new().with("job", "prometheus");
+    ///     let s = Selector::new().eq("job", "prometheus");
     ///
     ///     let response = client.target_metadata(None, Some(&s), None).await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     // Retrieve metadata for a specific metric from targets that match a specific label set.
-    ///     let s = Selector::new().with("job", "node");
+    ///     let s = Selector::new().eq("job", "node");
     ///
     ///     let response = client.target_metadata(Some("node_cpu_seconds_total"), Some(&s), None).await;
     ///
@@ -894,10 +892,10 @@ impl Client {
     }
 
     /// Retrieve metadata about metrics that are currently scraped from targets.
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-metric-metadata)
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Error};
-    /// use std::convert::TryInto;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), Error> {
