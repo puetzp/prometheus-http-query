@@ -726,6 +726,43 @@ impl Client {
         })
     }
 
+    /// Retrieve a collection of build information items regarding Prometheus server.
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#build-information)
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Error};
+    ///
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), Error> {
+    ///     let client = Client::default();
+    ///
+    ///     let response = client.build_information().await;
+    ///
+    ///     assert!(response.is_ok());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn build_information(&self) -> Result<HashMap<String, String>, Error> {
+        let url = format!("{}/status/buildinfo", self.base_url);
+
+        let response = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .map_err(Error::Reqwest)?
+            .error_for_status()
+            .map_err(Error::Reqwest)?;
+
+        check_response(response).await.and_then(move |res| {
+            let field = "data";
+            res.get(field)
+                .ok_or(Error::MissingField(MissingFieldError(field)))
+                .and_then(|d| serde_json::from_value(d.to_owned()).map_err(Error::ResponseParse))
+        })
+    }
+
     /// Query the current state of alertmanager discovery.
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#alertmanagers)
     ///
