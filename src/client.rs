@@ -179,14 +179,13 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Selector, Error, Client};
+    /// use prometheus_http_query::{Error, Client};
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), Error> {
     ///     let client = Client::default();
     ///
-    ///     let q = Selector::new()
-    ///         .metric("node_cpu_seconds_total");
+    ///     let q = "node_cpu_seconds_total";
     ///
     ///     let response = client.query(q, None, None).await?;
     ///
