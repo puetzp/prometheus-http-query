@@ -536,3 +536,300 @@ impl MetricMetadata {
         &self.unit
     }
 }
+
+#[cfg(test)]
+mod tests {
+    // The examples used in these test cases are taken from prometheus.io.
+
+    use super::*;
+    use std::collections::HashMap;
+
+    #[test]
+    fn test_instant_vector_deserialization() {
+        let data = r#"
+[
+  {
+    "metric": {
+      "__name__": "up",
+      "job": "prometheus",
+      "instance": "localhost:9090"
+    },
+    "value": [
+      1435781451.781,
+      "1"
+    ]
+  },
+  {
+    "metric": {
+      "__name__": "up",
+      "job": "node",
+      "instance": "localhost:9100"
+    },
+    "value": [
+      1435781451.781,
+      "0"
+    ]
+  }
+]
+"#;
+        let result: Result<Vec<InstantVector>, serde_json::Error> = serde_json::from_str(data);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_range_vector_deserialization() {
+        let data = r#"
+[
+  {
+    "metric": {
+      "__name__": "up",
+      "job": "prometheus",
+      "instance": "localhost:9090"
+    },
+    "values": [
+      [
+        1435781430.781,
+        "1"
+      ],
+      [
+        1435781445.781,
+        "1"
+      ],
+      [
+        1435781460.781,
+        "1"
+      ]
+    ]
+  },
+  {
+    "metric": {
+      "__name__": "up",
+      "job": "node",
+      "instance": "localhost:9091"
+    },
+    "values": [
+      [
+        1435781430.781,
+        "0"
+      ],
+      [
+        1435781445.781,
+        "0"
+      ],
+      [
+        1435781460.781,
+        "1"
+      ]
+    ]
+  }
+]
+"#;
+        let result: Result<Vec<RangeVector>, serde_json::Error> = serde_json::from_str(data);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_target_deserialization() {
+        let data = r#"
+{
+  "activeTargets": [
+    {
+      "discoveredLabels": {
+        "__address__": "127.0.0.1:9090",
+        "__metrics_path__": "/metrics",
+        "__scheme__": "http",
+        "job": "prometheus"
+      },
+      "labels": {
+        "instance": "127.0.0.1:9090",
+        "job": "prometheus"
+      },
+      "scrapePool": "prometheus",
+      "scrapeUrl": "http://127.0.0.1:9090/metrics",
+      "globalUrl": "http://example-prometheus:9090/metrics",
+      "lastError": "",
+      "lastScrape": "2017-01-17T15:07:44.723715405+01:00",
+      "lastScrapeDuration": 0.050688943,
+      "health": "up",
+      "scrapeInterval": "1m",
+      "scrapeTimeout": "10s"
+    }
+  ],
+  "droppedTargets": [
+    {
+      "discoveredLabels": {
+        "__address__": "127.0.0.1:9100",
+        "__metrics_path__": "/metrics",
+        "__scheme__": "http",
+        "__scrape_interval__": "1m",
+        "__scrape_timeout__": "10s",
+        "job": "node"
+      }
+    }
+  ]
+}
+"#;
+        let result: Result<Targets, serde_json::Error> = serde_json::from_str(data);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_rule_group_deserialization() {
+        let data = r#"
+[
+  {
+    "rules": [
+      {
+        "alerts": [
+          {
+            "activeAt": "2018-07-04T20:27:12.60602144+02:00",
+            "annotations": {
+              "summary": "High request latency"
+            },
+            "labels": {
+              "alertname": "HighRequestLatency",
+              "severity": "page"
+            },
+            "state": "firing",
+            "value": "1e+00"
+          }
+        ],
+        "annotations": {
+          "summary": "High request latency"
+        },
+        "duration": 600,
+        "health": "ok",
+        "labels": {
+          "severity": "page"
+        },
+        "name": "HighRequestLatency",
+        "query": "job:request_latency_seconds:mean5m{job=\"myjob\"} > 0.5",
+        "type": "alerting"
+      },
+      {
+        "health": "ok",
+        "name": "job:http_inprogress_requests:sum",
+        "query": "sum by (job) (http_inprogress_requests)",
+        "type": "recording"
+      }
+    ],
+    "file": "/rules.yaml",
+    "interval": 60,
+    "limit": 0,
+    "name": "example"
+  }
+]
+"#;
+        let result: Result<Vec<RuleGroup>, serde_json::Error> = serde_json::from_str(data);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_alert_deserialization() {
+        let data = r#"
+[
+   {
+      "activeAt":"2018-07-04T20:27:12.60602144+02:00",
+      "annotations":{
+         
+      },
+      "labels":{
+         "alertname":"my-alert"
+      },
+      "state":"firing",
+      "value":"1e+00"
+   }
+]
+"#;
+        let result: Result<Vec<Alert>, serde_json::Error> = serde_json::from_str(data);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_target_metadata_deserialization_1() {
+        let data = r#"
+[
+  {
+    "target": {
+      "instance": "127.0.0.1:9090",
+      "job": "prometheus"
+    },
+    "type": "gauge",
+    "help": "Number of goroutines that currently exist.",
+    "unit": ""
+  },
+  {
+    "target": {
+      "instance": "127.0.0.1:9091",
+      "job": "prometheus"
+    },
+    "type": "gauge",
+    "help": "Number of goroutines that currently exist.",
+    "unit": ""
+  }
+]
+"#;
+        let result: Result<Vec<TargetMetadata>, serde_json::Error> = serde_json::from_str(data);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_target_metadata_deserialization_2() {
+        let data = r#"
+[
+  {
+    "target": {
+      "instance": "127.0.0.1:9090",
+      "job": "prometheus"
+    },
+    "metric": "prometheus_treecache_zookeeper_failures_total",
+    "type": "counter",
+    "help": "The total number of ZooKeeper failures.",
+    "unit": ""
+  },
+  {
+    "target": {
+      "instance": "127.0.0.1:9090",
+      "job": "prometheus"
+    },
+    "metric": "prometheus_tsdb_reloads_total",
+    "type": "counter",
+    "help": "Number of times the database reloaded block data from disk.",
+    "unit": ""
+  }
+]
+"#;
+        let result: Result<Vec<TargetMetadata>, serde_json::Error> = serde_json::from_str(data);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_metric_metadata_deserialization() {
+        let data = r#"
+{
+  "cortex_ring_tokens": [
+    {
+      "type": "gauge",
+      "help": "Number of tokens in the ring",
+      "unit": ""
+    }
+  ],
+  "http_requests_total": [
+    {
+      "type": "counter",
+      "help": "Number of HTTP requests",
+      "unit": ""
+    },
+    {
+      "type": "counter",
+      "help": "Amount of HTTP requests",
+      "unit": ""
+    }
+  ]
+}
+"#;
+        let result: Result<HashMap<String, Vec<MetricMetadata>>, serde_json::Error> =
+            serde_json::from_str(data);
+        assert!(result.is_ok());
+    }
+}
