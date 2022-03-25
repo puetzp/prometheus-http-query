@@ -756,60 +756,11 @@ impl Client {
             .error_for_status()
             .map_err(Error::Reqwest)?;
 
-        check_response(response).await.and_then(move |r| {
-            let data = r
-                .get("data")
-                .ok_or(Error::MissingField(MissingFieldError("data")))?
-                .as_object()
-                .unwrap();
-
-            let mut active: Vec<Url> = vec![];
-
-            let items = data
-                .get("activeAlertmanagers")
-                .ok_or(Error::MissingField(MissingFieldError(
-                    "activeAlertmanagers",
-                )))?
-                .as_array()
-                .unwrap();
-
-            for item in items {
-                let raw_url = item
-                    .get("url")
-                    .ok_or(Error::MissingField(MissingFieldError("url")))?
-                    .as_str()
-                    .unwrap();
-
-                let url = Url::parse(raw_url).map_err(Error::UrlParse)?;
-
-                active.push(url);
-            }
-
-            let mut dropped: Vec<Url> = vec![];
-
-            let items = data
-                .get("droppedAlertmanagers")
-                .ok_or(Error::MissingField(MissingFieldError(
-                    "droppedAlertmanagers",
-                )))?
-                .as_array()
-                .unwrap();
-
-            for item in items {
-                let raw_url = item
-                    .get("url")
-                    .ok_or(Error::MissingField(MissingFieldError("url")))?
-                    .as_str()
-                    .unwrap();
-
-                let url = Url::parse(raw_url).map_err(Error::UrlParse)?;
-
-                dropped.push(url);
-            }
-
-            let result = Alertmanagers { active, dropped };
-
-            Ok(result)
+        check_response(response).await.and_then(move |res| {
+            let field = "data";
+            res.get(field)
+                .ok_or(Error::MissingField(MissingFieldError(field)))
+                .and_then(|d| serde_json::from_value(d.to_owned()).map_err(Error::ResponseParse))
         })
     }
 

@@ -11,7 +11,6 @@ mod de {
     use std::str::FromStr;
     use time::format_description::well_known::Rfc3339;
     use time::OffsetDateTime;
-    use url::Url;
 
     pub(crate) fn deserialize_f64<'de, D>(deserializer: D) -> Result<f64, D::Error>
     where
@@ -20,15 +19,6 @@ mod de {
         let raw = String::deserialize(deserializer)?;
         let num = f64::from_str(&raw).map_err(serde::de::Error::custom)?;
         Ok(num)
-    }
-
-    pub(crate) fn deserialize_url<'de, D>(deserializer: D) -> Result<Url, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let raw = String::deserialize(deserializer)?;
-        let url = Url::parse(&raw).map_err(serde::de::Error::custom)?;
-        Ok(url)
     }
 
     pub(crate) fn deserialize_rfc3339<'de, D>(deserializer: D) -> Result<OffsetDateTime, D::Error>
@@ -168,10 +158,8 @@ pub struct ActiveTarget {
     #[serde(alias = "scrapePool")]
     pub(crate) scrape_pool: String,
     #[serde(alias = "scrapeUrl")]
-    #[serde(deserialize_with = "de::deserialize_url")]
     pub(crate) scrape_url: Url,
     #[serde(alias = "globalUrl")]
-    #[serde(deserialize_with = "de::deserialize_url")]
     pub(crate) global_url: Url,
     #[serde(alias = "lastError")]
     pub(crate) last_error: String,
@@ -419,21 +407,36 @@ impl Alert {
 }
 
 /// Collection of active and dropped alertmanagers as returned by the API.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Alertmanagers {
-    pub(crate) active: Vec<Url>,
-    pub(crate) dropped: Vec<Url>,
+    #[serde(alias = "activeAlertmanagers")]
+    pub(crate) active: Vec<Alertmanager>,
+    #[serde(alias = "droppedAlertmanagers")]
+    pub(crate) dropped: Vec<Alertmanager>,
 }
 
 impl Alertmanagers {
     /// Get a list of currently active alertmanagers.
-    pub fn active(&self) -> &[Url] {
+    pub fn active(&self) -> &[Alertmanager] {
         &self.active
     }
 
     /// Get a list of dropped alertmanagers.
-    pub fn dropped(&self) -> &[Url] {
+    pub fn dropped(&self) -> &[Alertmanager] {
         &self.dropped
+    }
+}
+
+/// A single alertmanager.
+#[derive(Clone, Debug, Deserialize)]
+pub struct Alertmanager {
+    url: Url,
+}
+
+impl Alertmanager {
+    /// Get the URL of this Alertmanager.
+    pub fn url(&self) -> &Url {
+        &self.url
     }
 }
 
@@ -830,6 +833,27 @@ mod tests {
 "#;
         let result: Result<HashMap<String, Vec<MetricMetadata>>, serde_json::Error> =
             serde_json::from_str(data);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_alertmanagers_deserialization() {
+        let data = r#"
+{
+  "activeAlertmanagers": [
+    {
+      "url": "http://127.0.0.1:9090/api/v1/alerts"
+    }
+  ],
+  "droppedAlertmanagers": [
+    {
+      "url": "http://127.0.0.1:9093/api/v1/alerts"
+    }
+  ]
+}
+"#;
+        let result: Result<Alertmanagers, serde_json::Error> = serde_json::from_str(data);
+        println!("{:?}", result);
         assert!(result.is_ok());
     }
 }
