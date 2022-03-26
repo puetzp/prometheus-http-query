@@ -3,14 +3,20 @@ use crate::util::{AlertState, RuleHealth, TargetHealth};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt;
-use time::OffsetDateTime;
+use time::{OffsetDateTime, PrimitiveDateTime};
 use url::Url;
 
 mod de {
     use serde::{Deserialize, Deserializer};
     use std::str::FromStr;
     use time::format_description::well_known::Rfc3339;
-    use time::OffsetDateTime;
+    use time::format_description::FormatItem;
+    use time::macros::format_description;
+    use time::{OffsetDateTime, PrimitiveDateTime};
+
+    const BUILD_INFO_DATE_FORMAT: &[FormatItem] = format_description!(
+        "[year repr:full][month repr:numerical][day]-[hour repr:24]:[minute]:[second]"
+    );
 
     pub(crate) fn deserialize_f64<'de, D>(deserializer: D) -> Result<f64, D::Error>
     where
@@ -28,6 +34,18 @@ mod de {
         let raw = String::deserialize(deserializer)?;
 
         OffsetDateTime::parse(&raw, &Rfc3339)
+            .map_err(|e| serde::de::Error::custom(format!("error parsing '{}': {}", raw, e)))
+    }
+
+    pub(crate) fn deserialize_build_info_date<'de, D>(
+        deserializer: D,
+    ) -> Result<PrimitiveDateTime, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let raw = String::deserialize(deserializer)?;
+
+        PrimitiveDateTime::parse(&raw, &BUILD_INFO_DATE_FORMAT)
             .map_err(|e| serde::de::Error::custom(format!("error parsing '{}': {}", raw, e)))
     }
 }
@@ -514,7 +532,7 @@ impl TargetMetadata {
     }
 }
 
-/// A metric metadata object
+/// A metric metadata object.
 #[derive(Clone, Debug, Deserialize)]
 pub struct MetricMetadata {
     #[serde(alias = "type")]
@@ -537,6 +555,53 @@ impl MetricMetadata {
     /// Get the metric unit.
     pub fn unit(&self) -> &str {
         &self.unit
+    }
+}
+
+/// An object containing Prometheus server build information.
+#[derive(Clone, Debug, Deserialize)]
+pub struct BuildInformation {
+    pub(crate) version: String,
+    pub(crate) revision: String,
+    pub(crate) branch: String,
+    #[serde(alias = "buildUser")]
+    pub(crate) build_user: String,
+    #[serde(alias = "buildDate")]
+    #[serde(deserialize_with = "de::deserialize_build_info_date")]
+    pub(crate) build_date: PrimitiveDateTime,
+    #[serde(alias = "goVersion")]
+    pub(crate) go_version: String,
+}
+
+impl BuildInformation {
+    /// Get the server version.
+    pub fn version(&self) -> &str {
+        &self.version
+    }
+
+    /// Get the git revision from which the server was built.
+    pub fn revision(&self) -> &str {
+        &self.revision
+    }
+
+    /// Get the git branch from which the server was built.
+    pub fn branch(&self) -> &str {
+        &self.branch
+    }
+
+    /// Get the user who built the server.
+    pub fn build_user(&self) -> &str {
+        &self.build_user
+    }
+
+    /// Get the date at which the server was built.
+    pub fn build_date(&self) -> &PrimitiveDateTime {
+        &self.build_date
+    }
+
+    /// Get the Go version that was used to build the server.
+    pub fn go_version(&self) -> &str {
+        &self.go_version
     }
 }
 
@@ -853,7 +918,22 @@ mod tests {
 }
 "#;
         let result: Result<Alertmanagers, serde_json::Error> = serde_json::from_str(data);
-        println!("{:?}", result);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_buildinformation_deserialization() {
+        let data = r#"
+{
+  "version": "2.13.1",
+  "revision": "cb7cbad5f9a2823a622aaa668833ca04f50a0ea7",
+  "branch": "master",
+  "buildUser": "julius@desktop",
+  "buildDate": "20191102-16:19:59",
+  "goVersion": "go1.13.1"
+}
+"#;
+        let result: Result<BuildInformation, serde_json::Error> = serde_json::from_str(data);
         assert!(result.is_ok());
     }
 }

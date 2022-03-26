@@ -743,7 +743,7 @@ impl Client {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn build_information(&self) -> Result<HashMap<String, String>, Error> {
+    pub async fn build_information(&self) -> Result<BuildInformation, Error> {
         let url = format!("{}/status/buildinfo", self.base_url);
 
         let response = self
