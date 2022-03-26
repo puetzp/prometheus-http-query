@@ -132,8 +132,8 @@
 //! - [x] Query alertmanager service discovery status
 //! - [x] Prometheus server flags
 //! - [x] Prometheus server build information
+//! - [x] Prometheus server runtime information
 //! - [ ] Prometheus server config
-//! - [ ] Prometheus server runtime information
 //!
 //! # Notes
 //!
