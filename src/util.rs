@@ -1,60 +1,6 @@
 use serde::Deserialize;
 use std::fmt;
 
-/// A helper type that provides label matching logic for e.g. aggregations like `sum`.<br>
-///
-/// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/) for details.
-#[derive(Debug)]
-pub enum Aggregate<'a> {
-    By(&'a [&'a str]),
-    Without(&'a [&'a str]),
-}
-
-impl<'a> fmt::Display for Aggregate<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Aggregate::By(list) => write!(f, "by ({})", list.join(",")),
-            Aggregate::Without(list) => write!(f, "without ({})", list.join(",")),
-        }
-    }
-}
-
-/// A helper type that provides label matching logic for e.g. binary operations (between instant vectors).<br>
-///
-/// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/) for details.
-#[derive(Debug)]
-pub enum Match<'a> {
-    On(&'a [&'a str]),
-    Ignoring(&'a [&'a str]),
-}
-
-impl<'a> fmt::Display for Match<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Match::On(list) => write!(f, "on ({})", list.join(",")),
-            Match::Ignoring(list) => write!(f, "ignoring ({})", list.join(",")),
-        }
-    }
-}
-
-/// A helper type that provides grouping logic for e.g. vector matching.<br>
-///
-/// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/operators/) for details.
-#[derive(Debug)]
-pub enum Group<'a> {
-    Left(&'a [&'a str]),
-    Right(&'a [&'a str]),
-}
-
-impl<'a> fmt::Display for Group<'a> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Group::Left(list) => write!(f, "group_left ({})", list.join(",")),
-            Group::Right(list) => write!(f, "group_right ({})", list.join(",")),
-        }
-    }
-}
-
 /// A helper type to filter targets by state.
 #[derive(Debug)]
 pub enum TargetState {

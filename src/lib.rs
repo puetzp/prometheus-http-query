@@ -157,8 +157,5 @@ mod util;
 pub use self::client::Client;
 pub use self::error::Error;
 pub use self::selector::Selector;
-pub use self::util::Aggregate;
-pub use self::util::Group;
-pub use self::util::Match;
 pub use self::util::RuleType;
 pub use self::util::TargetState;
