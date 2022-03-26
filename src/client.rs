@@ -726,7 +726,7 @@ impl Client {
         })
     }
 
-    /// Retrieve a collection of build information items regarding Prometheus server.
+    /// Retrieve Prometheus server build information.
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#build-information)
     ///
     /// ```rust
@@ -745,6 +745,43 @@ impl Client {
     /// ```
     pub async fn build_information(&self) -> Result<BuildInformation, Error> {
         let url = format!("{}/status/buildinfo", self.base_url);
+
+        let response = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .map_err(Error::Reqwest)?
+            .error_for_status()
+            .map_err(Error::Reqwest)?;
+
+        check_response(response).await.and_then(move |res| {
+            let field = "data";
+            res.get(field)
+                .ok_or(Error::MissingField(MissingFieldError(field)))
+                .and_then(|d| serde_json::from_value(d.to_owned()).map_err(Error::ResponseParse))
+        })
+    }
+
+    /// Retrieve Prometheus server runtime information.
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#runtime-information)
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Error};
+    ///
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), Error> {
+    ///     let client = Client::default();
+    ///
+    ///     let response = client.runtime_information().await;
+    ///
+    ///     assert!(response.is_ok());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn runtime_information(&self) -> Result<RuntimeInformation, Error> {
+        let url = format!("{}/status/runtimeinfo", self.base_url);
 
         let response = self
             .client

@@ -605,6 +605,78 @@ impl BuildInformation {
     }
 }
 
+/// An object containing Prometheus server build information.
+#[derive(Clone, Debug, Deserialize)]
+pub struct RuntimeInformation {
+    #[serde(alias = "startTime")]
+    #[serde(deserialize_with = "de::deserialize_rfc3339")]
+    pub(crate) start_time: OffsetDateTime,
+    #[serde(alias = "CWD")]
+    pub(crate) cwd: String,
+    #[serde(alias = "reloadConfigSuccess")]
+    pub(crate) reload_config_success: bool,
+    #[serde(alias = "lastConfigTime")]
+    #[serde(deserialize_with = "de::deserialize_rfc3339")]
+    pub(crate) last_config_time: OffsetDateTime,
+    #[serde(alias = "corruptionCount")]
+    pub(crate) corruption_count: i64,
+    #[serde(alias = "goroutineCount")]
+    pub(crate) goroutine_count: usize,
+    #[serde(alias = "GOMAXPROCS")]
+    pub(crate) go_max_procs: usize,
+    #[serde(alias = "GOGC")]
+    pub(crate) go_gc: String,
+    #[serde(alias = "GODEBUG")]
+    pub(crate) go_debug: String,
+    #[serde(alias = "storageRetention")]
+    pub(crate) storage_retention: String,
+}
+
+impl RuntimeInformation {
+    /// Get the server start time.
+    pub fn start_time(&self) -> &OffsetDateTime {
+        &self.start_time
+    }
+
+    /// Get the current working directory.
+    pub fn cwd(&self) -> &str {
+        &self.cwd
+    }
+
+    /// Check if the last configuration reload was successful.
+    pub fn reload_config_success(&self) -> bool {
+        self.reload_config_success
+    }
+
+    /// Get the time of last configuration reload.
+    pub fn last_config_time(&self) -> &OffsetDateTime {
+        &self.last_config_time
+    }
+
+    pub fn corruption_count(&self) -> i64 {
+        self.corruption_count
+    }
+
+    pub fn goroutine_count(&self) -> usize {
+        self.goroutine_count
+    }
+
+    pub fn go_max_procs(&self) -> usize {
+        self.go_max_procs
+    }
+
+    pub fn go_gc(&self) -> &str {
+        &self.go_gc
+    }
+
+    pub fn go_debug(&self) -> &str {
+        &self.go_debug
+    }
+
+    pub fn storage_retention(&self) -> &str {
+        &self.storage_retention
+    }
+}
 #[cfg(test)]
 mod tests {
     // The examples used in these test cases are taken from prometheus.io.
@@ -934,6 +1006,27 @@ mod tests {
 }
 "#;
         let result: Result<BuildInformation, serde_json::Error> = serde_json::from_str(data);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_runtimeinformation_deserialization() {
+        let data = r#"
+{
+  "startTime": "2019-11-02T17:23:59.301361365+01:00",
+  "CWD": "/",
+  "reloadConfigSuccess": true,
+  "lastConfigTime": "2019-11-02T17:23:59+01:00",
+  "timeSeriesCount": 873,
+  "corruptionCount": 0,
+  "goroutineCount": 48,
+  "GOMAXPROCS": 4,
+  "GOGC": "",
+  "GODEBUG": "",
+  "storageRetention": "15d"
+}
+"#;
+        let result: Result<RuntimeInformation, serde_json::Error> = serde_json::from_str(data);
         assert!(result.is_ok());
     }
 }
