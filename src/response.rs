@@ -255,9 +255,11 @@ pub struct ActiveTarget {
     pub(crate) last_scrape_duration: f64,
     pub(crate) health: TargetHealth,
     #[serde(alias = "scrapeInterval")]
-    pub(crate) scrape_interval: String,
+    #[serde(deserialize_with = "de::deserialize_prometheus_duration")]
+    pub(crate) scrape_interval: Duration,
     #[serde(alias = "scrapeTimeout")]
-    pub(crate) scrape_timeout: String,
+    #[serde(deserialize_with = "de::deserialize_prometheus_duration")]
+    pub(crate) scrape_timeout: Duration,
 }
 
 impl ActiveTarget {
@@ -307,12 +309,12 @@ impl ActiveTarget {
     }
 
     /// Get the scrape interval of this target.
-    pub fn scrape_interval(&self) -> &str {
+    pub fn scrape_interval(&self) -> &Duration {
         &self.scrape_interval
     }
 
     /// Get the scrape timeout of this target.
-    pub fn scrape_timeout(&self) -> &str {
+    pub fn scrape_timeout(&self) -> &Duration {
         &self.scrape_timeout
     }
 }
