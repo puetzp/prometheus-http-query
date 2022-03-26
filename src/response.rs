@@ -3,7 +3,7 @@ use crate::util::{AlertState, RuleHealth, TargetHealth};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt;
-use time::{OffsetDateTime, PrimitiveDateTime};
+use time::{Duration, OffsetDateTime, PrimitiveDateTime};
 use url::Url;
 
 mod de {
@@ -12,7 +12,7 @@ mod de {
     use time::format_description::well_known::Rfc3339;
     use time::format_description::FormatItem;
     use time::macros::format_description;
-    use time::{OffsetDateTime, PrimitiveDateTime};
+    use time::{Duration, OffsetDateTime, PrimitiveDateTime};
 
     const BUILD_INFO_DATE_FORMAT: &[FormatItem] = format_description!(
         "[year repr:full][month repr:numerical][day]-[hour repr:24]:[minute]:[second]"
@@ -37,6 +37,7 @@ mod de {
             .map_err(|e| serde::de::Error::custom(format!("error parsing '{}': {}", raw, e)))
     }
 
+    // This function is used to deserialize a specific datetime string like "20191102-16:19:59".
     pub(super) fn deserialize_build_info_date<'de, D>(
         deserializer: D,
     ) -> Result<PrimitiveDateTime, D::Error>
@@ -47,6 +48,72 @@ mod de {
 
         PrimitiveDateTime::parse(&raw, &BUILD_INFO_DATE_FORMAT)
             .map_err(|e| serde::de::Error::custom(format!("error parsing '{}': {}", raw, e)))
+    }
+
+    // This function is used to deserialize Prometheus duration strings like "1d" or "5m" or
+    // composits like "1d12h10m".
+    // Note that this function assumes that the input string is non-empty and that the total
+    // amount of milliseconds does not exceed i64::MAX. This seems to be a reasonable assumption
+    // since the Prometheus server creates durations from Go's int64 on the server side and the
+    // int64 depicts the total amount of nanoseconds.
+    pub(super) fn deserialize_prometheus_duration<'de, D>(
+        deserializer: D,
+    ) -> Result<Duration, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        use serde::de::Error as SerdeError;
+
+        let raw_str = String::deserialize(deserializer)?;
+
+        let mut total_milliseconds: i64 = 0;
+
+        // Add each number character to a string until a unit character is encountered.
+        // This string is then cleared to process the next number + unit.
+        let mut raw_num = String::new();
+
+        // Iterate the duration string, convert each unit to nanoseconds and add
+        // it to the total.
+        let mut duration_iter = raw_str.chars().peekable();
+
+        while let Some(item) = duration_iter.next() {
+            if ('0'..='9').contains(&item) {
+                raw_num.push(item);
+                continue;
+            }
+
+            let num = raw_num.parse::<i64>().map_err(SerdeError::custom)?;
+
+            match item {
+                'y' => {
+                    total_milliseconds += num * 1000 * 60 * 60 * 24 * 365;
+                }
+                'w' => {
+                    total_milliseconds += num * 1000 * 60 * 60 * 24 * 7;
+                }
+                'd' => {
+                    total_milliseconds += num * 1000 * 60 * 60 * 24;
+                }
+                'h' => {
+                    total_milliseconds += num * 1000 * 60 * 60;
+                }
+                'm' => {
+                    if duration_iter.next_if_eq(&'s').is_some() {
+                        total_milliseconds += num * 1000 * 60 * 60;
+                    } else {
+                        total_milliseconds += num * 1000 * 60;
+                    }
+                }
+                's' => {
+                    total_milliseconds += num * 1000;
+                }
+                _ => return Err(SerdeError::custom("invalid time duration")),
+            };
+
+            raw_num.clear();
+        }
+
+        Ok(Duration::milliseconds(total_milliseconds))
     }
 }
 
@@ -629,7 +696,8 @@ pub struct RuntimeInformation {
     #[serde(alias = "GODEBUG")]
     pub(crate) go_debug: String,
     #[serde(alias = "storageRetention")]
-    pub(crate) storage_retention: String,
+    #[serde(deserialize_with = "de::deserialize_prometheus_duration")]
+    pub(crate) storage_retention: Duration,
 }
 
 impl RuntimeInformation {
@@ -673,7 +741,7 @@ impl RuntimeInformation {
         &self.go_debug
     }
 
-    pub fn storage_retention(&self) -> &str {
+    pub fn storage_retention(&self) -> &Duration {
         &self.storage_retention
     }
 }
