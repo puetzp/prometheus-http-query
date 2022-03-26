@@ -18,7 +18,7 @@ mod de {
         "[year repr:full][month repr:numerical][day]-[hour repr:24]:[minute]:[second]"
     );
 
-    pub(crate) fn deserialize_f64<'de, D>(deserializer: D) -> Result<f64, D::Error>
+    pub(super) fn deserialize_f64<'de, D>(deserializer: D) -> Result<f64, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -27,7 +27,7 @@ mod de {
         Ok(num)
     }
 
-    pub(crate) fn deserialize_rfc3339<'de, D>(deserializer: D) -> Result<OffsetDateTime, D::Error>
+    pub(super) fn deserialize_rfc3339<'de, D>(deserializer: D) -> Result<OffsetDateTime, D::Error>
     where
         D: Deserializer<'de>,
     {
@@ -37,7 +37,7 @@ mod de {
             .map_err(|e| serde::de::Error::custom(format!("error parsing '{}': {}", raw, e)))
     }
 
-    pub(crate) fn deserialize_build_info_date<'de, D>(
+    pub(super) fn deserialize_build_info_date<'de, D>(
         deserializer: D,
     ) -> Result<PrimitiveDateTime, D::Error>
     where
