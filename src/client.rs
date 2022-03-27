@@ -233,6 +233,9 @@ impl Client {
     }
 
     /// Execute a range query.
+    ///
+    /// # Arguments
+    /// * `step` - bla
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries)
     pub async fn query_range(
         &self,

@@ -1,4 +1,4 @@
-//! All types that may be returned as part of return types from [crate::Client] methods.
+//! All types that may be returned from [crate::Client] methods.
 use crate::util::{AlertState, RuleHealth, TargetHealth};
 use serde::Deserialize;
 use std::collections::HashMap;

@@ -1,8 +1,11 @@
-//! The goal of this crate is to provide a query interface to the [Prometheus HTTP API](https://prometheus.io/docs/prometheus/latest/querying/api/) and leverage Rust's type system in the process. Thus mistakes while building a query can be caught at compile-time (or at least before actually sending the query to Prometheus).
+//! This crate provides an interface to the [Prometheus HTTP API](https://prometheus.io/docs/prometheus/latest/querying/api/) and leverage Rust's type system in the process where applicable.
 //!
 //! The [Client] uses as [reqwest::Client] as HTTP client internally as you will see in the usage section. Thus its features and limitations also apply to this library.
 //!
 //! # Usage
+//!
+//! The following code contains just a few examples. See [Client] for the complete set of query functions.
+//!
 //!
 //! ## Initialize a client
 //!
@@ -38,13 +41,10 @@
 //!     let client = Client::default();
 //!
 //!     let q = "topk by (code) (5, prometheus_http_requests_total)";
-//!
 //!     let response = client.query(q, None, None).await?;
-//!
 //!     assert!(response.as_instant().is_some());
 //!
 //!     let q = r#"sum(prometheus_http_requests_total{code="200"})"#;
-//!
 //!     let response = client.query(q, None, None).await?;
 //!     let result = response.as_instant();
 //!
@@ -75,9 +75,7 @@
 //!         .eq("job", "node")
 //!         .regex_eq("mode", ".+");
 //!
-//!     let set = vec![s1, s2];
-//!
-//!     let response = client.series(&set, None, None).await;
+//!     let response = client.series(&[s1, s2], None, None).await;
 //!
 //!     assert!(response.is_ok());
 //!
@@ -114,7 +112,25 @@
 //! }
 //! ```
 //!
-//! These are a few examples. See [Client] for examples of other types of metadata queries.
+//! ## Convenience functions for one-off requests
+//!
+//! ```rust
+//! use prometheus_http_query::{Error, query, runtime_information};
+//!
+//! #[tokio::main(flavor = "current_thread")]
+//! async fn main() -> Result<(), Error> {
+//!     let q = "topk by (code) (5, prometheus_http_requests_total)";
+//!     let response = query("http://localhost:9090", q, None, None).await?;
+//!
+//!     assert!(response.as_instant().is_some());
+//!
+//!     let response = runtime_information("http://localhost:9090").await;
+//!
+//!     assert!(response.is_ok());
+//!
+//!     Ok(())
+//! }
+//! ```
 //!
 //! # Compatibility
 //!
