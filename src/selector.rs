@@ -3,10 +3,6 @@ use std::fmt;
 
 /// A time series selector that is gradually built from a metric name and/or
 /// a set of label matchers.
-///
-/// For final validation and further processing the selector is then
-/// converted to either a [crate::InstantVector] or [crate::RangeVector].
-///
 #[derive(Debug, Clone, PartialEq)]
 pub struct Selector<'a> {
     pub(crate) labels: Vec<Label<'a>>,
