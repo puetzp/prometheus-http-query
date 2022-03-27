@@ -29,7 +29,7 @@ pub async fn query(
     query: impl std::string::ToString,
     time: Option<i64>,
     timeout: Option<i64>,
-) -> Result<QueryResultType, Error> {
+) -> Result<PromqlResult, Error> {
     Client::from_str(host)?.query(query, time, timeout).await
 }
 
@@ -58,7 +58,7 @@ pub async fn query_range(
     end: i64,
     step: f64,
     timeout: Option<i64>,
-) -> Result<QueryResultType, Error> {
+) -> Result<PromqlResult, Error> {
     Client::from_str(host)?
         .query_range(query, start, end, step, timeout)
         .await

@@ -1,6 +1,4 @@
-use crate::error::{
-    Error, MissingFieldError, ResponseError, UnknownResponseStatus, UnsupportedQueryResultType,
-};
+use crate::error::{ApiError, Error, MissingFieldError};
 use crate::response::*;
 use crate::selector::Selector;
 use crate::util::{RuleType, TargetState};
@@ -34,8 +32,8 @@ impl Default for Client {
 impl std::str::FromStr for Client {
     type Err = crate::error::Error;
 
-    /// Create a Client from a custom base URL, which *may* be useful if requests
-    /// are handled by i.e. a reverse proxy.
+    /// Create a Client from a custom base URL. Note that the API-specific
+    /// path segments (like `/api/v1/query`) are added automatically.
     ///
     /// ```rust
     /// use prometheus_http_query::Client;
@@ -57,8 +55,8 @@ impl std::str::FromStr for Client {
 impl std::convert::TryFrom<&str> for Client {
     type Error = crate::error::Error;
 
-    /// Create a Client from a custom base URL, which *may* be useful if requests
-    /// are handled by i.e. a reverse proxy.
+    /// Create a [Client] from a custom base URL. Note that the API-specific
+    /// path segments (like `/api/v1/query`) are added automatically.
     ///
     /// ```rust
     /// use prometheus_http_query::Client;
@@ -80,8 +78,8 @@ impl std::convert::TryFrom<&str> for Client {
 impl std::convert::TryFrom<String> for Client {
     type Error = crate::error::Error;
 
-    /// Create a Client from a custom base URL, which *may* be useful if requests
-    /// are handled by i.e. a reverse proxy.
+    /// Create a [Client] from a custom base URL. Note that the API-specific
+    /// path segments (like `/api/v1/query`) are added automatically.
     ///
     /// ```rust
     /// use prometheus_http_query::Client;
@@ -118,7 +116,7 @@ impl Client {
     ///         .head("http://127.0.0.1:9090")
     ///         .send()
     ///         .await
-    ///         .map_err(Error::Reqwest)?;
+    ///         .map_err(Error::Client)?;
     ///
     ///     // Prometheus does not allow HEAD requests.
     ///     assert_eq!(response.status(), reqwest::StatusCode::METHOD_NOT_ALLOWED);
@@ -161,7 +159,7 @@ impl Client {
     ///         let c = reqwest::Client::builder()
     ///             .no_proxy()
     ///             .build()
-    ///             .map_err(Error::Reqwest)?;
+    ///             .map_err(Error::Client)?;
     ///         Client::from(c, "https://prometheus.example.com")
     ///     };
     ///
@@ -204,7 +202,7 @@ impl Client {
         query: impl std::string::ToString,
         time: Option<i64>,
         timeout: Option<i64>,
-    ) -> Result<QueryResultType, Error> {
+    ) -> Result<PromqlResult, Error> {
         let url = format!("{}/query", self.base_url);
 
         let query = query.to_string();
@@ -228,9 +226,9 @@ impl Client {
             .query(params.as_slice())
             .send()
             .await
-            .map_err(Error::Reqwest)?
+            .map_err(Error::Client)?
             .error_for_status()
-            .map_err(Error::Reqwest)?;
+            .map_err(Error::Client)?;
 
         check_response(response)
             .await
@@ -271,7 +269,7 @@ impl Client {
         end: i64,
         step: f64,
         timeout: Option<i64>,
-    ) -> Result<QueryResultType, Error> {
+    ) -> Result<PromqlResult, Error> {
         let url = format!("{}/query_range", self.base_url);
 
         let query = query.to_string();
@@ -298,9 +296,9 @@ impl Client {
             .query(params.as_slice())
             .send()
             .await
-            .map_err(Error::Reqwest)?
+            .map_err(Error::Client)?
             .error_for_status()
-            .map_err(Error::Reqwest)?;
+            .map_err(Error::Client)?;
 
         check_response(response)
             .await
@@ -385,15 +383,12 @@ impl Client {
             .query(params.as_slice())
             .send()
             .await
-            .map_err(Error::Reqwest)?
+            .map_err(Error::Client)?
             .error_for_status()
-            .map_err(Error::Reqwest)?;
+            .map_err(Error::Client)?;
 
         check_response(response).await.and_then(move |res| {
-            let field = "data";
-            res.get(field)
-                .ok_or(Error::MissingField(MissingFieldError(field)))
-                .and_then(|d| serde_json::from_value(d.to_owned()).map_err(Error::ResponseParse))
+            serde_json::from_value(res.to_owned()).map_err(Error::ResponseParse)
         })
     }
 
@@ -482,15 +477,12 @@ impl Client {
             .query(params.as_slice())
             .send()
             .await
-            .map_err(Error::Reqwest)?
+            .map_err(Error::Client)?
             .error_for_status()
-            .map_err(Error::Reqwest)?;
+            .map_err(Error::Client)?;
 
         check_response(response).await.and_then(move |res| {
-            let field = "data";
-            res.get(field)
-                .ok_or(Error::MissingField(MissingFieldError(field)))
-                .and_then(|d| serde_json::from_value(d.to_owned()).map_err(Error::ResponseParse))
+            serde_json::from_value(res.to_owned()).map_err(Error::ResponseParse)
         })
     }
 
@@ -577,15 +569,12 @@ impl Client {
             .query(params.as_slice())
             .send()
             .await
-            .map_err(Error::Reqwest)?
+            .map_err(Error::Client)?
             .error_for_status()
-            .map_err(Error::Reqwest)?;
+            .map_err(Error::Client)?;
 
         check_response(response).await.and_then(move |res| {
-            let field = "data";
-            res.get(field)
-                .ok_or(Error::MissingField(MissingFieldError(field)))
-                .and_then(|d| serde_json::from_value(d.to_owned()).map_err(Error::ResponseParse))
+            serde_json::from_value(res.to_owned()).map_err(Error::ResponseParse)
         })
     }
 
@@ -629,15 +618,12 @@ impl Client {
             .query(params.as_slice())
             .send()
             .await
-            .map_err(Error::Reqwest)?
+            .map_err(Error::Client)?
             .error_for_status()
-            .map_err(Error::Reqwest)?;
+            .map_err(Error::Client)?;
 
         check_response(response).await.and_then(move |res| {
-            let field = "data";
-            res.get(field)
-                .ok_or(Error::MissingField(MissingFieldError(field)))
-                .and_then(|d| serde_json::from_value(d.to_owned()).map_err(Error::ResponseParse))
+            serde_json::from_value(res.to_owned()).map_err(Error::ResponseParse)
         })
     }
 
@@ -681,14 +667,12 @@ impl Client {
             .query(params.as_slice())
             .send()
             .await
-            .map_err(Error::Reqwest)?
+            .map_err(Error::Client)?
             .error_for_status()
-            .map_err(Error::Reqwest)?;
+            .map_err(Error::Client)?;
 
         check_response(response).await.and_then(move |res| {
-            res.get("data")
-                .ok_or(Error::MissingField(MissingFieldError("data")))?
-                .as_object()
+            res.as_object()
                 .unwrap()
                 .get("groups")
                 .ok_or(Error::MissingField(MissingFieldError("groups")))
@@ -722,14 +706,12 @@ impl Client {
             .get(&url)
             .send()
             .await
-            .map_err(Error::Reqwest)?
+            .map_err(Error::Client)?
             .error_for_status()
-            .map_err(Error::Reqwest)?;
+            .map_err(Error::Client)?;
 
         check_response(response).await.and_then(move |res| {
-            res.get("data")
-                .ok_or(Error::MissingField(MissingFieldError("data")))?
-                .as_object()
+            res.as_object()
                 .unwrap()
                 .get("alerts")
                 .ok_or(Error::MissingField(MissingFieldError("alerts")))
@@ -763,15 +745,12 @@ impl Client {
             .get(&url)
             .send()
             .await
-            .map_err(Error::Reqwest)?
+            .map_err(Error::Client)?
             .error_for_status()
-            .map_err(Error::Reqwest)?;
+            .map_err(Error::Client)?;
 
         check_response(response).await.and_then(move |res| {
-            let field = "data";
-            res.get(field)
-                .ok_or(Error::MissingField(MissingFieldError(field)))
-                .and_then(|d| serde_json::from_value(d.to_owned()).map_err(Error::ResponseParse))
+            serde_json::from_value(res.to_owned()).map_err(Error::ResponseParse)
         })
     }
 
@@ -801,15 +780,12 @@ impl Client {
             .get(&url)
             .send()
             .await
-            .map_err(Error::Reqwest)?
+            .map_err(Error::Client)?
             .error_for_status()
-            .map_err(Error::Reqwest)?;
+            .map_err(Error::Client)?;
 
         check_response(response).await.and_then(move |res| {
-            let field = "data";
-            res.get(field)
-                .ok_or(Error::MissingField(MissingFieldError(field)))
-                .and_then(|d| serde_json::from_value(d.to_owned()).map_err(Error::ResponseParse))
+            serde_json::from_value(res.to_owned()).map_err(Error::ResponseParse)
         })
     }
 
@@ -839,15 +815,12 @@ impl Client {
             .get(&url)
             .send()
             .await
-            .map_err(Error::Reqwest)?
+            .map_err(Error::Client)?
             .error_for_status()
-            .map_err(Error::Reqwest)?;
+            .map_err(Error::Client)?;
 
         check_response(response).await.and_then(move |res| {
-            let field = "data";
-            res.get(field)
-                .ok_or(Error::MissingField(MissingFieldError(field)))
-                .and_then(|d| serde_json::from_value(d.to_owned()).map_err(Error::ResponseParse))
+            serde_json::from_value(res.to_owned()).map_err(Error::ResponseParse)
         })
     }
 
@@ -877,15 +850,12 @@ impl Client {
             .get(&url)
             .send()
             .await
-            .map_err(Error::Reqwest)?
+            .map_err(Error::Client)?
             .error_for_status()
-            .map_err(Error::Reqwest)?;
+            .map_err(Error::Client)?;
 
         check_response(response).await.and_then(move |res| {
-            let field = "data";
-            res.get(field)
-                .ok_or(Error::MissingField(MissingFieldError(field)))
-                .and_then(|d| serde_json::from_value(d.to_owned()).map_err(Error::ResponseParse))
+            serde_json::from_value(res.to_owned()).map_err(Error::ResponseParse)
         })
     }
 
@@ -956,15 +926,12 @@ impl Client {
             .query(params.as_slice())
             .send()
             .await
-            .map_err(Error::Reqwest)?
+            .map_err(Error::Client)?
             .error_for_status()
-            .map_err(Error::Reqwest)?;
+            .map_err(Error::Client)?;
 
         check_response(response).await.and_then(move |res| {
-            let field = "data";
-            res.get(field)
-                .ok_or(Error::MissingField(MissingFieldError(field)))
-                .and_then(|d| serde_json::from_value(d.to_owned()).map_err(Error::ResponseParse))
+            serde_json::from_value(res.to_owned()).map_err(Error::ResponseParse)
         })
     }
 
@@ -1024,102 +991,65 @@ impl Client {
             .query(params.as_slice())
             .send()
             .await
-            .map_err(Error::Reqwest)?
+            .map_err(Error::Client)?
             .error_for_status()
-            .map_err(Error::Reqwest)?;
+            .map_err(Error::Client)?;
 
         check_response(response).await.and_then(move |res| {
-            let field = "data";
-            res.get(field)
-                .ok_or(Error::MissingField(MissingFieldError(field)))
-                .and_then(|d| serde_json::from_value(d.to_owned()).map_err(Error::ResponseParse))
+            serde_json::from_value(res.to_owned()).map_err(Error::ResponseParse)
         })
     }
 }
 
 // Convert the response object to an intermediary map, check the JSON's status field
 // and map potential errors (if any) to a proper error type. Else return the map.
-async fn check_response(
-    response: reqwest::Response,
-) -> Result<HashMap<String, serde_json::Value>, Error> {
-    let map = response
-        .json::<HashMap<String, serde_json::Value>>()
+async fn check_response(response: reqwest::Response) -> Result<serde_json::Value, Error> {
+    let response = response
+        .json::<ApiResponse>()
         .await
-        .map_err(Error::Reqwest)?;
+        .map_err(Error::Client)?;
 
-    let status = map
-        .get("status")
-        .ok_or(Error::MissingField(MissingFieldError("status")))?
-        .as_str()
-        .unwrap();
-
-    match status {
-        "success" => Ok(map),
-        "error" => {
-            let kind = map
-                .get("errorType")
-                .ok_or(Error::MissingField(MissingFieldError("errorType")))?
-                .as_str()
-                .unwrap()
-                .to_string();
-
-            let message = map
-                .get("error")
-                .ok_or(Error::MissingField(MissingFieldError("error")))?
-                .as_str()
-                .unwrap()
-                .to_string();
-
-            Err(Error::ResponseError(ResponseError { kind, message }))
+    match response.status {
+        ApiResponseStatus::Success => {
+            let data = response
+                .data
+                .ok_or(Error::MissingField(MissingFieldError("data")))?;
+            Ok(data)
         }
-        _ => Err(Error::UnknownResponseStatus(UnknownResponseStatus(
-            status.to_string(),
-        ))),
+        ApiResponseStatus::Error => {
+            let kind = response
+                .error_type
+                .ok_or(Error::MissingField(MissingFieldError("errorType")))?;
+
+            let message = response
+                .error
+                .ok_or(Error::MissingField(MissingFieldError("error")))?;
+
+            Err(Error::ApiError(ApiError { kind, message }))
+        }
     }
 }
 
 // Parses the API response from a map to a Response enum that
 // encapsulates a result type of "vector", "matrix", or "scalar".
-fn convert_query_response(
-    response: HashMap<String, serde_json::Value>,
-) -> Result<QueryResultType, Error> {
-    let field = "data";
-    let data_obj = response
-        .get(field)
-        .ok_or(Error::MissingField(MissingFieldError(field)))?
-        .as_object()
-        .unwrap();
+fn convert_query_response(response: serde_json::Value) -> Result<PromqlResult, Error> {
+    let result: QueryResult = serde_json::from_value(response).map_err(Error::ResponseParse)?;
 
-    let field = "resultType";
-    let data_type = data_obj
-        .get(field)
-        .ok_or(Error::MissingField(MissingFieldError(field)))?
-        .as_str()
-        .unwrap();
-
-    let field = "result";
-    let data = data_obj
-        .get(field)
-        .ok_or(Error::MissingField(MissingFieldError(field)))?
-        .to_owned();
-
-    match data_type {
-        "vector" => {
-            let result: Vec<InstantVector> =
-                serde_json::from_value(data).map_err(Error::ResponseParse)?;
-            Ok(QueryResultType::Vector(result))
+    match result.kind {
+        QueryResultType::Vector => {
+            let vector: Vec<InstantVector> =
+                serde_json::from_value(result.data).map_err(Error::ResponseParse)?;
+            Ok(PromqlResult::Vector(vector))
         }
-        "matrix" => {
-            let result: Vec<RangeVector> =
-                serde_json::from_value(data).map_err(Error::ResponseParse)?;
-            Ok(QueryResultType::Matrix(result))
+        QueryResultType::Matrix => {
+            let matrix: Vec<RangeVector> =
+                serde_json::from_value(result.data).map_err(Error::ResponseParse)?;
+            Ok(PromqlResult::Matrix(matrix))
         }
-        "scalar" => {
-            let result: Sample = serde_json::from_value(data).map_err(Error::ResponseParse)?;
-            Ok(QueryResultType::Scalar(result))
+        QueryResultType::Scalar => {
+            let sample: Sample =
+                serde_json::from_value(result.data).map_err(Error::ResponseParse)?;
+            Ok(PromqlResult::Scalar(sample))
         }
-        _ => Err(Error::UnsupportedQueryResultType(
-            UnsupportedQueryResultType(data_type.to_string()),
-        )),
     }
 }

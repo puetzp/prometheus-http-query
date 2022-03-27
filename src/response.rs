@@ -117,19 +117,54 @@ mod de {
     }
 }
 
+#[derive(Debug, Deserialize)]
+pub(crate) struct ApiResponse {
+    pub(crate) status: ApiResponseStatus,
+    pub(crate) data: Option<serde_json::Value>,
+    #[serde(alias = "errorType")]
+    pub(crate) error_type: Option<String>,
+    pub(crate) error: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) enum ApiResponseStatus {
+    #[serde(alias = "success")]
+    Success,
+    #[serde(alias = "error")]
+    Error,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct QueryResult {
+    #[serde(alias = "resultType")]
+    pub(crate) kind: QueryResultType,
+    #[serde(alias = "result")]
+    pub(crate) data: serde_json::Value,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) enum QueryResultType {
+    #[serde(alias = "vector")]
+    Vector,
+    #[serde(alias = "matrix")]
+    Matrix,
+    #[serde(alias = "scalar")]
+    Scalar,
+}
+
 /// A wrapper for possible result types of expression queries ([crate::Client::query] and [crate::Client::query_range]).
 #[derive(Clone, Debug)]
-pub enum QueryResultType {
+pub enum PromqlResult {
     Vector(Vec<InstantVector>),
     Matrix(Vec<RangeVector>),
     Scalar(Sample),
 }
 
-impl QueryResultType {
+impl PromqlResult {
     /// If the result type of the query is `vector`, returns an array of [InstantVector]s. Returns `None` otherwise.
     pub fn as_instant(&self) -> Option<&[InstantVector]> {
         match self {
-            QueryResultType::Vector(v) => Some(v.as_ref()),
+            PromqlResult::Vector(v) => Some(v.as_ref()),
             _ => None,
         }
     }
@@ -137,7 +172,7 @@ impl QueryResultType {
     /// If the result type of the query is `matrix` returns an array of [RangeVector]s. Returns `None` otherwise.
     pub fn as_range(&self) -> Option<&[RangeVector]> {
         match self {
-            QueryResultType::Matrix(v) => Some(v.as_ref()),
+            PromqlResult::Matrix(v) => Some(v.as_ref()),
             _ => None,
         }
     }
@@ -145,7 +180,7 @@ impl QueryResultType {
     /// If the result type of the query is `scalar`, returns a single [Sample]. Returns `None` otherwise.
     pub fn as_scalar(&self) -> Option<&Sample> {
         match self {
-            QueryResultType::Scalar(v) => Some(v),
+            PromqlResult::Scalar(v) => Some(v),
             _ => None,
         }
     }

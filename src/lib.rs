@@ -167,6 +167,7 @@
 //!
 //! * Some [Client] methods may not work with older versions of the Prometheus server
 //! * The [String](https://prometheus.io/docs/prometheus/latest/querying/api/#strings) result type is not supported
+//! * Warnings contained in a API response will be ignored
 mod client;
 mod direct;
 mod error;
