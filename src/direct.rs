@@ -10,7 +10,6 @@ use std::str::FromStr;
 ///
 /// This is just a convenience function for one-off requests, see [Client::query].
 ///
-///
 /// ```rust
 /// use prometheus_http_query::{Error, query};
 ///
@@ -37,7 +36,6 @@ pub async fn query(
 /// Execute a range query.
 ///
 /// This is just a convenience function for one-off requests, see [Client::query_range].
-///
 ///
 /// ```rust
 /// use prometheus_http_query::{Error, query_range};

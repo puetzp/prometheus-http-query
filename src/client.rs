@@ -176,6 +176,12 @@ impl Client {
     }
 
     /// Execute an instant query.
+    ///
+    /// # Arguments
+    /// * `query` - PromQL query to exeute
+    /// * `time` - Evaluation timestamp as Unix timestamp (seconds)
+    /// * `timeout` - Evaluation timeout in milliseconds
+    ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
     ///
     /// ```rust
@@ -185,9 +191,9 @@ impl Client {
     /// async fn main() -> Result<(), Error> {
     ///     let client = Client::default();
     ///
-    ///     let q = "node_cpu_seconds_total";
+    ///     let q = "prometheus_http_requests_total";
     ///
-    ///     let response = client.query(q, None, None).await?;
+    ///     let response = client.query(q, Some(1648379069), Some(1000)).await?;
     ///
     ///     assert!(response.as_instant().is_some());
     ///
@@ -211,7 +217,7 @@ impl Client {
             params.push(("time", t));
         }
 
-        let timeout = timeout.map(|t| t.to_string());
+        let timeout = timeout.map(|t| format!("{}ms", t));
 
         if let Some(t) = timeout {
             params.push(("timeout", t));
@@ -235,8 +241,30 @@ impl Client {
     /// Execute a range query.
     ///
     /// # Arguments
-    /// * `step` - bla
+    /// * `query` - PromQL query to exeute
+    /// * `start` - Start timestamp as Unix timestamp (seconds)
+    /// * `end` - End timestamp as Unix timestamp (seconds)
+    /// * `step` - Query resolution step width as float number of seconds
+    /// * `timeout` - Evaluation timeout in milliseconds
+    ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries)
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Error};
+    ///
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), Error> {
+    ///     let client = Client::default();
+    ///
+    ///     let q = "prometheus_http_requests_total";
+    ///
+    ///     let response = client.query_range(q, 1648373100, 1648373300, 10.0, None).await?;
+    ///
+    ///     assert!(response.as_range().is_some());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
     pub async fn query_range(
         &self,
         query: impl std::string::ToString,
@@ -259,7 +287,7 @@ impl Client {
             ("step", step),
         ];
 
-        let timeout = timeout.map(|t| t.to_string());
+        let timeout = timeout.map(|t| format!("{}ms", t));
 
         if let Some(t) = timeout {
             params.push(("timeout", t));
@@ -281,6 +309,12 @@ impl Client {
     }
 
     /// Find time series that match certain label sets ([Selector]s).
+    ///
+    /// # Arguments
+    /// * `selectors` - List of [Selector]s that select the series to return
+    /// * `start` - Start timestamp as Unix timestamp (seconds)
+    /// * `end` - End timestamp as Unix timestamp (seconds)
+    ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers)
     ///
     /// ```rust
@@ -367,6 +401,12 @@ impl Client {
     }
 
     /// Retrieve all label names (or use [Selector]s to select time series to read label names from).
+    ///
+    /// # Arguments
+    /// * `selectors` - List of [Selector]s that select the series to read the label names from
+    /// * `start` - Start timestamp as Unix timestamp (seconds)
+    /// * `end` - End timestamp as Unix timestamp (seconds)
+    ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#getting-label-names)
     ///
     /// ```rust
@@ -458,6 +498,12 @@ impl Client {
     }
 
     /// Retrieve all label values for a label name (or use [Selector]s to select the time series to read label values from)
+    ///
+    /// # Arguments
+    /// * `selectors` - List of [Selector]s that select the series to read the label values from
+    /// * `start` - Start timestamp as Unix timestamp (seconds)
+    /// * `end` - End timestamp as Unix timestamp (seconds)
+    ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-label-values)
     ///
     /// ```rust
@@ -546,6 +592,7 @@ impl Client {
     }
 
     /// Query the current state of target discovery.
+    ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#targets)
     ///
     /// ```rust
@@ -597,6 +644,7 @@ impl Client {
     }
 
     /// Retrieve a list of rule groups of recording and alerting rules.
+    ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#rules)
     ///
     /// ```rust
@@ -651,6 +699,7 @@ impl Client {
     }
 
     /// Retrieve a list of active alerts.
+    ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#alerts)
     ///
     /// ```rust
@@ -691,6 +740,7 @@ impl Client {
     }
 
     /// Retrieve a list of flags that Prometheus was configured with.
+    ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#flags)
     ///
     /// ```rust
@@ -728,6 +778,7 @@ impl Client {
     }
 
     /// Retrieve Prometheus server build information.
+    ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#build-information)
     ///
     /// ```rust
@@ -765,6 +816,7 @@ impl Client {
     }
 
     /// Retrieve Prometheus server runtime information.
+    ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#runtime-information)
     ///
     /// ```rust
@@ -802,6 +854,7 @@ impl Client {
     }
 
     /// Query the current state of alertmanager discovery.
+    ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#alertmanagers)
     ///
     /// ```rust
@@ -839,6 +892,7 @@ impl Client {
     }
 
     /// Retrieve metadata about metrics that are currently scraped from targets, along with target information.
+    ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-target-metadata)
     ///
     /// ```rust
@@ -917,6 +971,7 @@ impl Client {
     }
 
     /// Retrieve metadata about metrics that are currently scraped from targets.
+    ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-metric-metadata)
     ///
     /// ```rust
