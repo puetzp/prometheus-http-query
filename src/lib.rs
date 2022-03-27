@@ -152,11 +152,13 @@
 //! * Some [Client] methods may not work with older versions of the Prometheus server
 //! * The [String](https://prometheus.io/docs/prometheus/latest/querying/api/#strings) result type is not supported
 mod client;
+mod direct;
 mod error;
 pub mod response;
 mod selector;
 mod util;
 pub use self::client::Client;
+pub use self::direct::*;
 pub use self::error::Error;
 pub use self::selector::Selector;
 pub use self::util::RuleType;

@@ -236,7 +236,7 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries)
     pub async fn query_range(
         &self,
-        vector: impl std::string::ToString,
+        query: impl std::string::ToString,
         start: i64,
         end: i64,
         step: f64,
@@ -244,7 +244,7 @@ impl Client {
     ) -> Result<QueryResultType, Error> {
         let url = format!("{}/query_range", self.base_url);
 
-        let query = vector.to_string();
+        let query = query.to_string();
         let start = start.to_string();
         let end = end.to_string();
         let step = step.to_string();
@@ -294,9 +294,7 @@ impl Client {
     ///         .eq("job", "node")
     ///         .regex_eq("mode", ".+");
     ///
-    ///     let set = vec![s1, s2];
-    ///
-    ///     let response = client.series(&set, None, None).await;
+    ///     let response = client.series(&[s1, s2], None, None).await;
     ///
     ///     assert!(response.is_ok());
     ///
