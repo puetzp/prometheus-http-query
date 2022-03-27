@@ -46,11 +46,13 @@
 //!     let q = r#"sum(prometheus_http_requests_total{code="200"})"#;
 //!
 //!     let response = client.query(q, None, None).await?;
+//!     let result = response.as_instant();
 //!
-//!     if let Some(result) = response.as_instant() {
-//!         let first = result.get(0).unwrap();
+//!     if matches!(result, Some(x) if x.first().is_some()) {
+//!         let first = result.unwrap().first().unwrap();
 //!         println!("Received a total of {} HTTP requests", first.sample().value());
 //!     }
+//!
 //!     Ok(())
 //! }
 //! ```
