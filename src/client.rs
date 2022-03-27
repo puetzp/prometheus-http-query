@@ -1,6 +1,5 @@
 use crate::error::{
-    Error, InvalidFunctionArgument, MissingFieldError, ResponseError, UnknownResponseStatus,
-    UnsupportedQueryResultType,
+    Error, MissingFieldError, ResponseError, UnknownResponseStatus, UnsupportedQueryResultType,
 };
 use crate::response::*;
 use crate::selector::Selector;
@@ -179,8 +178,8 @@ impl Client {
     ///
     /// # Arguments
     /// * `query` - PromQL query to exeute
-    /// * `time` - Evaluation timestamp as Unix timestamp (seconds)
-    /// * `timeout` - Evaluation timeout in milliseconds
+    /// * `time` - Evaluation timestamp as Unix timestamp (seconds). Optional, defaults to Prometheus server time.
+    /// * `timeout` - Evaluation timeout in milliseconds. Optional.
     ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
     ///
@@ -245,7 +244,7 @@ impl Client {
     /// * `start` - Start timestamp as Unix timestamp (seconds)
     /// * `end` - End timestamp as Unix timestamp (seconds)
     /// * `step` - Query resolution step width as float number of seconds
-    /// * `timeout` - Evaluation timeout in milliseconds
+    /// * `timeout` - Evaluation timeout in milliseconds. Optional.
     ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries)
     ///
@@ -311,9 +310,9 @@ impl Client {
     /// Find time series that match certain label sets ([Selector]s).
     ///
     /// # Arguments
-    /// * `selectors` - List of [Selector]s that select the series to return
-    /// * `start` - Start timestamp as Unix timestamp (seconds)
-    /// * `end` - End timestamp as Unix timestamp (seconds)
+    /// * `selectors` - List of [Selector]s that select the series to return. Must not be empty.
+    /// * `start` - Start timestamp as Unix timestamp (seconds). Optional.
+    /// * `end` - End timestamp as Unix timestamp (seconds). Optional.
     ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers)
     ///
@@ -344,6 +343,10 @@ impl Client {
         start: Option<i64>,
         end: Option<i64>,
     ) -> Result<Vec<HashMap<String, String>>, Error> {
+        if selectors.is_empty() {
+            return Err(Error::EmptySeriesSelector);
+        }
+
         let url = format!("{}/series", self.base_url);
 
         let mut params = vec![];
@@ -358,12 +361,6 @@ impl Client {
 
         if let Some(e) = &end {
             params.push(("end", e.as_str()));
-        }
-
-        if selectors.is_empty() {
-            return Err(Error::InvalidFunctionArgument(InvalidFunctionArgument {
-                message: String::from("at least one match[] argument (Selector) must be provided in order to query the series endpoint")
-            }));
         }
 
         let selectors: Vec<String> = selectors
@@ -400,12 +397,12 @@ impl Client {
         })
     }
 
-    /// Retrieve all label names (or use [Selector]s to select time series to read label names from).
+    /// Retrieve label names.
     ///
     /// # Arguments
-    /// * `selectors` - List of [Selector]s that select the series to read the label names from
-    /// * `start` - Start timestamp as Unix timestamp (seconds)
-    /// * `end` - End timestamp as Unix timestamp (seconds)
+    /// * `selectors` - List of [Selector]s to restrict the set of time series to read the label names from. Optional.
+    /// * `start` - Start timestamp as Unix timestamp (seconds). Optional.
+    /// * `end` - End timestamp as Unix timestamp (seconds). Optional.
     ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#getting-label-names)
     ///
@@ -497,12 +494,13 @@ impl Client {
         })
     }
 
-    /// Retrieve all label values for a label name (or use [Selector]s to select the time series to read label values from)
+    /// Retrieve all label values for a specific label name.
     ///
     /// # Arguments
-    /// * `selectors` - List of [Selector]s that select the series to read the label values from
-    /// * `start` - Start timestamp as Unix timestamp (seconds)
-    /// * `end` - End timestamp as Unix timestamp (seconds)
+    /// * `label` - Name of the label to return all occuring label values for.
+    /// * `selectors` - List of [Selector]s to restrict the set of time series to read the label values from. Optional.
+    /// * `start` - Start timestamp as Unix timestamp (seconds). Optional.
+    /// * `end` - End timestamp as Unix timestamp (seconds). Optional.
     ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-label-values)
     ///

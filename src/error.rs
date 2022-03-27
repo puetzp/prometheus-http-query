@@ -5,14 +5,11 @@ use std::fmt;
 /// types of errors.
 #[derive(Debug)]
 pub enum Error {
-    InvalidTimeDuration,
-    IllegalTimeSeriesSelector,
-    InvalidRangeVector,
     Reqwest(reqwest::Error),
     ResponseError(ResponseError),
     UnsupportedQueryResultType(UnsupportedQueryResultType),
     UnknownResponseStatus(UnknownResponseStatus),
-    InvalidFunctionArgument(InvalidFunctionArgument),
+    EmptySeriesSelector,
     UrlParse(url::ParseError),
     ResponseParse(serde_json::Error),
     MissingField(MissingFieldError),
@@ -21,14 +18,11 @@ pub enum Error {
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::InvalidTimeDuration => InvalidTimeDurationError.fmt(f),
-            Self::IllegalTimeSeriesSelector => IllegalTimeSeriesSelectorError.fmt(f),
-            Self::InvalidRangeVector => InvalidRangeVectorError.fmt(f),
             Self::Reqwest(e) => e.fmt(f),
             Self::ResponseError(e) => e.fmt(f),
             Self::UnsupportedQueryResultType(e) => e.fmt(f),
             Self::UnknownResponseStatus(e) => e.fmt(f),
-            Self::InvalidFunctionArgument(e) => e.fmt(f),
+            Self::EmptySeriesSelector => write!(f, "at least one series selector must be provided in order to query the series endpoint"),
             Self::UrlParse(e) => e.fmt(f),
             Self::ResponseParse(e) => e.fmt(f),
             Self::MissingField(e) => e.fmt(f),
@@ -37,41 +31,6 @@ impl fmt::Display for Error {
 }
 
 impl StdError for Error {}
-
-/// This error is thrown when a time duration is invalidated or empty.<br>
-/// See the [Prometheus reference](https://prometheus.io/docs/prometheus/latest/querying/basics/#time-durations)
-/// for the correct time duration syntax.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct InvalidTimeDurationError;
-
-impl fmt::Display for InvalidTimeDurationError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "the provided time duration is invalid as it does not comply with PromQL time duration syntax")
-    }
-}
-
-/// This error is thrown when a [Selector] cannot be contructed from the
-/// provided metric name and/or the list of labels.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct IllegalTimeSeriesSelectorError;
-
-// error message was shamelessly copied from the PromQL documentation.
-impl fmt::Display for IllegalTimeSeriesSelectorError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "vector selectors must either specify a name or at least one label matcher that does not match the empty string")
-    }
-}
-
-/// This error is thrown when a [RangeVector] cannot be contructed from a
-/// given [Selector] configuration, e.g. due to a missing time duration.
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct InvalidRangeVectorError;
-
-impl fmt::Display for InvalidRangeVectorError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "range vectors must contain a time duration")
-    }
-}
 
 /// This error is thrown when the JSON response's `status` field contains `error`.<br>
 /// The error-related information in the response is included in this error.
@@ -113,19 +72,6 @@ impl fmt::Display for UnknownResponseStatus {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let UnknownResponseStatus(status) = self;
         write!(f, "the API returned an unknown response status , is '{}', must be either 'success' or 'error'", status)
-    }
-}
-
-/// This error is thrown whenever arguments supplied to [functions] have
-/// invalid values and would result in an API error.
-#[derive(Debug, Clone, PartialEq)]
-pub struct InvalidFunctionArgument {
-    pub(crate) message: String,
-}
-
-impl fmt::Display for InvalidFunctionArgument {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.message)
     }
 }
 
