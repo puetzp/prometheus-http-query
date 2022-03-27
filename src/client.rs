@@ -387,9 +387,9 @@ impl Client {
             .error_for_status()
             .map_err(Error::Client)?;
 
-        check_response(response).await.and_then(move |res| {
-            serde_json::from_value(res.to_owned()).map_err(Error::ResponseParse)
-        })
+        check_response(response)
+            .await
+            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
     /// Retrieve label names.
@@ -481,9 +481,9 @@ impl Client {
             .error_for_status()
             .map_err(Error::Client)?;
 
-        check_response(response).await.and_then(move |res| {
-            serde_json::from_value(res.to_owned()).map_err(Error::ResponseParse)
-        })
+        check_response(response)
+            .await
+            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
     /// Retrieve all label values for a specific label name.
@@ -573,9 +573,9 @@ impl Client {
             .error_for_status()
             .map_err(Error::Client)?;
 
-        check_response(response).await.and_then(move |res| {
-            serde_json::from_value(res.to_owned()).map_err(Error::ResponseParse)
-        })
+        check_response(response)
+            .await
+            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
     /// Query the current state of target discovery.
@@ -622,9 +622,9 @@ impl Client {
             .error_for_status()
             .map_err(Error::Client)?;
 
-        check_response(response).await.and_then(move |res| {
-            serde_json::from_value(res.to_owned()).map_err(Error::ResponseParse)
-        })
+        check_response(response)
+            .await
+            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
     /// Retrieve a list of rule groups of recording and alerting rules.
@@ -749,9 +749,9 @@ impl Client {
             .error_for_status()
             .map_err(Error::Client)?;
 
-        check_response(response).await.and_then(move |res| {
-            serde_json::from_value(res.to_owned()).map_err(Error::ResponseParse)
-        })
+        check_response(response)
+            .await
+            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
     /// Retrieve Prometheus server build information.
@@ -784,9 +784,9 @@ impl Client {
             .error_for_status()
             .map_err(Error::Client)?;
 
-        check_response(response).await.and_then(move |res| {
-            serde_json::from_value(res.to_owned()).map_err(Error::ResponseParse)
-        })
+        check_response(response)
+            .await
+            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
     /// Retrieve Prometheus server runtime information.
@@ -819,9 +819,9 @@ impl Client {
             .error_for_status()
             .map_err(Error::Client)?;
 
-        check_response(response).await.and_then(move |res| {
-            serde_json::from_value(res.to_owned()).map_err(Error::ResponseParse)
-        })
+        check_response(response)
+            .await
+            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
     /// Query the current state of alertmanager discovery.
@@ -854,9 +854,9 @@ impl Client {
             .error_for_status()
             .map_err(Error::Client)?;
 
-        check_response(response).await.and_then(move |res| {
-            serde_json::from_value(res.to_owned()).map_err(Error::ResponseParse)
-        })
+        check_response(response)
+            .await
+            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
     /// Retrieve metadata about metrics that are currently scraped from targets, along with target information.
@@ -930,9 +930,9 @@ impl Client {
             .error_for_status()
             .map_err(Error::Client)?;
 
-        check_response(response).await.and_then(move |res| {
-            serde_json::from_value(res.to_owned()).map_err(Error::ResponseParse)
-        })
+        check_response(response)
+            .await
+            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
     /// Retrieve metadata about metrics that are currently scraped from targets.
@@ -995,9 +995,9 @@ impl Client {
             .error_for_status()
             .map_err(Error::Client)?;
 
-        check_response(response).await.and_then(move |res| {
-            serde_json::from_value(res.to_owned()).map_err(Error::ResponseParse)
-        })
+        check_response(response)
+            .await
+            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 }
 

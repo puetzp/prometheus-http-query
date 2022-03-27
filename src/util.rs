@@ -98,6 +98,7 @@ impl fmt::Display for RuleType {
     }
 }
 
+#[allow(clippy::enum_variant_names)]
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum Label<'a> {
     Equal((&'a str, &'a str)),
