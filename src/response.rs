@@ -785,9 +785,9 @@ impl RuntimeInformation {
 
 /// Prometheus TSDB statistics.
 #[derive(Clone, Debug, Deserialize)]
-pub struct TsdbStats {
+pub struct TsdbStatistics {
     #[serde(alias = "headStats")]
-    pub(crate) head_stats: HeadStats,
+    pub(crate) head_stats: HeadStatistics,
     #[serde(alias = "seriesCountByMetricName")]
     pub(crate) series_count_by_metric_name: Vec<TsdbItemCount>,
     #[serde(alias = "labelValueCountByLabelName")]
@@ -798,9 +798,9 @@ pub struct TsdbStats {
     pub(crate) series_count_by_label_value_pair: Vec<TsdbItemCount>,
 }
 
-impl TsdbStats {
+impl TsdbStatistics {
     /// Get the head block data.
-    pub fn head_stats(&self) -> HeadStats {
+    pub fn head_stats(&self) -> HeadStatistics {
         self.head_stats
     }
 
@@ -826,8 +826,8 @@ impl TsdbStats {
 }
 
 /// Prometheus TSDB head block data.
-#[derive(Clone, Debug, Deserialize, Copy)]
-pub struct HeadStats {
+#[derive(Clone, Copy, Debug, Deserialize)]
+pub struct HeadStatistics {
     #[serde(alias = "numSeries")]
     pub(crate) num_series: usize,
     #[serde(alias = "chunkCount")]
@@ -838,7 +838,7 @@ pub struct HeadStats {
     pub(crate) max_time: i64,
 }
 
-impl HeadStats {
+impl HeadStatistics {
     /// Get the number of series.
     pub fn num_series(&self) -> usize {
         self.num_series
@@ -877,6 +877,43 @@ impl TsdbItemCount {
     pub fn value(&self) -> usize {
         self.value
     }
+}
+
+/// WAL replay state.
+#[derive(Clone, Copy, Debug, Deserialize)]
+pub struct WalReplayStatistics {
+    pub(crate) min: usize,
+    pub(crate) max: usize,
+    pub(crate) current: usize,
+    pub(crate) state: Option<WalReplayState>,
+}
+
+impl WalReplayStatistics {
+    pub fn min(&self) -> usize {
+        self.min
+    }
+
+    pub fn max(&self) -> usize {
+        self.max
+    }
+
+    pub fn current(&self) -> usize {
+        self.current
+    }
+
+    pub fn state(&self) -> Option<WalReplayState> {
+        self.state
+    }
+}
+
+#[derive(Clone, Copy, Debug, Deserialize)]
+pub enum WalReplayState {
+    #[serde(alias = "waiting")]
+    Waiting,
+    #[serde(alias = "in progress")]
+    InProgress,
+    #[serde(alias = "done")]
+    Done,
 }
 
 #[cfg(test)]
@@ -1284,8 +1321,53 @@ mod tests {
   ]
 }
 "#;
-        let result: Result<TsdbStats, serde_json::Error> = serde_json::from_str(data);
-        println!("{:?}", result);
+        let result: Result<TsdbStatistics, serde_json::Error> = serde_json::from_str(data);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_wal_replay_deserialization() {
+        let data = r#"
+{
+  "min": 2,
+  "max": 5,
+  "current": 40,
+  "state": "waiting"
+}
+"#;
+        let result: Result<WalReplayStatistics, serde_json::Error> = serde_json::from_str(data);
+        assert!(result.is_ok());
+
+        let data = r#"
+{
+  "min": 2,
+  "max": 5,
+  "current": 40,
+  "state": "in progress"
+}
+"#;
+        let result: Result<WalReplayStatistics, serde_json::Error> = serde_json::from_str(data);
+        assert!(result.is_ok());
+
+        let data = r#"
+{
+  "min": 2,
+  "max": 5,
+  "current": 40,
+  "state": "done"
+}
+"#;
+        let result: Result<WalReplayStatistics, serde_json::Error> = serde_json::from_str(data);
+        assert!(result.is_ok());
+
+        let data = r#"
+{
+  "min": 2,
+  "max": 5,
+  "current": 40
+}
+"#;
+        let result: Result<WalReplayStatistics, serde_json::Error> = serde_json::from_str(data);
         assert!(result.is_ok());
     }
 }
