@@ -824,6 +824,41 @@ impl Client {
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
+    /// Retrieve Prometheus TSDB statistics.
+    ///
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#tsdb-stats)
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Error};
+    ///
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), Error> {
+    ///     let client = Client::default();
+    ///
+    ///     let response = client.tsdb_statistics().await;
+    ///
+    ///     assert!(response.is_ok());
+    ///
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn tsdb_statistics(&self) -> Result<TsdbStats, Error> {
+        let url = format!("{}/status/tsdb", self.base_url);
+
+        let response = self
+            .client
+            .get(&url)
+            .send()
+            .await
+            .map_err(Error::Client)?
+            .error_for_status()
+            .map_err(Error::Client)?;
+
+        check_response(response)
+            .await
+            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
+    }
+
     /// Query the current state of alertmanager discovery.
     ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#alertmanagers)

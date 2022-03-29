@@ -782,6 +782,103 @@ impl RuntimeInformation {
         &self.storage_retention
     }
 }
+
+/// Prometheus TSDB statistics.
+#[derive(Clone, Debug, Deserialize)]
+pub struct TsdbStats {
+    #[serde(alias = "headStats")]
+    pub(crate) head_stats: HeadStats,
+    #[serde(alias = "seriesCountByMetricName")]
+    pub(crate) series_count_by_metric_name: Vec<TsdbItemCount>,
+    #[serde(alias = "labelValueCountByLabelName")]
+    pub(crate) label_value_count_by_label_name: Vec<TsdbItemCount>,
+    #[serde(alias = "memoryInBytesByLabelName")]
+    pub(crate) memory_in_bytes_by_label_name: Vec<TsdbItemCount>,
+    #[serde(alias = "seriesCountByLabelValuePair")]
+    pub(crate) series_count_by_label_value_pair: Vec<TsdbItemCount>,
+}
+
+impl TsdbStats {
+    /// Get the head block data.
+    pub fn head_stats(&self) -> HeadStats {
+        self.head_stats
+    }
+
+    /// Get a list of metric names and their series count.
+    pub fn series_count_by_metric_name(&self) -> &[TsdbItemCount] {
+        &self.series_count_by_metric_name
+    }
+
+    /// Get a list of label names and their value count.
+    pub fn label_value_count_by_label_name(&self) -> &[TsdbItemCount] {
+        &self.label_value_count_by_label_name
+    }
+
+    /// Get a list of label names and memory used in bytes.
+    pub fn memory_in_bytes_by_label_name(&self) -> &[TsdbItemCount] {
+        &self.memory_in_bytes_by_label_name
+    }
+
+    /// Get a list of label name/value pairs and their series count.
+    pub fn series_count_by_label_value_pair(&self) -> &[TsdbItemCount] {
+        &self.series_count_by_label_value_pair
+    }
+}
+
+/// Prometheus TSDB head block data.
+#[derive(Clone, Debug, Deserialize, Copy)]
+pub struct HeadStats {
+    #[serde(alias = "numSeries")]
+    pub(crate) num_series: usize,
+    #[serde(alias = "chunkCount")]
+    pub(crate) chunk_count: usize,
+    #[serde(alias = "minTime")]
+    pub(crate) min_time: i64,
+    #[serde(alias = "maxTime")]
+    pub(crate) max_time: i64,
+}
+
+impl HeadStats {
+    /// Get the number of series.
+    pub fn num_series(&self) -> usize {
+        self.num_series
+    }
+
+    /// Get the number of chunks.
+    pub fn chunk_count(&self) -> usize {
+        self.chunk_count
+    }
+
+    /// Get the current minimum timestamp in milliseconds.
+    pub fn min_time(&self) -> i64 {
+        self.min_time
+    }
+
+    /// Get the current maximum timestamp in milliseconds.
+    pub fn max_time(&self) -> i64 {
+        self.max_time
+    }
+}
+
+/// Prometheus TSDB item counts used in different contexts (e.g. series count, label value count ...).
+#[derive(Clone, Debug, Deserialize)]
+pub struct TsdbItemCount {
+    pub(crate) name: String,
+    pub(crate) value: usize,
+}
+
+impl TsdbItemCount {
+    /// Get the name of the item in question, e.g. metric name or label name.
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+
+    /// Get the count of the item in question, e.g. the series count of a given metric name.
+    pub fn value(&self) -> usize {
+        self.value
+    }
+}
+
 #[cfg(test)]
 mod tests {
     // The examples used in these test cases are taken from prometheus.io.
@@ -1132,6 +1229,63 @@ mod tests {
 }
 "#;
         let result: Result<RuntimeInformation, serde_json::Error> = serde_json::from_str(data);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_tsdb_stats_deserialization() {
+        let data = r#"
+{
+  "headStats": {
+    "numSeries": 508,
+    "chunkCount": 937,
+    "minTime": 1591516800000,
+    "maxTime": 1598896800143
+  },
+  "seriesCountByMetricName": [
+    {
+      "name": "net_conntrack_dialer_conn_failed_total",
+      "value": 20
+    },
+    {
+      "name": "prometheus_http_request_duration_seconds_bucket",
+      "value": 20
+    }
+  ],
+  "labelValueCountByLabelName": [
+    {
+      "name": "__name__",
+      "value": 211
+    },
+    {
+      "name": "event",
+      "value": 3
+    }
+  ],
+  "memoryInBytesByLabelName": [
+    {
+      "name": "__name__",
+      "value": 8266
+    },
+    {
+      "name": "instance",
+      "value": 28
+    }
+  ],
+  "seriesCountByLabelValuePair": [
+    {
+      "name": "job=prometheus",
+      "value": 425
+    },
+    {
+      "name": "instance=localhost:9090",
+      "value": 425
+    }
+  ]
+}
+"#;
+        let result: Result<TsdbStats, serde_json::Error> = serde_json::from_str(data);
+        println!("{:?}", result);
         assert!(result.is_ok());
     }
 }
