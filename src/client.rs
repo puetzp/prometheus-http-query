@@ -172,6 +172,29 @@ impl Client {
         Ok(Client { base_url, client })
     }
 
+    /// Build and send the final HTTP request. Parse the result as JSON.
+    async fn send(
+        &self,
+        url: String,
+        params: Option<Vec<(&str, String)>>,
+    ) -> Result<ApiResponse, Error> {
+        let mut request = self.client.get(&url);
+
+        if let Some(p) = params {
+            request = request.query(p.as_slice());
+        }
+
+        request
+            .send()
+            .await
+            .map_err(Error::Client)?
+            .error_for_status()
+            .map_err(Error::Client)?
+            .json::<ApiResponse>()
+            .await
+            .map_err(Error::Client)
+    }
+
     /// Execute an instant query.
     ///
     /// # Arguments
@@ -217,18 +240,9 @@ impl Client {
             params.push(("timeout", t));
         }
 
-        let response = self
-            .client
-            .get(&url)
-            .query(params.as_slice())
-            .send()
+        self.send(url, Some(params))
             .await
-            .map_err(Error::Client)?
-            .error_for_status()
-            .map_err(Error::Client)?;
-
-        check_response(response)
-            .await
+            .and_then(check_api_response)
             .and_then(convert_query_response)
     }
 
@@ -280,18 +294,9 @@ impl Client {
             params.push(("timeout", format!("{}ms", t)));
         }
 
-        let response = self
-            .client
-            .get(&url)
-            .query(params.as_slice())
-            .send()
+        self.send(url, Some(params))
             .await
-            .map_err(Error::Client)?
-            .error_for_status()
-            .map_err(Error::Client)?;
-
-        check_response(response)
-            .await
+            .and_then(check_api_response)
             .and_then(convert_query_response)
     }
 
@@ -354,18 +359,9 @@ impl Client {
 
         params.append(&mut matchers);
 
-        let response = self
-            .client
-            .get(&url)
-            .query(params.as_slice())
-            .send()
+        self.send(url, Some(params))
             .await
-            .map_err(Error::Client)?
-            .error_for_status()
-            .map_err(Error::Client)?;
-
-        check_response(response)
-            .await
+            .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -432,18 +428,9 @@ impl Client {
             params.append(&mut matchers);
         }
 
-        let response = self
-            .client
-            .get(&url)
-            .query(params.as_slice())
-            .send()
+        self.send(url, Some(params))
             .await
-            .map_err(Error::Client)?
-            .error_for_status()
-            .map_err(Error::Client)?;
-
-        check_response(response)
-            .await
+            .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -508,18 +495,9 @@ impl Client {
             params.append(&mut matchers);
         }
 
-        let response = self
-            .client
-            .get(&url)
-            .query(params.as_slice())
-            .send()
+        self.send(url, Some(params))
             .await
-            .map_err(Error::Client)?
-            .error_for_status()
-            .map_err(Error::Client)?;
-
-        check_response(response)
-            .await
+            .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -555,18 +533,9 @@ impl Client {
             params.push(("state", s.to_string()))
         }
 
-        let response = self
-            .client
-            .get(&url)
-            .query(params.as_slice())
-            .send()
+        self.send(url, Some(params))
             .await
-            .map_err(Error::Client)?
-            .error_for_status()
-            .map_err(Error::Client)?;
-
-        check_response(response)
-            .await
+            .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -602,23 +571,18 @@ impl Client {
             params.push(("type", s.to_string()))
         }
 
-        let response = self
-            .client
-            .get(&url)
-            .query(params.as_slice())
-            .send()
+        self.send(url, Some(params))
             .await
-            .map_err(Error::Client)?
-            .error_for_status()
-            .map_err(Error::Client)?;
-
-        check_response(response).await.and_then(move |res| {
-            res.as_object()
-                .unwrap()
-                .get("groups")
-                .ok_or(Error::MissingField(MissingFieldError("groups")))
-                .and_then(|d| serde_json::from_value(d.to_owned()).map_err(Error::ResponseParse))
-        })
+            .and_then(check_api_response)
+            .and_then(move |res| {
+                res.as_object()
+                    .unwrap()
+                    .get("groups")
+                    .ok_or(Error::MissingField(MissingFieldError("groups")))
+                    .and_then(|d| {
+                        serde_json::from_value(d.to_owned()).map_err(Error::ResponseParse)
+                    })
+            })
     }
 
     /// Retrieve a list of active alerts.
@@ -642,22 +606,18 @@ impl Client {
     pub async fn alerts(&self) -> Result<Vec<Alert>, Error> {
         let url = format!("{}/alerts", self.base_url);
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
+        self.send(url, None)
             .await
-            .map_err(Error::Client)?
-            .error_for_status()
-            .map_err(Error::Client)?;
-
-        check_response(response).await.and_then(move |res| {
-            res.as_object()
-                .unwrap()
-                .get("alerts")
-                .ok_or(Error::MissingField(MissingFieldError("alerts")))
-                .and_then(|d| serde_json::from_value(d.to_owned()).map_err(Error::ResponseParse))
-        })
+            .and_then(check_api_response)
+            .and_then(move |res| {
+                res.as_object()
+                    .unwrap()
+                    .get("alerts")
+                    .ok_or(Error::MissingField(MissingFieldError("alerts")))
+                    .and_then(|d| {
+                        serde_json::from_value(d.to_owned()).map_err(Error::ResponseParse)
+                    })
+            })
     }
 
     /// Retrieve a list of flags that Prometheus was configured with.
@@ -681,17 +641,9 @@ impl Client {
     pub async fn flags(&self) -> Result<HashMap<String, String>, Error> {
         let url = format!("{}/status/flags", self.base_url);
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
+        self.send(url, None)
             .await
-            .map_err(Error::Client)?
-            .error_for_status()
-            .map_err(Error::Client)?;
-
-        check_response(response)
-            .await
+            .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -716,17 +668,9 @@ impl Client {
     pub async fn build_information(&self) -> Result<BuildInformation, Error> {
         let url = format!("{}/status/buildinfo", self.base_url);
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
+        self.send(url, None)
             .await
-            .map_err(Error::Client)?
-            .error_for_status()
-            .map_err(Error::Client)?;
-
-        check_response(response)
-            .await
+            .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -751,17 +695,9 @@ impl Client {
     pub async fn runtime_information(&self) -> Result<RuntimeInformation, Error> {
         let url = format!("{}/status/runtimeinfo", self.base_url);
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
+        self.send(url, None)
             .await
-            .map_err(Error::Client)?
-            .error_for_status()
-            .map_err(Error::Client)?;
-
-        check_response(response)
-            .await
+            .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -786,17 +722,9 @@ impl Client {
     pub async fn tsdb_statistics(&self) -> Result<TsdbStatistics, Error> {
         let url = format!("{}/status/tsdb", self.base_url);
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
+        self.send(url, None)
             .await
-            .map_err(Error::Client)?
-            .error_for_status()
-            .map_err(Error::Client)?;
-
-        check_response(response)
-            .await
+            .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -821,17 +749,9 @@ impl Client {
     pub async fn wal_replay_statistics(&self) -> Result<WalReplayStatistics, Error> {
         let url = format!("{}/status/walreplay", self.base_url);
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
+        self.send(url, None)
             .await
-            .map_err(Error::Client)?
-            .error_for_status()
-            .map_err(Error::Client)?;
-
-        check_response(response)
-            .await
+            .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -856,17 +776,9 @@ impl Client {
     pub async fn alertmanagers(&self) -> Result<Alertmanagers, Error> {
         let url = format!("{}/alertmanagers", self.base_url);
 
-        let response = self
-            .client
-            .get(&url)
-            .send()
+        self.send(url, None)
             .await
-            .map_err(Error::Client)?
-            .error_for_status()
-            .map_err(Error::Client)?;
-
-        check_response(response)
-            .await
+            .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -925,18 +837,9 @@ impl Client {
             params.push(("limit", l.to_string()))
         }
 
-        let response = self
-            .client
-            .get(&url)
-            .query(params.as_slice())
-            .send()
+        self.send(url, Some(params))
             .await
-            .map_err(Error::Client)?
-            .error_for_status()
-            .map_err(Error::Client)?;
-
-        check_response(response)
-            .await
+            .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -986,30 +889,16 @@ impl Client {
             params.push(("limit", l.to_string()))
         }
 
-        let response = self
-            .client
-            .get(&url)
-            .query(params.as_slice())
-            .send()
+        self.send(url, Some(params))
             .await
-            .map_err(Error::Client)?
-            .error_for_status()
-            .map_err(Error::Client)?;
-
-        check_response(response)
-            .await
+            .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 }
 
 // Convert the response object to an intermediary map, check the JSON's status field
 // and map potential errors (if any) to a proper error type. Else return the map.
-async fn check_response(response: reqwest::Response) -> Result<serde_json::Value, Error> {
-    let response = response
-        .json::<ApiResponse>()
-        .await
-        .map_err(Error::Client)?;
-
+fn check_api_response(response: ApiResponse) -> Result<serde_json::Value, Error> {
     match response.status {
         ApiResponseStatus::Success => {
             let data = response
