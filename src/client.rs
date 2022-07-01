@@ -205,13 +205,10 @@ impl Client {
     ) -> Result<PromqlResult, Error> {
         let url = format!("{}/query", self.base_url);
 
-        let query = query.to_string();
-        let mut params = vec![("query", query)];
-
-        let time = time.map(|t| t.to_string());
+        let mut params = vec![("query", query.to_string())];
 
         if let Some(t) = time {
-            params.push(("time", t));
+            params.push(("time", t.to_string()));
         }
 
         let timeout = timeout.map(|t| format!("{}ms", t));
@@ -272,22 +269,15 @@ impl Client {
     ) -> Result<PromqlResult, Error> {
         let url = format!("{}/query_range", self.base_url);
 
-        let query = query.to_string();
-        let start = start.to_string();
-        let end = end.to_string();
-        let step = step.to_string();
-
         let mut params = vec![
-            ("query", query),
-            ("start", start),
-            ("end", end),
-            ("step", step),
+            ("query", query.to_string()),
+            ("start", start.to_string()),
+            ("end", end.to_string()),
+            ("step", step.to_string()),
         ];
 
-        let timeout = timeout.map(|t| format!("{}ms", t));
-
         if let Some(t) = timeout {
-            params.push(("timeout", t));
+            params.push(("timeout", format!("{}ms", t)));
         }
 
         let response = self
@@ -349,33 +339,20 @@ impl Client {
 
         let mut params = vec![];
 
-        let start = start.map(|t| t.to_string());
-
-        if let Some(s) = &start {
-            params.push(("start", s.as_str()));
+        if let Some(s) = start {
+            params.push(("start", s.to_string()));
         }
 
-        let end = end.map(|t| t.to_string());
-
-        if let Some(e) = &end {
-            params.push(("end", e.as_str()));
+        if let Some(e) = end {
+            params.push(("end", e.to_string()));
         }
 
-        let selectors: Vec<String> = selectors
+        let mut matchers: Vec<(&str, String)> = selectors
             .iter()
-            .map(|s| match s.to_string().as_str().split_once('}') {
-                Some(split) => {
-                    let mut s = split.0.to_owned();
-                    s.push('}');
-                    s
-                }
-                None => s.to_string(),
-            })
+            .map(|s| ("match[]", s.to_string()))
             .collect();
 
-        for selector in &selectors {
-            params.push(("match[]", selector));
-        }
+        params.append(&mut matchers);
 
         let response = self
             .client
@@ -440,35 +417,19 @@ impl Client {
 
         let mut params = vec![];
 
-        let start = start.map(|t| t.to_string());
-
         if let Some(s) = &start {
-            params.push(("start", s.as_str()));
+            params.push(("start", s.to_string()));
         }
-
-        let end = end.map(|t| t.to_string());
 
         if let Some(e) = &end {
-            params.push(("end", e.as_str()));
+            params.push(("end", e.to_string()));
         }
 
-        let selectors: Option<Vec<String>> = selectors.map(|vec| {
-            vec.iter()
-                .map(|s| match s.to_string().as_str().split_once('}') {
-                    Some(split) => {
-                        let mut s = split.0.to_owned();
-                        s.push('}');
-                        s
-                    }
-                    None => s.to_string(),
-                })
-                .collect()
-        });
+        if let Some(items) = selectors {
+            let mut matchers: Vec<(&str, String)> =
+                items.iter().map(|s| ("match[]", s.to_string())).collect();
 
-        if let Some(ref selector_vec) = selectors {
-            for selector in selector_vec {
-                params.push(("match[]", selector));
-            }
+            params.append(&mut matchers);
         }
 
         let response = self
@@ -532,35 +493,19 @@ impl Client {
 
         let mut params = vec![];
 
-        let start = start.map(|t| t.to_string());
-
         if let Some(s) = &start {
-            params.push(("start", s.as_str()));
+            params.push(("start", s.to_string()));
         }
-
-        let end = end.map(|t| t.to_string());
 
         if let Some(e) = &end {
-            params.push(("end", e.as_str()));
+            params.push(("end", e.to_string()));
         }
 
-        let selectors: Option<Vec<String>> = selectors.map(|vec| {
-            vec.iter()
-                .map(|s| match s.to_string().as_str().split_once('}') {
-                    Some(split) => {
-                        let mut s = split.0.to_owned();
-                        s.push('}');
-                        s
-                    }
-                    None => s.to_string(),
-                })
-                .collect()
-        });
+        if let Some(items) = selectors {
+            let mut matchers: Vec<(&str, String)> =
+                items.iter().map(|s| ("match[]", s.to_string())).collect();
 
-        if let Some(ref selector_vec) = selectors {
-            for selector in selector_vec {
-                params.push(("match[]", selector));
-            }
+            params.append(&mut matchers);
         }
 
         let response = self
@@ -606,10 +551,8 @@ impl Client {
 
         let mut params = vec![];
 
-        let state = state.map(|s| s.to_string());
-
         if let Some(s) = &state {
-            params.push(("state", s.as_str()))
+            params.push(("state", s.to_string()))
         }
 
         let response = self
@@ -655,10 +598,8 @@ impl Client {
 
         let mut params = vec![];
 
-        let rule_type = rule_type.map(|s| s.to_string());
-
-        if let Some(s) = &rule_type {
-            params.push(("type", s.as_str()))
+        if let Some(s) = rule_type {
+            params.push(("type", s.to_string()))
         }
 
         let response = self
@@ -972,22 +913,16 @@ impl Client {
 
         let mut params = vec![];
 
-        let metric = metric.map(|s| s.to_string());
-
-        if let Some(m) = &metric {
-            params.push(("metric", m.as_str()))
+        if let Some(m) = metric {
+            params.push(("metric", m.to_string()))
         }
 
-        let match_target = match_target.map(|s| s.to_string());
-
-        if let Some(m) = &match_target {
-            params.push(("match_target", m.as_str()))
+        if let Some(m) = match_target {
+            params.push(("match_target", m.to_string()))
         }
-
-        let limit = limit.map(|s| s.to_string());
 
         if let Some(l) = &limit {
-            params.push(("limit", l.as_str()))
+            params.push(("limit", l.to_string()))
         }
 
         let response = self
@@ -1043,16 +978,12 @@ impl Client {
 
         let mut params = vec![];
 
-        let metric = metric.map(|s| s.to_string());
-
         if let Some(m) = &metric {
-            params.push(("metric", m.as_str()))
+            params.push(("metric", m.to_string()))
         }
 
-        let limit = limit.map(|s| s.to_string());
-
         if let Some(l) = &limit {
-            params.push(("limit", l.as_str()))
+            params.push(("limit", l.to_string()))
         }
 
         let response = self
