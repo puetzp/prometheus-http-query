@@ -234,10 +234,8 @@ impl Client {
             params.push(("time", t.to_string()));
         }
 
-        let timeout = timeout.map(|t| format!("{}ms", t));
-
         if let Some(t) = timeout {
-            params.push(("timeout", t));
+            params.push(("timeout", format!("{}ms", t)));
         }
 
         self.send(url, Some(params))
