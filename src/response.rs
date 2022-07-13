@@ -184,6 +184,39 @@ impl PromqlResult {
             _ => None,
         }
     }
+
+    /// Check if this [PromqlResult] contains a list of [InstantVector]s (i.e. result type `vector`).
+    pub fn is_instant(&self) -> bool {
+        match self {
+            PromqlResult::Vector(_) => true,
+            _ => false,
+        }
+    }
+
+    /// Check if this [PromqlResult] contains a list of [RangeVector]s (i.e. result type `matrix`).
+    pub fn is_matrix(&self) -> bool {
+        match self {
+            PromqlResult::Matrix(_) => true,
+            _ => false,
+        }
+    }
+
+    /// Check if this [PromqlResult] contains a scalar value (i.e. result type `scalar`, a single [Sample]).
+    pub fn is_scalar(&self) -> bool {
+        match self {
+            PromqlResult::Scalar(_) => true,
+            _ => false,
+        }
+    }
+
+    /// This is a shortcut to check if the query returned any data at all regardless of the exact type.
+    pub fn is_empty(&self) -> bool {
+        match self {
+            PromqlResult::Vector(v) => v.is_empty(),
+            PromqlResult::Matrix(v) => v.is_empty(),
+            PromqlResult::Scalar(_) => false,
+        }
+    }
 }
 
 /// A single time series containing a single data point/sample.
