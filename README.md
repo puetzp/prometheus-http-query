@@ -17,8 +17,8 @@ async fn main() -> Result<(), Error> {
     assert!(response.as_instant().is_some());
 
     // Retrieve active alerts.
-    let alerts = client.alerts().await();
-    assert!(response.is_ok());
+    let alerts = client.alerts().await;
+    assert!(alerts.is_ok());
 
     // Retrieve recording rules.
     let recording_rules = client.rules(Some(RuleType::Record)).await;
