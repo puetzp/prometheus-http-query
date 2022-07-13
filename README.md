@@ -24,7 +24,7 @@ async fn main() -> Result<(), Error> {
     let recording_rules = client.rules(Some(RuleType::Record)).await;
     assert!(recording_rules.is_ok());
 
-    // Retrieve time series metadata.
+    // Retrieve a list of time series that match certain labels sets ("series selectors").
     let select1 = Selector::new()
         .eq("handler", "/api/v1/query");
 
