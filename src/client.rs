@@ -2,6 +2,7 @@ use crate::error::{ApiError, Error, MissingFieldError};
 use crate::response::*;
 use crate::selector::Selector;
 use crate::util::{RuleType, TargetState};
+use reqwest::Method as HttpMethod;
 use std::collections::HashMap;
 use url::Url;
 
@@ -10,12 +11,27 @@ use url::Url;
 #[derive(Clone)]
 pub struct InstantQueryBuilder {
     client: Client,
+    url: String,
     query: String,
     time: Option<i64>,
     timeout: Option<i64>,
 }
 
 impl InstantQueryBuilder {
+    fn build_params(&self) -> Vec<(&str, String)> {
+        let mut params = vec![("query", self.query.to_string())];
+
+        if let Some(t) = self.time {
+            params.push(("time", t.to_string()));
+        }
+
+        if let Some(t) = self.timeout {
+            params.push(("timeout", format!("{}ms", t)));
+        }
+
+        params
+    }
+
     /// Set the evaluation timestamp (Unix timestamp in seconds, e.g. 1659182624).
     /// If this is not set the evaluation timestamp will default to the current Prometheus
     /// server time.
@@ -35,20 +51,20 @@ impl InstantQueryBuilder {
 
     /// Execute the instant query (using HTTP GET) and return the parsed API response.
     pub async fn get(self) -> Result<PromqlResult, Error> {
-        let url = format!("{}/query", self.client.base_url);
-
-        let mut params = vec![("query", self.query)];
-
-        if let Some(t) = self.time {
-            params.push(("time", t.to_string()));
-        }
-
-        if let Some(t) = self.timeout {
-            params.push(("timeout", format!("{}ms", t)));
-        }
-
         self.client
-            .send(url, Some(params))
+            .send(&self.url, Some(self.build_params()), HttpMethod::GET)
+            .await
+            .and_then(check_api_response)
+            .and_then(convert_query_response)
+    }
+
+    /// Execute the instant query (using HTTP POST) and return the parsed API response.
+    /// Using a POST request is useful in the context of larger PromQL queries when
+    /// the size of the final URL may break Prometheus' or an intermediate proxies' URL
+    /// character limits.
+    pub async fn post(self) -> Result<PromqlResult, Error> {
+        self.client
+            .send(&self.url, Some(self.build_params()), HttpMethod::POST)
             .await
             .and_then(check_api_response)
             .and_then(convert_query_response)
@@ -60,6 +76,7 @@ impl InstantQueryBuilder {
 #[derive(Clone)]
 pub struct RangeQueryBuilder {
     client: Client,
+    url: String,
     query: String,
     start: i64,
     end: i64,
@@ -68,6 +85,21 @@ pub struct RangeQueryBuilder {
 }
 
 impl RangeQueryBuilder {
+    fn build_params(&self) -> Vec<(&str, String)> {
+        let mut params = vec![
+            ("query", self.query.to_string()),
+            ("start", self.start.to_string()),
+            ("end", self.end.to_string()),
+            ("step", self.step.to_string()),
+        ];
+
+        if let Some(t) = self.timeout {
+            params.push(("timeout", format!("{}ms", t)));
+        }
+
+        params
+    }
+
     /// Set the evaluation timeout (milliseconds, e.g. 1000).
     /// If this is not set the timeout will default to the value of the "-query.timeout" flag of the Prometheus server.
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries)
@@ -78,21 +110,20 @@ impl RangeQueryBuilder {
 
     /// Execute the range query (using HTTP GET) and return the parsed API response.
     pub async fn get(self) -> Result<PromqlResult, Error> {
-        let url = format!("{}/query_range", self.client.base_url);
-
-        let mut params = vec![
-            ("query", self.query),
-            ("start", self.start.to_string()),
-            ("end", self.end.to_string()),
-            ("step", self.step.to_string()),
-        ];
-
-        if let Some(t) = self.timeout {
-            params.push(("timeout", format!("{}ms", t)));
-        }
-
         self.client
-            .send(url, Some(params))
+            .send(&self.url, Some(self.build_params()), HttpMethod::GET)
+            .await
+            .and_then(check_api_response)
+            .and_then(convert_query_response)
+    }
+
+    /// Execute the instant query (using HTTP POST) and return the parsed API response.
+    /// Using a POST request is useful in the context of larger PromQL queries when
+    /// the size of the final URL may break Prometheus' or an intermediate proxies' URL
+    /// character limits.
+    pub async fn post(self) -> Result<PromqlResult, Error> {
+        self.client
+            .send(&self.url, Some(self.build_params()), HttpMethod::POST)
             .await
             .and_then(check_api_response)
             .and_then(convert_query_response)
@@ -269,14 +300,27 @@ impl Client {
     /// Build and send the final HTTP request. Parse the result as JSON.
     async fn send(
         &self,
-        url: String,
+        url: &str,
         params: Option<Vec<(&str, String)>>,
+        method: HttpMethod,
     ) -> Result<ApiResponse, Error> {
-        let mut request = self.client.get(&url);
-
-        if let Some(p) = params {
-            request = request.query(p.as_slice());
-        }
+        let request = match method {
+            HttpMethod::GET => {
+                let mut req = self.client.get(url);
+                if let Some(p) = params {
+                    req = req.query(p.as_slice());
+                }
+                req
+            }
+            HttpMethod::POST => {
+                let mut req = self.client.post(url);
+                if let Some(p) = params {
+                    req = req.form(p.as_slice());
+                }
+                req
+            }
+            _ => unreachable!(),
+        };
 
         request
             .send()
@@ -314,6 +358,7 @@ impl Client {
     pub fn query(&self, query: impl std::string::ToString) -> InstantQueryBuilder {
         InstantQueryBuilder {
             client: self.clone(),
+            url: format!("{}/query", self.base_url),
             query: query.to_string(),
             time: None,
             timeout: None,
@@ -356,6 +401,7 @@ impl Client {
     ) -> RangeQueryBuilder {
         RangeQueryBuilder {
             client: self.clone(),
+            url: format!("{}/query_range", self.base_url),
             query: query.to_string(),
             timeout: None,
             start,
@@ -423,7 +469,7 @@ impl Client {
 
         params.append(&mut matchers);
 
-        self.send(url, Some(params))
+        self.send(&url, Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -492,7 +538,7 @@ impl Client {
             params.append(&mut matchers);
         }
 
-        self.send(url, Some(params))
+        self.send(&url, Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -559,7 +605,7 @@ impl Client {
             params.append(&mut matchers);
         }
 
-        self.send(url, Some(params))
+        self.send(&url, Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -597,7 +643,7 @@ impl Client {
             params.push(("state", s.to_string()))
         }
 
-        self.send(url, Some(params))
+        self.send(&url, Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -635,7 +681,7 @@ impl Client {
             params.push(("type", s.to_string()))
         }
 
-        self.send(url, Some(params))
+        self.send(&url, Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| {
@@ -670,7 +716,7 @@ impl Client {
     pub async fn alerts(&self) -> Result<Vec<Alert>, Error> {
         let url = format!("{}/alerts", self.base_url);
 
-        self.send(url, None)
+        self.send(&url, None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| {
@@ -705,7 +751,7 @@ impl Client {
     pub async fn flags(&self) -> Result<HashMap<String, String>, Error> {
         let url = format!("{}/status/flags", self.base_url);
 
-        self.send(url, None)
+        self.send(&url, None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -732,7 +778,7 @@ impl Client {
     pub async fn build_information(&self) -> Result<BuildInformation, Error> {
         let url = format!("{}/status/buildinfo", self.base_url);
 
-        self.send(url, None)
+        self.send(&url, None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -759,7 +805,7 @@ impl Client {
     pub async fn runtime_information(&self) -> Result<RuntimeInformation, Error> {
         let url = format!("{}/status/runtimeinfo", self.base_url);
 
-        self.send(url, None)
+        self.send(&url, None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -786,7 +832,7 @@ impl Client {
     pub async fn tsdb_statistics(&self) -> Result<TsdbStatistics, Error> {
         let url = format!("{}/status/tsdb", self.base_url);
 
-        self.send(url, None)
+        self.send(&url, None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -813,7 +859,7 @@ impl Client {
     pub async fn wal_replay_statistics(&self) -> Result<WalReplayStatistics, Error> {
         let url = format!("{}/status/walreplay", self.base_url);
 
-        self.send(url, None)
+        self.send(&url, None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -840,7 +886,7 @@ impl Client {
     pub async fn alertmanagers(&self) -> Result<Alertmanagers, Error> {
         let url = format!("{}/alertmanagers", self.base_url);
 
-        self.send(url, None)
+        self.send(&url, None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -901,7 +947,7 @@ impl Client {
             params.push(("limit", l.to_string()))
         }
 
-        self.send(url, Some(params))
+        self.send(&url, Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -953,7 +999,7 @@ impl Client {
             params.push(("limit", l.to_string()))
         }
 
-        self.send(url, Some(params))
+        self.send(&url, Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
