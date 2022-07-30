@@ -41,11 +41,11 @@
 //!     let client = Client::default();
 //!
 //!     let q = "topk by (code) (5, prometheus_http_requests_total)";
-//!     let response = client.query(q, None, None).await?;
+//!     let response = client.query(q).get().await?;
 //!     assert!(response.as_instant().is_some());
 //!
 //!     let q = r#"sum(prometheus_http_requests_total{code="200"})"#;
-//!     let response = client.query(q, None, None).await?;
+//!     let response = client.query(q).get().await?;
 //!     let result = response.as_instant();
 //!
 //!     if matches!(result, Some(x) if x.first().is_some()) {
@@ -120,7 +120,7 @@
 //! #[tokio::main(flavor = "current_thread")]
 //! async fn main() -> Result<(), Error> {
 //!     let q = "topk by (code) (5, prometheus_http_requests_total)";
-//!     let response = query("http://localhost:9090", q, None, None).await?;
+//!     let response = query("http://localhost:9090", q)?.get().await?;
 //!
 //!     assert!(response.as_instant().is_some());
 //!
@@ -138,7 +138,7 @@
 //!
 //! # Supported operations
 //!
-//! - [x] Execute instant and range queries and properly parse the results (vector/matrix/scalar)
+//! - [x] Execute instant and range queries (GET or POST) and properly parse the results (vector/matrix/scalar)
 //! - [x] Execute series metadata queries
 //! - [x] Execute label metadata queries (names/values)
 //! - [x] Retrieve target discovery status
@@ -174,7 +174,7 @@ mod error;
 pub mod response;
 mod selector;
 mod util;
-pub use self::client::Client;
+pub use self::client::{Client, InstantQueryBuilder, RangeQueryBuilder};
 pub use self::direct::*;
 pub use self::error::Error;
 pub use self::selector::Selector;

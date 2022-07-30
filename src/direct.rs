@@ -17,20 +17,15 @@ use std::str::FromStr;
 /// async fn main() -> Result<(), Error> {
 ///     let q = "sum(prometheus_http_requests_total)";
 ///
-///     let response = query("http://localhost:9090", q, None, None).await?;
+///     let response = query("http://localhost:9090", q)?.timeout(1000).get().await?;
 ///
 ///     assert!(response.as_instant().is_some());
 ///
 ///     Ok(())
 /// }
 /// ```
-pub async fn query(
-    host: &str,
-    query: impl std::string::ToString,
-    time: Option<i64>,
-    timeout: Option<i64>,
-) -> Result<PromqlResult, Error> {
-    Client::from_str(host)?.query(query, time, timeout).await
+pub fn query(host: &str, query: impl std::string::ToString) -> Result<InstantQueryBuilder, Error> {
+    Client::from_str(host).map(|c| c.query(query))
 }
 
 /// Execute a range query.
@@ -44,24 +39,21 @@ pub async fn query(
 /// async fn main() -> Result<(), Error> {
 ///     let q = "sum(prometheus_http_requests_total)";
 ///
-///     let response = query_range("http://localhost:9090", q, 1648373100, 1648373300, 10.0, None).await?;
+///     let response = query_range("http://localhost:9090", q, 1648373100, 1648373300, 10.0)?.get().await?;
 ///
 ///     assert!(response.as_range().is_some());
 ///
 ///     Ok(())
 /// }
 /// ```
-pub async fn query_range(
+pub fn query_range(
     host: &str,
     query: impl std::string::ToString,
     start: i64,
     end: i64,
     step: f64,
-    timeout: Option<i64>,
-) -> Result<PromqlResult, Error> {
-    Client::from_str(host)?
-        .query_range(query, start, end, step, timeout)
-        .await
+) -> Result<RangeQueryBuilder, Error> {
+    Client::from_str(host).map(|c| c.query_range(query, start, end, step))
 }
 
 /// Find time series that match certain label sets ([Selector]s).

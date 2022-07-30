@@ -5,6 +5,100 @@ use crate::util::{RuleType, TargetState};
 use std::collections::HashMap;
 use url::Url;
 
+/// A builder object used to set some query parameters in the context
+/// of an instant query before sending the query on its way.
+#[derive(Clone)]
+pub struct InstantQueryBuilder {
+    client: Client,
+    query: String,
+    time: Option<i64>,
+    timeout: Option<i64>,
+}
+
+impl InstantQueryBuilder {
+    /// Set the evaluation timestamp (Unix timestamp in seconds, e.g. 1659182624).
+    /// If this is not set the evaluation timestamp will default to the current Prometheus
+    /// server time.
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
+    pub fn at(mut self, time: i64) -> Self {
+        self.time = Some(time);
+        self
+    }
+
+    /// Set the evaluation timeout (milliseconds, e.g. 1000).
+    /// If this is not set the timeout will default to the value of the "-query.timeout" flag of the Prometheus server.
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
+    pub fn timeout(mut self, timeout: i64) -> Self {
+        self.timeout = Some(timeout);
+        self
+    }
+
+    /// Execute the instant query (using HTTP GET) and return the parsed API response.
+    pub async fn get(self) -> Result<PromqlResult, Error> {
+        let url = format!("{}/query", self.client.base_url);
+
+        let mut params = vec![("query", self.query)];
+
+        if let Some(t) = self.time {
+            params.push(("time", t.to_string()));
+        }
+
+        if let Some(t) = self.timeout {
+            params.push(("timeout", format!("{}ms", t)));
+        }
+
+        self.client
+            .send(url, Some(params))
+            .await
+            .and_then(check_api_response)
+            .and_then(convert_query_response)
+    }
+}
+
+/// A builder object used to set some query parameters in the context
+/// of a range query before sending the query on its way.
+#[derive(Clone)]
+pub struct RangeQueryBuilder {
+    client: Client,
+    query: String,
+    start: i64,
+    end: i64,
+    step: f64,
+    timeout: Option<i64>,
+}
+
+impl RangeQueryBuilder {
+    /// Set the evaluation timeout (milliseconds, e.g. 1000).
+    /// If this is not set the timeout will default to the value of the "-query.timeout" flag of the Prometheus server.
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries)
+    pub fn timeout(mut self, timeout: i64) -> Self {
+        self.timeout = Some(timeout);
+        self
+    }
+
+    /// Execute the range query (using HTTP GET) and return the parsed API response.
+    pub async fn get(self) -> Result<PromqlResult, Error> {
+        let url = format!("{}/query_range", self.client.base_url);
+
+        let mut params = vec![
+            ("query", self.query),
+            ("start", self.start.to_string()),
+            ("end", self.end.to_string()),
+            ("step", self.step.to_string()),
+        ];
+
+        if let Some(t) = self.timeout {
+            params.push(("timeout", format!("{}ms", t)));
+        }
+
+        self.client
+            .send(url, Some(params))
+            .await
+            .and_then(check_api_response)
+            .and_then(convert_query_response)
+    }
+}
+
 /// A client used to execute queries. It uses a [reqwest::Client] internally
 /// that manages connections for us.
 #[derive(Clone)]
@@ -195,12 +289,11 @@ impl Client {
             .map_err(Error::Client)
     }
 
-    /// Execute an instant query.
+    /// Create an [InstantQueryBuilder] from a PromQL query allowing you to set some query parameters
+    /// (e.g. evaluation timeout) before finally sending the instant query to the server.
     ///
     /// # Arguments
     /// * `query` - PromQL query to exeute
-    /// * `time` - Evaluation timestamp as Unix timestamp (seconds). Optional, defaults to Prometheus server time.
-    /// * `timeout` - Evaluation timeout in milliseconds. Optional.
     ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
     ///
@@ -211,47 +304,30 @@ impl Client {
     /// async fn main() -> Result<(), Error> {
     ///     let client = Client::default();
     ///
-    ///     let q = "prometheus_http_requests_total";
-    ///
-    ///     let response = client.query(q, Some(1648379069), Some(1000)).await?;
+    ///     let response = client.query("prometheus_http_request_total").get().await?;
     ///
     ///     assert!(response.as_instant().is_some());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn query(
-        &self,
-        query: impl std::string::ToString,
-        time: Option<i64>,
-        timeout: Option<i64>,
-    ) -> Result<PromqlResult, Error> {
-        let url = format!("{}/query", self.base_url);
-
-        let mut params = vec![("query", query.to_string())];
-
-        if let Some(t) = time {
-            params.push(("time", t.to_string()));
+    pub fn query(&self, query: impl std::string::ToString) -> InstantQueryBuilder {
+        InstantQueryBuilder {
+            client: self.clone(),
+            query: query.to_string(),
+            time: None,
+            timeout: None,
         }
-
-        if let Some(t) = timeout {
-            params.push(("timeout", format!("{}ms", t)));
-        }
-
-        self.send(url, Some(params))
-            .await
-            .and_then(check_api_response)
-            .and_then(convert_query_response)
     }
 
-    /// Execute a range query.
+    /// Create a [RangeQueryBuilder] from a PromQL query allowing you to set some query parameters
+    /// (e.g. evaluation timeout) before finally sending the range query to the server.
     ///
     /// # Arguments
     /// * `query` - PromQL query to exeute
     /// * `start` - Start timestamp as Unix timestamp (seconds)
     /// * `end` - End timestamp as Unix timestamp (seconds)
     /// * `step` - Query resolution step width as float number of seconds
-    /// * `timeout` - Evaluation timeout in milliseconds. Optional.
     ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries)
     ///
@@ -264,38 +340,28 @@ impl Client {
     ///
     ///     let q = "prometheus_http_requests_total";
     ///
-    ///     let response = client.query_range(q, 1648373100, 1648373300, 10.0, None).await?;
+    ///     let response = client.query_range(q, 1648373100, 1648373300, 10.0).get().await?;
     ///
     ///     assert!(response.as_range().is_some());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn query_range(
+    pub fn query_range(
         &self,
         query: impl std::string::ToString,
         start: i64,
         end: i64,
         step: f64,
-        timeout: Option<i64>,
-    ) -> Result<PromqlResult, Error> {
-        let url = format!("{}/query_range", self.base_url);
-
-        let mut params = vec![
-            ("query", query.to_string()),
-            ("start", start.to_string()),
-            ("end", end.to_string()),
-            ("step", step.to_string()),
-        ];
-
-        if let Some(t) = timeout {
-            params.push(("timeout", format!("{}ms", t)));
+    ) -> RangeQueryBuilder {
+        RangeQueryBuilder {
+            client: self.clone(),
+            query: query.to_string(),
+            timeout: None,
+            start,
+            end,
+            step,
         }
-
-        self.send(url, Some(params))
-            .await
-            .and_then(check_api_response)
-            .and_then(convert_query_response)
     }
 
     /// Find time series that match certain label sets ([Selector]s).
