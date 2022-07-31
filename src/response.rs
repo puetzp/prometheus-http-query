@@ -153,19 +153,19 @@ pub(crate) enum QueryResultType {
     Scalar,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Stats {
     timings: Timings,
     samples: Samples,
 }
 
 impl Stats {
-    pub fn timings(&self) -> Timings {
-        self.timings
+    pub fn timings(&self) -> &Timings {
+        &self.timings
     }
 
-    pub fn samples(&self) -> Samples {
-        self.samples
+    pub fn samples(&self) -> &Samples {
+        &self.samples
     }
 }
 
@@ -205,13 +205,18 @@ impl Timings {
     }
 }
 
-#[derive(Debug, Copy, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct Samples {
+    total_queryable_samples_per_step: Option<Vec<Sample>>,
     total_queryable_samples: i64,
     peak_samples: i64,
 }
 
 impl Samples {
+    pub fn total_queryable_samples_per_step(&self) -> Option<&Vec<Sample>> {
+        self.total_queryable_samples_per_step.as_ref()
+    }
+
     pub fn total_queryable_samples(&self) -> i64 {
         self.total_queryable_samples
     }
@@ -221,7 +226,7 @@ impl Samples {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct QueryResult {
     pub(crate) data: Data,
     pub(crate) stats: Option<Stats>,

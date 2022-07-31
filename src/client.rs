@@ -15,6 +15,7 @@ pub struct InstantQueryBuilder {
     query: String,
     time: Option<i64>,
     timeout: Option<i64>,
+    stats: bool,
 }
 
 impl InstantQueryBuilder {
@@ -27,6 +28,10 @@ impl InstantQueryBuilder {
 
         if let Some(t) = self.timeout {
             params.push(("timeout", format!("{}ms", t)));
+        }
+
+        if self.stats {
+            params.push(("stats", String::from("all")));
         }
 
         params
@@ -46,6 +51,12 @@ impl InstantQueryBuilder {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
     pub fn timeout(mut self, timeout: i64) -> Self {
         self.timeout = Some(timeout);
+        self
+    }
+
+    /// Instruct Prometheus to compile query statistics.
+    pub fn stats(mut self) -> Self {
+        self.stats = true;
         self
     }
 
@@ -84,6 +95,7 @@ pub struct RangeQueryBuilder {
     end: i64,
     step: f64,
     timeout: Option<i64>,
+    stats: bool,
 }
 
 impl RangeQueryBuilder {
@@ -99,6 +111,10 @@ impl RangeQueryBuilder {
             params.push(("timeout", format!("{}ms", t)));
         }
 
+        if self.stats {
+            params.push(("stats", String::from("all")));
+        }
+
         params
     }
 
@@ -107,6 +123,12 @@ impl RangeQueryBuilder {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries)
     pub fn timeout(mut self, timeout: i64) -> Self {
         self.timeout = Some(timeout);
+        self
+    }
+
+    /// Instruct Prometheus to compile query statistics.
+    pub fn stats(mut self) -> Self {
+        self.stats = true;
         self
     }
 
@@ -368,6 +390,7 @@ impl Client {
             query: query.to_string(),
             time: None,
             timeout: None,
+            stats: false,
         }
     }
 
@@ -415,6 +438,7 @@ impl Client {
             base_url: self.base_url.clone(),
             query: query.to_string(),
             timeout: None,
+            stats: false,
             start,
             end,
             step,
