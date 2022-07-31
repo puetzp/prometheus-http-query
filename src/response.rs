@@ -135,11 +135,12 @@ pub(crate) enum ApiResponseStatus {
 }
 
 #[derive(Debug, Deserialize)]
-pub(crate) struct QueryResult {
+pub(crate) struct IntermediateQueryResult {
     #[serde(alias = "resultType")]
     pub(crate) kind: QueryResultType,
     #[serde(alias = "result")]
     pub(crate) data: serde_json::Value,
+    pub(crate) stats: Option<Stats>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -152,19 +153,105 @@ pub(crate) enum QueryResultType {
     Scalar,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct Stats {
+    timings: Timings,
+    samples: Samples,
+}
+
+impl Stats {
+    pub fn timings(&self) -> Timings {
+        self.timings
+    }
+
+    pub fn samples(&self) -> Samples {
+        self.samples
+    }
+}
+
+#[derive(Debug, Copy, Clone, Deserialize)]
+pub struct Timings {
+    eval_total_time: f64,
+    result_sort_time: f64,
+    query_preparation_time: f64,
+    inner_eval_time: f64,
+    exec_queue_time: f64,
+    exec_total_time: f64,
+}
+
+impl Timings {
+    pub fn eval_total_time(&self) -> f64 {
+        self.eval_total_time
+    }
+
+    pub fn result_sort_time(&self) -> f64 {
+        self.result_sort_time
+    }
+
+    pub fn query_preparation_time(&self) -> f64 {
+        self.query_preparation_time
+    }
+
+    pub fn inner_eval_time(&self) -> f64 {
+        self.inner_eval_time
+    }
+
+    pub fn exec_queue_time(&self) -> f64 {
+        self.exec_queue_time
+    }
+
+    pub fn exec_total_time(&self) -> f64 {
+        self.exec_total_time
+    }
+}
+
+#[derive(Debug, Copy, Clone, Deserialize)]
+pub struct Samples {
+    total_queryable_samples: i64,
+    peak_samples: i64,
+}
+
+impl Samples {
+    pub fn total_queryable_samples(&self) -> i64 {
+        self.total_queryable_samples
+    }
+
+    pub fn peak_samples(&self) -> i64 {
+        self.peak_samples
+    }
+}
+
+#[derive(Debug)]
+pub struct QueryResult {
+    pub(crate) data: Data,
+    pub(crate) stats: Option<Stats>,
+}
+
+impl QueryResult {
+    /// Return the response [Data] from this query.
+    pub fn data(&self) -> &Data {
+        &self.data
+    }
+
+    /// Return the [Stats] that the Prometheus server gathered while the query was processed.
+    pub fn stats(&self) -> Option<&Stats> {
+        self.stats.as_ref()
+    }
+}
+
 /// A wrapper for possible result types of expression queries ([crate::Client::query] and [crate::Client::query_range]).
 #[derive(Clone, Debug)]
-pub enum PromqlResult {
+pub enum Data {
     Vector(Vec<InstantVector>),
     Matrix(Vec<RangeVector>),
     Scalar(Sample),
 }
 
-impl PromqlResult {
+impl Data {
     /// If the result type of the query is `vector`, returns an array of [InstantVector]s. Returns `None` otherwise.
     pub fn as_instant(&self) -> Option<&[InstantVector]> {
         match self {
-            PromqlResult::Vector(v) => Some(v.as_ref()),
+            Data::Vector(v) => Some(v.as_ref()),
             _ => None,
         }
     }
@@ -172,7 +259,7 @@ impl PromqlResult {
     /// If the result type of the query is `matrix` returns an array of [RangeVector]s. Returns `None` otherwise.
     pub fn as_range(&self) -> Option<&[RangeVector]> {
         match self {
-            PromqlResult::Matrix(v) => Some(v.as_ref()),
+            Data::Matrix(v) => Some(v.as_ref()),
             _ => None,
         }
     }
@@ -180,31 +267,31 @@ impl PromqlResult {
     /// If the result type of the query is `scalar`, returns a single [Sample]. Returns `None` otherwise.
     pub fn as_scalar(&self) -> Option<&Sample> {
         match self {
-            PromqlResult::Scalar(v) => Some(v),
+            Data::Scalar(v) => Some(v),
             _ => None,
         }
     }
 
-    /// Check if this [PromqlResult] contains a list of [InstantVector]s (i.e. result type `vector`).
+    /// Check if this [QueryResult] contains a list of [InstantVector]s (i.e. result type `vector`).
     pub fn is_instant(&self) -> bool {
         match self {
-            PromqlResult::Vector(_) => true,
+            Data::Vector(_) => true,
             _ => false,
         }
     }
 
-    /// Check if this [PromqlResult] contains a list of [RangeVector]s (i.e. result type `matrix`).
+    /// Check if this [QueryResult] contains a list of [RangeVector]s (i.e. result type `matrix`).
     pub fn is_matrix(&self) -> bool {
         match self {
-            PromqlResult::Matrix(_) => true,
+            Data::Matrix(_) => true,
             _ => false,
         }
     }
 
-    /// Check if this [PromqlResult] contains a scalar value (i.e. result type `scalar`, a single [Sample]).
+    /// Check if this [QueryResult] contains a scalar value (i.e. result type `scalar`, a single [Sample]).
     pub fn is_scalar(&self) -> bool {
         match self {
-            PromqlResult::Scalar(_) => true,
+            Data::Scalar(_) => true,
             _ => false,
         }
     }
@@ -212,9 +299,9 @@ impl PromqlResult {
     /// This is a shortcut to check if the query returned any data at all regardless of the exact type.
     pub fn is_empty(&self) -> bool {
         match self {
-            PromqlResult::Vector(v) => v.is_empty(),
-            PromqlResult::Matrix(v) => v.is_empty(),
-            PromqlResult::Scalar(_) => false,
+            Data::Vector(v) => v.is_empty(),
+            Data::Matrix(v) => v.is_empty(),
+            Data::Scalar(_) => false,
         }
     }
 }

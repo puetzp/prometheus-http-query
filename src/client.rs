@@ -50,7 +50,7 @@ impl InstantQueryBuilder {
     }
 
     /// Execute the instant query (using HTTP GET) and return the parsed API response.
-    pub async fn get(self) -> Result<PromqlResult, Error> {
+    pub async fn get(self) -> Result<QueryResult, Error> {
         let url = build_final_url(self.base_url.clone(), "api/v1/query");
         self.client
             .send(url, Some(self.build_params()), HttpMethod::GET)
@@ -63,7 +63,7 @@ impl InstantQueryBuilder {
     /// Using a POST request is useful in the context of larger PromQL queries when
     /// the size of the final URL may break Prometheus' or an intermediate proxies' URL
     /// character limits.
-    pub async fn post(self) -> Result<PromqlResult, Error> {
+    pub async fn post(self) -> Result<QueryResult, Error> {
         let url = build_final_url(self.base_url.clone(), "api/v1/query");
         self.client
             .send(url, Some(self.build_params()), HttpMethod::POST)
@@ -111,7 +111,7 @@ impl RangeQueryBuilder {
     }
 
     /// Execute the range query (using HTTP GET) and return the parsed API response.
-    pub async fn get(self) -> Result<PromqlResult, Error> {
+    pub async fn get(self) -> Result<QueryResult, Error> {
         let url = build_final_url(self.base_url.clone(), "api/v1/query_range");
         self.client
             .send(url, Some(self.build_params()), HttpMethod::GET)
@@ -124,7 +124,7 @@ impl RangeQueryBuilder {
     /// Using a POST request is useful in the context of larger PromQL queries when
     /// the size of the final URL may break Prometheus' or an intermediate proxies' URL
     /// character limits.
-    pub async fn post(self) -> Result<PromqlResult, Error> {
+    pub async fn post(self) -> Result<QueryResult, Error> {
         let url = build_final_url(self.base_url.clone(), "api/v1/query_range");
         self.client
             .send(url, Some(self.build_params()), HttpMethod::POST)
@@ -1044,24 +1044,30 @@ fn check_api_response(response: ApiResponse) -> Result<serde_json::Value, Error>
 
 // Parses the API response from a map to a Response enum that
 // encapsulates a result type of "vector", "matrix", or "scalar".
-fn convert_query_response(response: serde_json::Value) -> Result<PromqlResult, Error> {
-    let result: QueryResult = serde_json::from_value(response).map_err(Error::ResponseParse)?;
+fn convert_query_response(response: serde_json::Value) -> Result<QueryResult, Error> {
+    let result: IntermediateQueryResult =
+        serde_json::from_value(response).map_err(Error::ResponseParse)?;
 
-    match result.kind {
+    let data = match result.kind {
         QueryResultType::Vector => {
             let vector: Vec<InstantVector> =
                 serde_json::from_value(result.data).map_err(Error::ResponseParse)?;
-            Ok(PromqlResult::Vector(vector))
+            Data::Vector(vector)
         }
         QueryResultType::Matrix => {
             let matrix: Vec<RangeVector> =
                 serde_json::from_value(result.data).map_err(Error::ResponseParse)?;
-            Ok(PromqlResult::Matrix(matrix))
+            Data::Matrix(matrix)
         }
         QueryResultType::Scalar => {
             let sample: Sample =
                 serde_json::from_value(result.data).map_err(Error::ResponseParse)?;
-            Ok(PromqlResult::Scalar(sample))
+            Data::Scalar(sample)
         }
-    }
+    };
+
+    Ok(QueryResult {
+        data,
+        stats: result.stats,
+    })
 }
