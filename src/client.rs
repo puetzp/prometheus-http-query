@@ -1,7 +1,7 @@
 use crate::error::{ApiError, Error, MissingFieldError};
 use crate::response::*;
 use crate::selector::Selector;
-use crate::util::{RuleType, TargetState};
+use crate::util::{build_final_url, RuleType, TargetState, ToBaseUrl};
 use reqwest::Method as HttpMethod;
 use std::collections::HashMap;
 use url::Url;
@@ -11,7 +11,7 @@ use url::Url;
 #[derive(Clone)]
 pub struct InstantQueryBuilder {
     client: Client,
-    url: String,
+    base_url: Url,
     query: String,
     time: Option<i64>,
     timeout: Option<i64>,
@@ -51,8 +51,9 @@ impl InstantQueryBuilder {
 
     /// Execute the instant query (using HTTP GET) and return the parsed API response.
     pub async fn get(self) -> Result<PromqlResult, Error> {
+        let url = build_final_url(self.base_url.clone(), "api/v1/query");
         self.client
-            .send(&self.url, Some(self.build_params()), HttpMethod::GET)
+            .send(url, Some(self.build_params()), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(convert_query_response)
@@ -63,8 +64,9 @@ impl InstantQueryBuilder {
     /// the size of the final URL may break Prometheus' or an intermediate proxies' URL
     /// character limits.
     pub async fn post(self) -> Result<PromqlResult, Error> {
+        let url = build_final_url(self.base_url.clone(), "api/v1/query");
         self.client
-            .send(&self.url, Some(self.build_params()), HttpMethod::POST)
+            .send(url, Some(self.build_params()), HttpMethod::POST)
             .await
             .and_then(check_api_response)
             .and_then(convert_query_response)
@@ -76,7 +78,7 @@ impl InstantQueryBuilder {
 #[derive(Clone)]
 pub struct RangeQueryBuilder {
     client: Client,
-    url: String,
+    base_url: Url,
     query: String,
     start: i64,
     end: i64,
@@ -110,8 +112,9 @@ impl RangeQueryBuilder {
 
     /// Execute the range query (using HTTP GET) and return the parsed API response.
     pub async fn get(self) -> Result<PromqlResult, Error> {
+        let url = build_final_url(self.base_url.clone(), "api/v1/query_range");
         self.client
-            .send(&self.url, Some(self.build_params()), HttpMethod::GET)
+            .send(url, Some(self.build_params()), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(convert_query_response)
@@ -122,8 +125,9 @@ impl RangeQueryBuilder {
     /// the size of the final URL may break Prometheus' or an intermediate proxies' URL
     /// character limits.
     pub async fn post(self) -> Result<PromqlResult, Error> {
+        let url = build_final_url(self.base_url.clone(), "api/v1/query_range");
         self.client
-            .send(&self.url, Some(self.build_params()), HttpMethod::POST)
+            .send(url, Some(self.build_params()), HttpMethod::POST)
             .await
             .and_then(check_api_response)
             .and_then(convert_query_response)
@@ -135,11 +139,11 @@ impl RangeQueryBuilder {
 #[derive(Clone)]
 pub struct Client {
     pub(crate) client: reqwest::Client,
-    pub(crate) base_url: String,
+    pub(crate) base_url: Url,
 }
 
 impl Default for Client {
-    /// Create a standard Client that sends requests to "http://127.0.0.1:9090/api/v1".
+    /// Create a standard Client that sends requests to "http://127.0.0.1:9090/".
     ///
     /// ```rust
     /// use prometheus_http_query::Client;
@@ -149,7 +153,7 @@ impl Default for Client {
     fn default() -> Self {
         Client {
             client: reqwest::Client::new(),
-            base_url: String::from("http://127.0.0.1:9090/api/v1"),
+            base_url: Url::parse("http://127.0.0.1:9090/").unwrap(),
         }
     }
 }
@@ -168,9 +172,8 @@ impl std::str::FromStr for Client {
     /// assert!(client.is_ok());
     /// ```
     fn from_str(url: &str) -> Result<Self, Self::Err> {
-        let url = Url::parse(url).map_err(Error::UrlParse)?;
         let client = Client {
-            base_url: format!("{}/api/v1", url),
+            base_url: url.to_base_url()?,
             client: reqwest::Client::new(),
         };
         Ok(client)
@@ -191,9 +194,8 @@ impl std::convert::TryFrom<&str> for Client {
     /// assert!(client.is_ok());
     /// ```
     fn try_from(url: &str) -> Result<Self, Self::Error> {
-        let url = Url::parse(url).map_err(Error::UrlParse)?;
         let client = Client {
-            base_url: format!("{}/api/v1", url),
+            base_url: url.to_base_url()?,
             client: reqwest::Client::new(),
         };
         Ok(client)
@@ -215,9 +217,8 @@ impl std::convert::TryFrom<String> for Client {
     /// assert!(client.is_ok());
     /// ```
     fn try_from(url: String) -> Result<Self, Self::Error> {
-        let url = Url::parse(&url).map_err(Error::UrlParse)?;
         let client = Client {
-            base_url: format!("{}/api/v1", url),
+            base_url: url.to_base_url()?,
             client: reqwest::Client::new(),
         };
         Ok(client)
@@ -261,13 +262,13 @@ impl Client {
     ///
     /// let client = Client::default();
     ///
-    /// assert_eq!(client.base_url(), "http://127.0.0.1:9090/api/v1");
+    /// assert_eq!(client.base_url().as_str(), "http://127.0.0.1:9090/");
     ///
     /// let client = Client::from_str("https://proxy.example.com:8443/prometheus").unwrap();
     ///
-    /// assert_eq!(client.base_url(), "https://proxy.example.com:8443/prometheus/api/v1");
+    /// assert_eq!(client.base_url().as_str(), "https://proxy.example.com:8443/prometheus");
     /// ```
-    pub fn base_url(&self) -> &str {
+    pub fn base_url(&self) -> &Url {
         &self.base_url
     }
 
@@ -293,14 +294,14 @@ impl Client {
     /// }
     /// ```
     pub fn from(client: reqwest::Client, url: &str) -> Result<Self, Error> {
-        let base_url = format!("{}/api/v1", Url::parse(url).map_err(Error::UrlParse)?);
+        let base_url = url.to_base_url()?;
         Ok(Client { base_url, client })
     }
 
     /// Build and send the final HTTP request. Parse the result as JSON.
     async fn send(
         &self,
-        url: &str,
+        url: Url,
         params: Option<Vec<(&str, String)>>,
         method: HttpMethod,
     ) -> Result<ApiResponse, Error> {
@@ -363,7 +364,7 @@ impl Client {
     pub fn query(&self, query: impl std::string::ToString) -> InstantQueryBuilder {
         InstantQueryBuilder {
             client: self.clone(),
-            url: format!("{}/query", self.base_url),
+            base_url: self.base_url.clone(),
             query: query.to_string(),
             time: None,
             timeout: None,
@@ -411,7 +412,7 @@ impl Client {
     ) -> RangeQueryBuilder {
         RangeQueryBuilder {
             client: self.clone(),
-            url: format!("{}/query_range", self.base_url),
+            base_url: self.base_url.clone(),
             query: query.to_string(),
             timeout: None,
             start,
@@ -460,7 +461,7 @@ impl Client {
             return Err(Error::EmptySeriesSelector);
         }
 
-        let url = format!("{}/series", self.base_url);
+        let url = build_final_url(self.base_url.clone(), "api/v1/series");
 
         let mut params = vec![];
 
@@ -479,7 +480,7 @@ impl Client {
 
         params.append(&mut matchers);
 
-        self.send(&url, Some(params), HttpMethod::GET)
+        self.send(url, Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -529,7 +530,7 @@ impl Client {
         start: Option<i64>,
         end: Option<i64>,
     ) -> Result<Vec<String>, Error> {
-        let url = format!("{}/labels", self.base_url);
+        let url = build_final_url(self.base_url.clone(), "api/v1/labels");
 
         let mut params = vec![];
 
@@ -548,7 +549,7 @@ impl Client {
             params.append(&mut matchers);
         }
 
-        self.send(&url, Some(params), HttpMethod::GET)
+        self.send(url, Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -596,7 +597,8 @@ impl Client {
         start: Option<i64>,
         end: Option<i64>,
     ) -> Result<Vec<String>, Error> {
-        let url = format!("{}/label/{}/values", self.base_url, label);
+        let path = format!("api/v1/label/{}/values", label);
+        let url = build_final_url(self.base_url.clone(), &path);
 
         let mut params = vec![];
 
@@ -615,7 +617,7 @@ impl Client {
             params.append(&mut matchers);
         }
 
-        self.send(&url, Some(params), HttpMethod::GET)
+        self.send(url, Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -645,7 +647,7 @@ impl Client {
     /// }
     /// ```
     pub async fn targets(&self, state: Option<TargetState>) -> Result<Targets, Error> {
-        let url = format!("{}/targets", self.base_url);
+        let url = build_final_url(self.base_url.clone(), "api/v1/targets");
 
         let mut params = vec![];
 
@@ -653,7 +655,7 @@ impl Client {
             params.push(("state", s.to_string()))
         }
 
-        self.send(&url, Some(params), HttpMethod::GET)
+        self.send(url, Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -683,7 +685,7 @@ impl Client {
     /// }
     /// ```
     pub async fn rules(&self, rule_type: Option<RuleType>) -> Result<Vec<RuleGroup>, Error> {
-        let url = format!("{}/rules", self.base_url);
+        let url = build_final_url(self.base_url.clone(), "api/v1/rules");
 
         let mut params = vec![];
 
@@ -691,7 +693,7 @@ impl Client {
             params.push(("type", s.to_string()))
         }
 
-        self.send(&url, Some(params), HttpMethod::GET)
+        self.send(url, Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| {
@@ -724,9 +726,9 @@ impl Client {
     /// }
     /// ```
     pub async fn alerts(&self) -> Result<Vec<Alert>, Error> {
-        let url = format!("{}/alerts", self.base_url);
+        let url = build_final_url(self.base_url.clone(), "api/v1/alerts");
 
-        self.send(&url, None, HttpMethod::GET)
+        self.send(url, None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| {
@@ -759,9 +761,9 @@ impl Client {
     /// }
     /// ```
     pub async fn flags(&self) -> Result<HashMap<String, String>, Error> {
-        let url = format!("{}/status/flags", self.base_url);
+        let url = build_final_url(self.base_url.clone(), "api/v1/status/flags");
 
-        self.send(&url, None, HttpMethod::GET)
+        self.send(url, None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -786,9 +788,9 @@ impl Client {
     /// }
     /// ```
     pub async fn build_information(&self) -> Result<BuildInformation, Error> {
-        let url = format!("{}/status/buildinfo", self.base_url);
+        let url = build_final_url(self.base_url.clone(), "api/v1/status/buildinfo");
 
-        self.send(&url, None, HttpMethod::GET)
+        self.send(url, None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -813,9 +815,9 @@ impl Client {
     /// }
     /// ```
     pub async fn runtime_information(&self) -> Result<RuntimeInformation, Error> {
-        let url = format!("{}/status/runtimeinfo", self.base_url);
+        let url = build_final_url(self.base_url.clone(), "api/v1/status/runtimeinfo");
 
-        self.send(&url, None, HttpMethod::GET)
+        self.send(url, None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -840,9 +842,9 @@ impl Client {
     /// }
     /// ```
     pub async fn tsdb_statistics(&self) -> Result<TsdbStatistics, Error> {
-        let url = format!("{}/status/tsdb", self.base_url);
+        let url = build_final_url(self.base_url.clone(), "api/v1/status/tsdb");
 
-        self.send(&url, None, HttpMethod::GET)
+        self.send(url, None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -867,9 +869,9 @@ impl Client {
     /// }
     /// ```
     pub async fn wal_replay_statistics(&self) -> Result<WalReplayStatistics, Error> {
-        let url = format!("{}/status/walreplay", self.base_url);
+        let url = build_final_url(self.base_url.clone(), "api/v1/status/walreplay");
 
-        self.send(&url, None, HttpMethod::GET)
+        self.send(url, None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -894,9 +896,9 @@ impl Client {
     /// }
     /// ```
     pub async fn alertmanagers(&self) -> Result<Alertmanagers, Error> {
-        let url = format!("{}/alertmanagers", self.base_url);
+        let url = build_final_url(self.base_url.clone(), "api/v1/alertmanagers");
 
-        self.send(&url, None, HttpMethod::GET)
+        self.send(url, None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -941,7 +943,7 @@ impl Client {
         match_target: Option<&Selector<'_>>,
         limit: Option<usize>,
     ) -> Result<Vec<TargetMetadata>, Error> {
-        let url = format!("{}/targets/metadata", self.base_url);
+        let url = build_final_url(self.base_url.clone(), "api/v1/targets/metadata");
 
         let mut params = vec![];
 
@@ -957,7 +959,7 @@ impl Client {
             params.push(("limit", l.to_string()))
         }
 
-        self.send(&url, Some(params), HttpMethod::GET)
+        self.send(url, Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -997,7 +999,7 @@ impl Client {
         metric: Option<&str>,
         limit: Option<usize>,
     ) -> Result<HashMap<String, Vec<MetricMetadata>>, Error> {
-        let url = format!("{}/metadata", self.base_url);
+        let url = build_final_url(self.base_url.clone(), "api/v1/metadata");
 
         let mut params = vec![];
 
@@ -1009,7 +1011,7 @@ impl Client {
             params.push(("limit", l.to_string()))
         }
 
-        self.send(&url, Some(params), HttpMethod::GET)
+        self.send(url, Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))

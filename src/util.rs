@@ -1,5 +1,7 @@
+use crate::error::Error;
 use serde::Deserialize;
 use std::fmt;
+use url::Url;
 
 /// A helper type to filter targets by state.
 #[derive(Debug)]
@@ -115,5 +117,89 @@ impl<'a> fmt::Display for Label<'a> {
             Label::RegexEqual((k, v)) => write!(f, "{}=~\"{}\"", k, v),
             Label::RegexNotEqual((k, v)) => write!(f, "{}!~\"{}\"", k, v),
         }
+    }
+}
+
+/// Create a base URL that is common to all queries from a string literal.
+/// The implementations are probably a little more complicated than they need
+/// to be as we need to allocate a new string during the URL construction
+/// to preserve a possibly existing path component in the source string.
+pub(crate) trait ToBaseUrl {
+    fn to_base_url(self) -> Result<Url, Error>;
+}
+
+impl ToBaseUrl for &str {
+    fn to_base_url(self) -> Result<Url, Error> {
+        Url::parse(self).map_err(Error::UrlParse)
+    }
+}
+
+impl ToBaseUrl for String {
+    fn to_base_url(self) -> Result<Url, Error> {
+        Url::parse(&self).map_err(Error::UrlParse)
+    }
+}
+
+pub(crate) fn build_final_url(mut url: Url, path: &str) -> Url {
+    let base_path = url.path();
+    match base_path {
+        "/" => return url.join(path).unwrap(),
+        _ => {
+            let p = format!("{}/{}", base_path, path);
+            url.set_path(&p);
+        }
+    }
+    url
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{build_final_url, ToBaseUrl};
+
+    #[test]
+    fn test_simple_str_to_url() {
+        let s = "http://127.0.0.1:9090";
+        let url = s.to_base_url().unwrap();
+        assert_eq!("http://127.0.0.1:9090/", url.as_str());
+    }
+
+    #[test]
+    fn test_proxied_str_to_url() {
+        let s = "http://proxy.example.com/prometheus";
+        let url = s.to_base_url().unwrap();
+        assert_eq!("http://proxy.example.com/prometheus", url.as_str());
+    }
+
+    #[test]
+    fn test_simple_string_to_url() {
+        let s = String::from("http://127.0.0.1:9090");
+        let url = s.to_base_url().unwrap();
+        assert_eq!("http://127.0.0.1:9090/", url.as_str());
+    }
+
+    #[test]
+    fn test_proxied_string_to_url() {
+        let s = String::from("http://proxy.example.com/prometheus");
+        let url = s.to_base_url().unwrap();
+        assert_eq!("http://proxy.example.com/prometheus", url.as_str());
+    }
+
+    #[test]
+    fn test_simple_url_finalization() {
+        let s = String::from("http://127.0.0.1:9090");
+        let url = s.to_base_url().unwrap();
+        let final_url = build_final_url(url, "api/v1/targets");
+        assert_eq!("http://127.0.0.1:9090/api/v1/targets", final_url.as_str());
+    }
+
+    #[test]
+    fn test_proxied_url_finalization() {
+        let s = String::from("http://proxy.example.com/prometheus");
+        let url = s.to_base_url().unwrap();
+        let final_url = build_final_url(url, "api/v1/targets");
+        assert_eq!(
+            "http://proxy.example.com/prometheus/api/v1/targets",
+            final_url.as_str()
+        );
     }
 }
