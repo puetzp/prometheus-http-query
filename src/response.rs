@@ -8,6 +8,7 @@ use url::Url;
 
 mod de {
     use serde::{Deserialize, Deserializer};
+    use serde_json::Value;
     use std::str::FromStr;
     use time::format_description::well_known::Rfc3339;
     use time::format_description::FormatItem;
@@ -22,9 +23,17 @@ mod de {
     where
         D: Deserializer<'de>,
     {
-        let raw = String::deserialize(deserializer)?;
-        let num = f64::from_str(&raw).map_err(serde::de::Error::custom)?;
-        Ok(num)
+        match Value::deserialize(deserializer)? {
+            Value::String(s) => f64::from_str(&s).map_err(serde::de::Error::custom),
+            Value::Number(s) => s.as_f64().ok_or(serde::de::Error::custom(
+                "failed to convert sample value to float",
+            )),
+            _ => {
+                return Err(serde::de::Error::custom(
+                    "unexpected type for sample value, expected string or integer",
+                ))
+            }
+        }
     }
 
     pub(super) fn deserialize_rfc3339<'de, D>(deserializer: D) -> Result<OffsetDateTime, D::Error>
@@ -171,11 +180,17 @@ impl Stats {
 
 #[derive(Debug, Copy, Clone, Deserialize)]
 pub struct Timings {
+    #[serde(alias = "evalTotalTime")]
     eval_total_time: f64,
+    #[serde(alias = "resultSortTime")]
     result_sort_time: f64,
+    #[serde(alias = "queryPreparationTime")]
     query_preparation_time: f64,
+    #[serde(alias = "innerEvalTime")]
     inner_eval_time: f64,
+    #[serde(alias = "execQueueTime")]
     exec_queue_time: f64,
+    #[serde(alias = "execTotalTime")]
     exec_total_time: f64,
 }
 
@@ -207,8 +222,11 @@ impl Timings {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct Samples {
+    #[serde(alias = "totalQueryableSamplesPerStep")]
     total_queryable_samples_per_step: Option<Vec<Sample>>,
+    #[serde(alias = "totalQueryableSamples")]
     total_queryable_samples: i64,
+    #[serde(alias = "peakSamples")]
     peak_samples: i64,
 }
 
@@ -1047,6 +1065,76 @@ mod tests {
 
     use super::*;
     use std::collections::HashMap;
+
+    #[test]
+    fn test_intermediate_query_result_deserialization() {
+        let data = r#"
+{
+  "resultType": "matrix",
+  "result": [
+    {
+      "metric": {
+        "__name__": "up",
+        "instance": "localhost:9090",
+        "job": "prometheus"
+      },
+      "values": [
+        [
+          1659268100,
+          "1"
+        ],
+        [
+          1659268160,
+          "1"
+        ],
+        [
+          1659268220,
+          "1"
+        ],
+        [
+          1659268280,
+          "1"
+        ]
+      ]
+    }
+  ],
+  "stats": {
+    "timings": {
+      "evalTotalTime": 0.000102139,
+      "resultSortTime": 8.7e-07,
+      "queryPreparationTime": 5.4169e-05,
+      "innerEvalTime": 3.787e-05,
+      "execQueueTime": 4.07e-05,
+      "execTotalTime": 0.000151989
+    },
+    "samples": {
+      "totalQueryableSamplesPerStep": [
+        [
+          1659268100,
+          1
+        ],
+        [
+          1659268160,
+          1
+        ],
+        [
+          1659268220,
+          1
+        ],
+        [
+          1659268280,
+          1
+        ]
+      ],
+      "totalQueryableSamples": 4,
+      "peakSamples": 4
+    }
+  }
+}
+"#;
+        let result: IntermediateQueryResult = serde_json::from_str(data);
+        assert!(result.is_ok());
+    }
 
     #[test]
     fn test_instant_vector_deserialization() {
