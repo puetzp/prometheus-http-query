@@ -40,18 +40,24 @@
 //! async fn main() -> Result<(), Error> {
 //!     let client = Client::default();
 //!
+//!     // Execute a query using HTTP GET.
 //!     let q = "topk by (code) (5, prometheus_http_requests_total)";
 //!     let response = client.query(q).get().await?;
-//!     assert!(response.as_instant().is_some());
+//!     assert!(response.data().as_instant().is_some());
 //!
 //!     let q = r#"sum(prometheus_http_requests_total{code="200"})"#;
 //!     let response = client.query(q).get().await?;
-//!     let result = response.as_instant();
+//!     let result = response.data().as_instant().expect("Expected result of type vector");
 //!
-//!     if matches!(result, Some(x) if x.first().is_some()) {
-//!         let first = result.unwrap().first().unwrap();
+//!     if !result.is_empty() {
+//!         let first = result.first().unwrap();
 //!         println!("Received a total of {} HTTP requests", first.sample().value());
 //!     }
+//!
+//!     // HTTP POST is also supported.
+//!     let q = "topk by (code) (5, prometheus_http_requests_total)";
+//!     let response = client.query(q).post().await?;
+//!     let result = response.data().as_instant().is_some();
 //!
 //!     Ok(())
 //! }
@@ -122,7 +128,7 @@
 //!     let q = "topk by (code) (5, prometheus_http_requests_total)";
 //!     let response = query("http://localhost:9090", q)?.get().await?;
 //!
-//!     assert!(response.as_instant().is_some());
+//!     assert!(response.data().as_instant().is_some());
 //!
 //!     let response = runtime_information("http://localhost:9090").await;
 //!

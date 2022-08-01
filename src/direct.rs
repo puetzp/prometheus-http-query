@@ -19,12 +19,12 @@ use std::str::FromStr;
 ///
 ///     let response = query("http://localhost:9090", q)?.timeout(1000).get().await?;
 ///
-///     assert!(response.as_instant().is_some());
+///     assert!(response.data().as_instant().is_some());
 ///
 ///     // Or make a POST request.
 ///     let response = query("http://localhost:9090", q)?.timeout(1000).post().await?;
 ///
-///     assert!(response.as_instant().is_some());
+///     assert!(response.data().as_instant().is_some());
 ///
 ///     Ok(())
 /// }
@@ -46,12 +46,12 @@ pub fn query(host: &str, query: impl std::string::ToString) -> Result<InstantQue
 ///
 ///     let response = query_range("http://localhost:9090", q, 1648373100, 1648373300, 10.0)?.get().await?;
 ///
-///     assert!(response.as_range().is_some());
+///     assert!(response.data().as_range().is_some());
 ///
 ///     // Or make a POST request.
 ///     let response = query_range("http://localhost:9090", q, 1648373100, 1648373300, 10.0)?.post().await?;
 ///
-///     assert!(response.as_range().is_some());
+///     assert!(response.data().as_range().is_some());
 ///
 ///     Ok(())
 /// }

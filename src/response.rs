@@ -144,16 +144,16 @@ pub(crate) enum ApiResponseStatus {
 }
 
 #[derive(Debug, Deserialize)]
-pub(crate) struct IntermediateQueryResult {
+pub(crate) struct IntermediatePromqlResult {
     #[serde(alias = "resultType")]
-    pub(crate) kind: QueryResultType,
+    pub(crate) kind: PromqlResultType,
     #[serde(alias = "result")]
     pub(crate) data: serde_json::Value,
     pub(crate) stats: Option<Stats>,
 }
 
 #[derive(Debug, Deserialize)]
-pub(crate) enum QueryResultType {
+pub(crate) enum PromqlResultType {
     #[serde(alias = "vector")]
     Vector,
     #[serde(alias = "matrix")]
@@ -245,12 +245,12 @@ impl Samples {
 }
 
 #[derive(Debug, Clone)]
-pub struct QueryResult {
+pub struct PromqlResult {
     pub(crate) data: Data,
     pub(crate) stats: Option<Stats>,
 }
 
-impl QueryResult {
+impl PromqlResult {
     /// Return the response [Data] from this query.
     pub fn data(&self) -> &Data {
         &self.data
@@ -295,7 +295,7 @@ impl Data {
         }
     }
 
-    /// Check if this [QueryResult] contains a list of [InstantVector]s (i.e. result type `vector`).
+    /// Check if this [PromqlResult] contains a list of [InstantVector]s (i.e. result type `vector`).
     pub fn is_instant(&self) -> bool {
         match self {
             Data::Vector(_) => true,
@@ -303,7 +303,7 @@ impl Data {
         }
     }
 
-    /// Check if this [QueryResult] contains a list of [RangeVector]s (i.e. result type `matrix`).
+    /// Check if this [PromqlResult] contains a list of [RangeVector]s (i.e. result type `matrix`).
     pub fn is_matrix(&self) -> bool {
         match self {
             Data::Matrix(_) => true,
@@ -311,7 +311,7 @@ impl Data {
         }
     }
 
-    /// Check if this [QueryResult] contains a scalar value (i.e. result type `scalar`, a single [Sample]).
+    /// Check if this [PromqlResult] contains a scalar value (i.e. result type `scalar`, a single [Sample]).
     pub fn is_scalar(&self) -> bool {
         match self {
             Data::Scalar(_) => true,
@@ -1132,7 +1132,100 @@ mod tests {
   }
 }
 "#;
-        let result: IntermediateQueryResult = serde_json::from_str(data);
+        let result: Result<IntermediatePromqlResult, serde_json::Error> =
+            serde_json::from_str(data);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_intermediate_query_result_no_per_step_stats_deserialization() {
+        let data = r#"
+{
+  "resultType": "matrix",
+  "result": [
+    {
+      "metric": {
+        "__name__": "up",
+        "instance": "localhost:9090",
+        "job": "prometheus"
+      },
+      "values": [
+        [
+          1659268100,
+          "1"
+        ],
+        [
+          1659268160,
+          "1"
+        ],
+        [
+          1659268220,
+          "1"
+        ],
+        [
+          1659268280,
+          "1"
+        ]
+      ]
+    }
+  ],
+  "stats": {
+    "timings": {
+      "evalTotalTime": 0.000102139,
+      "resultSortTime": 8.7e-07,
+      "queryPreparationTime": 5.4169e-05,
+      "innerEvalTime": 3.787e-05,
+      "execQueueTime": 4.07e-05,
+      "execTotalTime": 0.000151989
+    },
+    "samples": {
+      "totalQueryableSamples": 4,
+      "peakSamples": 4
+    }
+  }
+}
+"#;
+        let result: Result<IntermediatePromqlResult, serde_json::Error> =
+            serde_json::from_str(data);
+        assert!(result.is_ok());
+    }
+
+    #[test]
+    fn test_intermediate_query_result_no_stats_deserialization() {
+        let data = r#"
+{
+  "resultType": "matrix",
+  "result": [
+    {
+      "metric": {
+        "__name__": "up",
+        "instance": "localhost:9090",
+        "job": "prometheus"
+      },
+      "values": [
+        [
+          1659268100,
+          "1"
+        ],
+        [
+          1659268160,
+          "1"
+        ],
+        [
+          1659268220,
+          "1"
+        ],
+        [
+          1659268280,
+          "1"
+        ]
+      ]
+    }
+  ]
+}
+"#;
+        let result: Result<IntermediatePromqlResult, serde_json::Error> =
+            serde_json::from_str(data);
         assert!(result.is_ok());
     }
 
