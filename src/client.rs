@@ -373,12 +373,12 @@ impl Client {
     ///
     ///     let response = client.query("prometheus_http_request_total").get().await?;
     ///
-    ///     assert!(response.data().as_instant().is_some());
+    ///     assert!(response.data().as_vector().is_some());
     ///
     ///     // Or make a POST request.
     ///     let response = client.query("prometheus_http_request_total").post().await?;
     ///
-    ///     assert!(response.data().as_instant().is_some());
+    ///     assert!(response.data().as_vector().is_some());
     ///
     ///     Ok(())
     /// }
@@ -416,12 +416,12 @@ impl Client {
     ///
     ///     let response = client.query_range(q, 1648373100, 1648373300, 10.0).get().await?;
     ///
-    ///     assert!(response.data().as_range().is_some());
+    ///     assert!(response.data().as_matrix().is_some());
     ///
     ///     // Or make a POST request.
     ///     let response = client.query_range(q, 1648373100, 1648373300, 10.0).post().await?;
     ///
-    ///     assert!(response.data().as_range().is_some());
+    ///     assert!(response.data().as_matrix().is_some());
     ///
     ///     Ok(())
     /// }

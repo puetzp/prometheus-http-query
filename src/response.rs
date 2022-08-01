@@ -272,7 +272,7 @@ pub enum Data {
 
 impl Data {
     /// If the result type of the query is `vector`, returns an array of [InstantVector]s. Returns `None` otherwise.
-    pub fn as_instant(&self) -> Option<&[InstantVector]> {
+    pub fn as_vector(&self) -> Option<&[InstantVector]> {
         match self {
             Data::Vector(v) => Some(v.as_ref()),
             _ => None,
@@ -280,7 +280,7 @@ impl Data {
     }
 
     /// If the result type of the query is `matrix` returns an array of [RangeVector]s. Returns `None` otherwise.
-    pub fn as_range(&self) -> Option<&[RangeVector]> {
+    pub fn as_matrix(&self) -> Option<&[RangeVector]> {
         match self {
             Data::Matrix(v) => Some(v.as_ref()),
             _ => None,
@@ -296,7 +296,7 @@ impl Data {
     }
 
     /// Check if this [PromqlResult] contains a list of [InstantVector]s (i.e. result type `vector`).
-    pub fn is_instant(&self) -> bool {
+    pub fn is_vector(&self) -> bool {
         match self {
             Data::Vector(_) => true,
             _ => false,
