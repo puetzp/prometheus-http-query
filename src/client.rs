@@ -54,7 +54,7 @@ impl InstantQueryBuilder {
         self
     }
 
-    /// Instruct Prometheus to compile query statistics.
+    /// Instruct Prometheus to compile query statistics as part of the API response.
     pub fn stats(mut self) -> Self {
         self.stats = true;
         self
@@ -126,7 +126,7 @@ impl RangeQueryBuilder {
         self
     }
 
-    /// Instruct Prometheus to compile query statistics.
+    /// Instruct Prometheus to compile query statistics as part of the API response.
     pub fn stats(mut self) -> Self {
         self.stats = true;
         self
