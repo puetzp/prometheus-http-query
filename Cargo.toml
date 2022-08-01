@@ -2,7 +2,7 @@
 name = "prometheus-http-query"
 version = "0.6.0"
 authors = ["Peter Sebastian Pütz <ppuetz@protonmail.com>"]
-edition = "2018"
+edition = "2021"
 repository = "https://github.com/puetzp/prometheus-http-query"
 documentation = "https://docs.rs/prometheus-http-query"
 readme = "README.md"
