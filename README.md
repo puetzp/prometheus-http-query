@@ -14,7 +14,7 @@ async fn main() -> Result<(), Error> {
     // Evaluate a PromQL query.
     let q = "topk by (code) (5, prometheus_http_requests_total)";
     let response = client.query(q).get().await?;
-    assert!(response.as_instant().is_some());
+    assert!(response.data().as_instant().is_some());
 
     // Retrieve active alerts.
     let alerts = client.alerts().await;
