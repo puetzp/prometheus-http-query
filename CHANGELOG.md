@@ -12,4 +12,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `InstantQueryBuilder` and `RangeQueryBuilder`. Each allows to set additional optional parameters to a request (e.g. a `timeout`). Request can then be sent using HTTP GET (see `InstantQueryBuilder::get`) or POST (see `InstantQueryBuilder::post`).
-- `InstantQueryBuilder::stats` and `RangeQueryBuilder::stats` as the first _new_ query parameter/builder method. Use it to request query execution stats from Prometheus as part of the `PromqlResult` when `get` or `post` are executed. See [this pull request](https://github.com/prometheus/prometheus/pull/10369) for details.
+- `InstantQueryBuilder::stats` and `RangeQueryBuilder::stats` as the first _new_ query parameter/builder method. Use it to request query execution stats from Prometheus as part of the `PromqlResult` when `get` or `post` are executed. See [this pull request](https://github.com/prometheus/prometheus/pull/10369) for details and background information.
