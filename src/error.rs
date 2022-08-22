@@ -36,9 +36,9 @@ impl StdError for Error {}
 /// The error-related information in the response is included in this error.
 #[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct ApiError {
-    #[serde(alias = "resultType")]
+    #[serde(alias = "errorType")]
     pub(crate) kind: String,
-    #[serde(alias = "message")]
+    #[serde(alias = "error")]
     pub(crate) message: String,
 }
 

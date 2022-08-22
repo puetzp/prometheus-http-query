@@ -349,15 +349,16 @@ impl Client {
             _ => unreachable!(),
         };
 
-        request
-            .send()
-            .await
-            .map_err(Error::Client)?
-            .error_for_status()
-            .map_err(Error::Client)?
-            .json::<ApiResponse>()
-            .await
-            .map_err(Error::Client)
+        match request.send().await {
+            Ok(response) => {
+                if response.status().is_server_error() {
+                    Err(Error::Client(response.error_for_status().unwrap_err()))
+                } else {
+                    response.json::<ApiResponse>().await.map_err(Error::Client)
+                }
+            }
+            Err(e) => Err(Error::Client(e)),
+        }
     }
 
     /// Create an [InstantQueryBuilder] from a PromQL query allowing you to set some query parameters

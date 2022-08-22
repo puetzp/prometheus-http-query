@@ -127,9 +127,11 @@ mod de {
 }
 
 #[derive(Debug, Deserialize)]
-#[serde(untagged)]
+#[serde(tag = "status")]
 pub(crate) enum ApiResponse {
+    #[serde(alias = "success")]
     Success { data: serde_json::Value },
+    #[serde(alias = "error")]
     Error(crate::error::ApiError),
 }
 
