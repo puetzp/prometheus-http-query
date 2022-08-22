@@ -64,8 +64,8 @@ impl InstantQueryBuilder {
         self.client
             .send("api/v1/query", Some(self.build_params()), HttpMethod::GET)
             .await
-            .and_then(check_api_response)
-            .and_then(convert_query_response)
+            .and_then(map_api_response)
+            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
     /// Execute the instant query (using HTTP POST) and return the parsed API response.
@@ -76,8 +76,8 @@ impl InstantQueryBuilder {
         self.client
             .send("api/v1/query", Some(self.build_params()), HttpMethod::POST)
             .await
-            .and_then(check_api_response)
-            .and_then(convert_query_response)
+            .and_then(map_api_response)
+            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 }
 
@@ -137,8 +137,8 @@ impl RangeQueryBuilder {
                 HttpMethod::GET,
             )
             .await
-            .and_then(check_api_response)
-            .and_then(convert_query_response)
+            .and_then(map_api_response)
+            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
     /// Execute the instant query (using HTTP POST) and return the parsed API response.
@@ -153,8 +153,8 @@ impl RangeQueryBuilder {
                 HttpMethod::POST,
             )
             .await
-            .and_then(check_api_response)
-            .and_then(convert_query_response)
+            .and_then(map_api_response)
+            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 }
 
@@ -506,7 +506,7 @@ impl Client {
 
         self.send("api/v1/series", Some(params), HttpMethod::GET)
             .await
-            .and_then(check_api_response)
+            .and_then(map_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -573,7 +573,7 @@ impl Client {
 
         self.send("api/v1/labels", Some(params), HttpMethod::GET)
             .await
-            .and_then(check_api_response)
+            .and_then(map_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -639,7 +639,7 @@ impl Client {
         let path = format!("api/v1/label/{}/values", label);
         self.send(&path, Some(params), HttpMethod::GET)
             .await
-            .and_then(check_api_response)
+            .and_then(map_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -675,7 +675,7 @@ impl Client {
 
         self.send("api/v1/targets", Some(params), HttpMethod::GET)
             .await
-            .and_then(check_api_response)
+            .and_then(map_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -711,7 +711,7 @@ impl Client {
 
         self.send("api/v1/rules", Some(params), HttpMethod::GET)
             .await
-            .and_then(check_api_response)
+            .and_then(map_api_response)
             .and_then(move |res| {
                 res.as_object()
                     .unwrap()
@@ -744,7 +744,7 @@ impl Client {
     pub async fn alerts(&self) -> Result<Vec<Alert>, Error> {
         self.send("api/v1/alerts", None, HttpMethod::GET)
             .await
-            .and_then(check_api_response)
+            .and_then(map_api_response)
             .and_then(move |res| {
                 res.as_object()
                     .unwrap()
@@ -777,7 +777,7 @@ impl Client {
     pub async fn flags(&self) -> Result<HashMap<String, String>, Error> {
         self.send("api/v1/status/flags", None, HttpMethod::GET)
             .await
-            .and_then(check_api_response)
+            .and_then(map_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -802,7 +802,7 @@ impl Client {
     pub async fn build_information(&self) -> Result<BuildInformation, Error> {
         self.send("api/v1/status/buildinfo", None, HttpMethod::GET)
             .await
-            .and_then(check_api_response)
+            .and_then(map_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -827,7 +827,7 @@ impl Client {
     pub async fn runtime_information(&self) -> Result<RuntimeInformation, Error> {
         self.send("api/v1/status/runtimeinfo", None, HttpMethod::GET)
             .await
-            .and_then(check_api_response)
+            .and_then(map_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -852,7 +852,7 @@ impl Client {
     pub async fn tsdb_statistics(&self) -> Result<TsdbStatistics, Error> {
         self.send("api/v1/status/tsdb", None, HttpMethod::GET)
             .await
-            .and_then(check_api_response)
+            .and_then(map_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -877,7 +877,7 @@ impl Client {
     pub async fn wal_replay_statistics(&self) -> Result<WalReplayStatistics, Error> {
         self.send("api/v1/status/walreplay", None, HttpMethod::GET)
             .await
-            .and_then(check_api_response)
+            .and_then(map_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -902,7 +902,7 @@ impl Client {
     pub async fn alertmanagers(&self) -> Result<Alertmanagers, Error> {
         self.send("api/v1/alertmanagers", None, HttpMethod::GET)
             .await
-            .and_then(check_api_response)
+            .and_then(map_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -961,7 +961,7 @@ impl Client {
 
         self.send("api/v1/targets/metadata", Some(params), HttpMethod::GET)
             .await
-            .and_then(check_api_response)
+            .and_then(map_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 
@@ -1011,47 +1011,18 @@ impl Client {
 
         self.send("api/v1/metadata", Some(params), HttpMethod::GET)
             .await
-            .and_then(check_api_response)
+            .and_then(map_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
 }
 
-// Convert the response object to an intermediary map, check the JSON's status field
-// and map potential errors (if any) to a proper error type. Else return the map.
+// Map the API response object to a Result:
+// Data is returned as is, errors within the response body are converted to
+// this crate's error type.
 #[inline]
-fn check_api_response(response: ApiResponse) -> Result<serde_json::Value, Error> {
+fn map_api_response(response: ApiResponse) -> Result<serde_json::Value, Error> {
     match response {
         ApiResponse::Success { data } => Ok(data),
         ApiResponse::Error(e) => Err(Error::ApiError(e)),
     }
-}
-
-// Parses the API response from a map to a Response enum that
-// encapsulates a result type of "vector", "matrix", or "scalar".
-fn convert_query_response(response: serde_json::Value) -> Result<PromqlResult, Error> {
-    let result: IntermediatePromqlResult =
-        serde_json::from_value(response).map_err(Error::ResponseParse)?;
-
-    let data = match result.kind {
-        PromqlResultType::Vector => {
-            let vector: Vec<InstantVector> =
-                serde_json::from_value(result.data).map_err(Error::ResponseParse)?;
-            Data::Vector(vector)
-        }
-        PromqlResultType::Matrix => {
-            let matrix: Vec<RangeVector> =
-                serde_json::from_value(result.data).map_err(Error::ResponseParse)?;
-            Data::Matrix(matrix)
-        }
-        PromqlResultType::Scalar => {
-            let sample: Sample =
-                serde_json::from_value(result.data).map_err(Error::ResponseParse)?;
-            Data::Scalar(sample)
-        }
-    };
-
-    Ok(PromqlResult {
-        data,
-        stats: result.stats,
-    })
 }

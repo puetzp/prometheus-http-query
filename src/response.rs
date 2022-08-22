@@ -133,25 +133,6 @@ pub(crate) enum ApiResponse {
     Error(crate::error::ApiError),
 }
 
-#[derive(Debug, Deserialize)]
-pub(crate) struct IntermediatePromqlResult {
-    #[serde(alias = "resultType")]
-    pub(crate) kind: PromqlResultType,
-    #[serde(alias = "result")]
-    pub(crate) data: serde_json::Value,
-    pub(crate) stats: Option<Stats>,
-}
-
-#[derive(Debug, Deserialize)]
-pub(crate) enum PromqlResultType {
-    #[serde(alias = "vector")]
-    Vector,
-    #[serde(alias = "matrix")]
-    Matrix,
-    #[serde(alias = "scalar")]
-    Scalar,
-}
-
 #[derive(Debug, Clone, Deserialize)]
 pub struct Stats {
     timings: Timings,
@@ -234,8 +215,9 @@ impl Samples {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Deserialize)]
 pub struct PromqlResult {
+    #[serde(flatten)]
     pub(crate) data: Data,
     pub(crate) stats: Option<Stats>,
 }
@@ -253,10 +235,14 @@ impl PromqlResult {
 }
 
 /// A wrapper for possible result types of expression queries ([crate::Client::query] and [crate::Client::query_range]).
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Deserialize)]
+#[serde(tag = "resultType", content = "result")]
 pub enum Data {
+    #[serde(alias = "vector")]
     Vector(Vec<InstantVector>),
+    #[serde(alias = "matrix")]
     Matrix(Vec<RangeVector>),
+    #[serde(alias = "scalar")]
     Scalar(Sample),
 }
 
@@ -1057,7 +1043,7 @@ mod tests {
     use std::collections::HashMap;
 
     #[test]
-    fn test_intermediate_query_result_deserialization() {
+    fn test_query_result_deserialization() {
         let data = r#"
 {
   "resultType": "matrix",
@@ -1122,13 +1108,12 @@ mod tests {
   }
 }
 "#;
-        let result: Result<IntermediatePromqlResult, serde_json::Error> =
-            serde_json::from_str(data);
+        let result: Result<PromqlResult, serde_json::Error> = serde_json::from_str(data);
         assert!(result.is_ok());
     }
 
     #[test]
-    fn test_intermediate_query_result_no_per_step_stats_deserialization() {
+    fn test_query_result_no_per_step_stats_deserialization() {
         let data = r#"
 {
   "resultType": "matrix",
@@ -1175,13 +1160,12 @@ mod tests {
   }
 }
 "#;
-        let result: Result<IntermediatePromqlResult, serde_json::Error> =
-            serde_json::from_str(data);
+        let result: Result<PromqlResult, serde_json::Error> = serde_json::from_str(data);
         assert!(result.is_ok());
     }
 
     #[test]
-    fn test_intermediate_query_result_no_stats_deserialization() {
+    fn test_query_result_no_stats_deserialization() {
         let data = r#"
 {
   "resultType": "matrix",
@@ -1214,8 +1198,7 @@ mod tests {
   ]
 }
 "#;
-        let result: Result<IntermediatePromqlResult, serde_json::Error> =
-            serde_json::from_str(data);
+        let result: Result<PromqlResult, serde_json::Error> = serde_json::from_str(data);
         assert!(result.is_ok());
     }
 
