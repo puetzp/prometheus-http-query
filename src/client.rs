@@ -61,9 +61,8 @@ impl InstantQueryBuilder {
 
     /// Execute the instant query (using HTTP GET) and return the parsed API response.
     pub async fn get(self) -> Result<PromqlResult, Error> {
-        let url = build_final_url(self.client.base_url.clone(), "api/v1/query");
         self.client
-            .send(url, Some(self.build_params()), HttpMethod::GET)
+            .send("api/v1/query", Some(self.build_params()), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(convert_query_response)
@@ -74,9 +73,8 @@ impl InstantQueryBuilder {
     /// the size of the final URL may break Prometheus' or an intermediate proxies' URL
     /// character limits.
     pub async fn post(self) -> Result<PromqlResult, Error> {
-        let url = build_final_url(self.client.base_url.clone(), "api/v1/query");
         self.client
-            .send(url, Some(self.build_params()), HttpMethod::POST)
+            .send("api/v1/query", Some(self.build_params()), HttpMethod::POST)
             .await
             .and_then(check_api_response)
             .and_then(convert_query_response)
@@ -132,9 +130,12 @@ impl RangeQueryBuilder {
 
     /// Execute the range query (using HTTP GET) and return the parsed API response.
     pub async fn get(self) -> Result<PromqlResult, Error> {
-        let url = build_final_url(self.client.base_url.clone(), "api/v1/query_range");
         self.client
-            .send(url, Some(self.build_params()), HttpMethod::GET)
+            .send(
+                "api/v1/query_range",
+                Some(self.build_params()),
+                HttpMethod::GET,
+            )
             .await
             .and_then(check_api_response)
             .and_then(convert_query_response)
@@ -145,9 +146,12 @@ impl RangeQueryBuilder {
     /// the size of the final URL may break Prometheus' or an intermediate proxies' URL
     /// character limits.
     pub async fn post(self) -> Result<PromqlResult, Error> {
-        let url = build_final_url(self.client.base_url.clone(), "api/v1/query_range");
         self.client
-            .send(url, Some(self.build_params()), HttpMethod::POST)
+            .send(
+                "api/v1/query_range",
+                Some(self.build_params()),
+                HttpMethod::POST,
+            )
             .await
             .and_then(check_api_response)
             .and_then(convert_query_response)
@@ -321,10 +325,12 @@ impl Client {
     /// Build and send the final HTTP request. Parse the result as JSON.
     async fn send(
         &self,
-        url: Url,
+        path: &str,
         params: Option<Vec<(&str, String)>>,
         method: HttpMethod,
     ) -> Result<ApiResponse, Error> {
+        let url = build_final_url(self.base_url.clone(), path);
+
         let request = match method {
             HttpMethod::GET => {
                 let mut req = self.client.get(url);
@@ -481,8 +487,6 @@ impl Client {
             return Err(Error::EmptySeriesSelector);
         }
 
-        let url = build_final_url(self.base_url.clone(), "api/v1/series");
-
         let mut params = vec![];
 
         if let Some(s) = start {
@@ -500,7 +504,7 @@ impl Client {
 
         params.append(&mut matchers);
 
-        self.send(url, Some(params), HttpMethod::GET)
+        self.send("api/v1/series", Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -550,8 +554,6 @@ impl Client {
         start: Option<i64>,
         end: Option<i64>,
     ) -> Result<Vec<String>, Error> {
-        let url = build_final_url(self.base_url.clone(), "api/v1/labels");
-
         let mut params = vec![];
 
         if let Some(s) = &start {
@@ -569,7 +571,7 @@ impl Client {
             params.append(&mut matchers);
         }
 
-        self.send(url, Some(params), HttpMethod::GET)
+        self.send("api/v1/labels", Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -617,9 +619,6 @@ impl Client {
         start: Option<i64>,
         end: Option<i64>,
     ) -> Result<Vec<String>, Error> {
-        let path = format!("api/v1/label/{}/values", label);
-        let url = build_final_url(self.base_url.clone(), &path);
-
         let mut params = vec![];
 
         if let Some(s) = &start {
@@ -637,7 +636,8 @@ impl Client {
             params.append(&mut matchers);
         }
 
-        self.send(url, Some(params), HttpMethod::GET)
+        let path = format!("api/v1/label/{}/values", label);
+        self.send(&path, Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -667,15 +667,13 @@ impl Client {
     /// }
     /// ```
     pub async fn targets(&self, state: Option<TargetState>) -> Result<Targets, Error> {
-        let url = build_final_url(self.base_url.clone(), "api/v1/targets");
-
         let mut params = vec![];
 
         if let Some(s) = &state {
             params.push(("state", s.to_string()))
         }
 
-        self.send(url, Some(params), HttpMethod::GET)
+        self.send("api/v1/targets", Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -705,15 +703,13 @@ impl Client {
     /// }
     /// ```
     pub async fn rules(&self, rule_type: Option<RuleType>) -> Result<Vec<RuleGroup>, Error> {
-        let url = build_final_url(self.base_url.clone(), "api/v1/rules");
-
         let mut params = vec![];
 
         if let Some(s) = rule_type {
             params.push(("type", s.to_string()))
         }
 
-        self.send(url, Some(params), HttpMethod::GET)
+        self.send("api/v1/rules", Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| {
@@ -746,9 +742,7 @@ impl Client {
     /// }
     /// ```
     pub async fn alerts(&self) -> Result<Vec<Alert>, Error> {
-        let url = build_final_url(self.base_url.clone(), "api/v1/alerts");
-
-        self.send(url, None, HttpMethod::GET)
+        self.send("api/v1/alerts", None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| {
@@ -781,9 +775,7 @@ impl Client {
     /// }
     /// ```
     pub async fn flags(&self) -> Result<HashMap<String, String>, Error> {
-        let url = build_final_url(self.base_url.clone(), "api/v1/status/flags");
-
-        self.send(url, None, HttpMethod::GET)
+        self.send("api/v1/status/flags", None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -808,9 +800,7 @@ impl Client {
     /// }
     /// ```
     pub async fn build_information(&self) -> Result<BuildInformation, Error> {
-        let url = build_final_url(self.base_url.clone(), "api/v1/status/buildinfo");
-
-        self.send(url, None, HttpMethod::GET)
+        self.send("api/v1/status/buildinfo", None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -835,9 +825,7 @@ impl Client {
     /// }
     /// ```
     pub async fn runtime_information(&self) -> Result<RuntimeInformation, Error> {
-        let url = build_final_url(self.base_url.clone(), "api/v1/status/runtimeinfo");
-
-        self.send(url, None, HttpMethod::GET)
+        self.send("api/v1/status/runtimeinfo", None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -862,9 +850,7 @@ impl Client {
     /// }
     /// ```
     pub async fn tsdb_statistics(&self) -> Result<TsdbStatistics, Error> {
-        let url = build_final_url(self.base_url.clone(), "api/v1/status/tsdb");
-
-        self.send(url, None, HttpMethod::GET)
+        self.send("api/v1/status/tsdb", None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -889,9 +875,7 @@ impl Client {
     /// }
     /// ```
     pub async fn wal_replay_statistics(&self) -> Result<WalReplayStatistics, Error> {
-        let url = build_final_url(self.base_url.clone(), "api/v1/status/walreplay");
-
-        self.send(url, None, HttpMethod::GET)
+        self.send("api/v1/status/walreplay", None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -916,9 +900,7 @@ impl Client {
     /// }
     /// ```
     pub async fn alertmanagers(&self) -> Result<Alertmanagers, Error> {
-        let url = build_final_url(self.base_url.clone(), "api/v1/alertmanagers");
-
-        self.send(url, None, HttpMethod::GET)
+        self.send("api/v1/alertmanagers", None, HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -963,8 +945,6 @@ impl Client {
         match_target: Option<&Selector<'_>>,
         limit: Option<usize>,
     ) -> Result<Vec<TargetMetadata>, Error> {
-        let url = build_final_url(self.base_url.clone(), "api/v1/targets/metadata");
-
         let mut params = vec![];
 
         if let Some(m) = metric {
@@ -979,7 +959,7 @@ impl Client {
             params.push(("limit", l.to_string()))
         }
 
-        self.send(url, Some(params), HttpMethod::GET)
+        self.send("api/v1/targets/metadata", Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -1019,8 +999,6 @@ impl Client {
         metric: Option<&str>,
         limit: Option<usize>,
     ) -> Result<HashMap<String, Vec<MetricMetadata>>, Error> {
-        let url = build_final_url(self.base_url.clone(), "api/v1/metadata");
-
         let mut params = vec![];
 
         if let Some(m) = &metric {
@@ -1031,7 +1009,7 @@ impl Client {
             params.push(("limit", l.to_string()))
         }
 
-        self.send(url, Some(params), HttpMethod::GET)
+        self.send("api/v1/metadata", Some(params), HttpMethod::GET)
             .await
             .and_then(check_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
