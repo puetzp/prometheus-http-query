@@ -11,7 +11,6 @@ use url::Url;
 #[derive(Clone)]
 pub struct InstantQueryBuilder {
     client: Client,
-    base_url: Url,
     query: String,
     time: Option<i64>,
     timeout: Option<i64>,
@@ -62,7 +61,7 @@ impl InstantQueryBuilder {
 
     /// Execute the instant query (using HTTP GET) and return the parsed API response.
     pub async fn get(self) -> Result<PromqlResult, Error> {
-        let url = build_final_url(self.base_url.clone(), "api/v1/query");
+        let url = build_final_url(self.client.base_url.clone(), "api/v1/query");
         self.client
             .send(url, Some(self.build_params()), HttpMethod::GET)
             .await
@@ -75,7 +74,7 @@ impl InstantQueryBuilder {
     /// the size of the final URL may break Prometheus' or an intermediate proxies' URL
     /// character limits.
     pub async fn post(self) -> Result<PromqlResult, Error> {
-        let url = build_final_url(self.base_url.clone(), "api/v1/query");
+        let url = build_final_url(self.client.base_url.clone(), "api/v1/query");
         self.client
             .send(url, Some(self.build_params()), HttpMethod::POST)
             .await
@@ -89,7 +88,6 @@ impl InstantQueryBuilder {
 #[derive(Clone)]
 pub struct RangeQueryBuilder {
     client: Client,
-    base_url: Url,
     query: String,
     start: i64,
     end: i64,
@@ -134,7 +132,7 @@ impl RangeQueryBuilder {
 
     /// Execute the range query (using HTTP GET) and return the parsed API response.
     pub async fn get(self) -> Result<PromqlResult, Error> {
-        let url = build_final_url(self.base_url.clone(), "api/v1/query_range");
+        let url = build_final_url(self.client.base_url.clone(), "api/v1/query_range");
         self.client
             .send(url, Some(self.build_params()), HttpMethod::GET)
             .await
@@ -147,7 +145,7 @@ impl RangeQueryBuilder {
     /// the size of the final URL may break Prometheus' or an intermediate proxies' URL
     /// character limits.
     pub async fn post(self) -> Result<PromqlResult, Error> {
-        let url = build_final_url(self.base_url.clone(), "api/v1/query_range");
+        let url = build_final_url(self.client.base_url.clone(), "api/v1/query_range");
         self.client
             .send(url, Some(self.build_params()), HttpMethod::POST)
             .await
@@ -386,7 +384,6 @@ impl Client {
     pub fn query(&self, query: impl std::string::ToString) -> InstantQueryBuilder {
         InstantQueryBuilder {
             client: self.clone(),
-            base_url: self.base_url.clone(),
             query: query.to_string(),
             time: None,
             timeout: None,
@@ -435,7 +432,6 @@ impl Client {
     ) -> RangeQueryBuilder {
         RangeQueryBuilder {
             client: self.clone(),
-            base_url: self.base_url.clone(),
             query: query.to_string(),
             timeout: None,
             stats: false,
