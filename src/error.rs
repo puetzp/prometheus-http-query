@@ -1,3 +1,4 @@
+use serde::Deserialize;
 use std::error::Error as StdError;
 use std::fmt;
 
@@ -33,9 +34,11 @@ impl StdError for Error {}
 
 /// This error is thrown when the JSON response's `status` field contains `error`.<br>
 /// The error-related information in the response is included in this error.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Deserialize)]
 pub struct ApiError {
+    #[serde(alias = "resultType")]
     pub(crate) kind: String,
+    #[serde(alias = "message")]
     pub(crate) message: String,
 }
 

@@ -1,4 +1,4 @@
-use crate::error::{ApiError, Error, MissingFieldError};
+use crate::error::{Error, MissingFieldError};
 use crate::response::*;
 use crate::selector::Selector;
 use crate::util::{build_final_url, RuleType, TargetState, ToBaseUrl};
@@ -1018,25 +1018,11 @@ impl Client {
 
 // Convert the response object to an intermediary map, check the JSON's status field
 // and map potential errors (if any) to a proper error type. Else return the map.
+#[inline]
 fn check_api_response(response: ApiResponse) -> Result<serde_json::Value, Error> {
-    match response.status {
-        ApiResponseStatus::Success => {
-            let data = response
-                .data
-                .ok_or(Error::MissingField(MissingFieldError("data")))?;
-            Ok(data)
-        }
-        ApiResponseStatus::Error => {
-            let kind = response
-                .error_type
-                .ok_or(Error::MissingField(MissingFieldError("errorType")))?;
-
-            let message = response
-                .error
-                .ok_or(Error::MissingField(MissingFieldError("error")))?;
-
-            Err(Error::ApiError(ApiError { kind, message }))
-        }
+    match response {
+        ApiResponse::Success { data } => Ok(data),
+        ApiResponse::Error(e) => Err(Error::ApiError(e)),
     }
 }
 

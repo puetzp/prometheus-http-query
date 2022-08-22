@@ -127,20 +127,10 @@ mod de {
 }
 
 #[derive(Debug, Deserialize)]
-pub(crate) struct ApiResponse {
-    pub(crate) status: ApiResponseStatus,
-    pub(crate) data: Option<serde_json::Value>,
-    #[serde(alias = "errorType")]
-    pub(crate) error_type: Option<String>,
-    pub(crate) error: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-pub(crate) enum ApiResponseStatus {
-    #[serde(alias = "success")]
-    Success,
-    #[serde(alias = "error")]
-    Error,
+#[serde(untagged)]
+pub(crate) enum ApiResponse {
+    Success { data: serde_json::Value },
+    Error(crate::error::ApiError),
 }
 
 #[derive(Debug, Deserialize)]
