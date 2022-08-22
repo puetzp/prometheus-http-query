@@ -7,9 +7,11 @@ use std::fmt;
 #[non_exhaustive]
 #[derive(Debug)]
 pub enum Error {
-    /// Wraps errors from the underlying [reqwest::Client]
+    /// Wraps errors from the underlying [reqwest::Client] when e.g. a HTTP 5xx
+    /// is returned by Prometheus.
     Client(reqwest::Error),
-    /// Occurs when the request was successful but the JSON response contains errors returned by the API
+    /// Occurs when Prometheus responds with HTTP 4xx and a detailed error message
+    /// is provided as part of the JSON response.
     ApiError(ApiError),
     EmptySeriesSelector,
     UrlParse(url::ParseError),
@@ -46,7 +48,7 @@ impl fmt::Display for ApiError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "the API returned error of type {} as part of JSON response: {}",
+            "the API returned error of type {}: {}",
             self.kind, self.message
         )
     }
