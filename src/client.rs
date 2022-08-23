@@ -2,6 +2,7 @@ use crate::error::{Error, MissingFieldError};
 use crate::response::*;
 use crate::selector::Selector;
 use crate::util::{build_final_url, RuleType, TargetState, ToBaseUrl};
+use reqwest::header::{HeaderValue, CONTENT_TYPE};
 use reqwest::Method as HttpMethod;
 use std::collections::HashMap;
 use url::Url;
@@ -349,15 +350,14 @@ impl Client {
             _ => unreachable!(),
         };
 
-        match request.send().await {
-            Ok(response) => {
-                if response.status().is_server_error() {
-                    Err(Error::Client(response.error_for_status().unwrap_err()))
-                } else {
-                    response.json::<ApiResponse>().await.map_err(Error::Client)
-                }
-            }
-            Err(e) => Err(Error::Client(e)),
+        let response = request.send().await.map_err(Error::Client)?;
+        let headers = response.headers();
+        let content_type = HeaderValue::from_static("application/json");
+
+        if headers.get(CONTENT_TYPE) == Some(&content_type) {
+            response.json().await.map_err(Error::Client)
+        } else {
+            Err(Error::Client(response.error_for_status().unwrap_err()))
         }
     }
 
