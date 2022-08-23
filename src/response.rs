@@ -1045,6 +1045,75 @@ mod tests {
     use std::collections::HashMap;
 
     #[test]
+    fn test_api_error_deserialization() {
+        let data = r#"
+{
+  "status": "error",
+  "data": null,
+  "errorType": "bad_data",
+  "error": "1:14: parse error: unexpected end of input in aggregation",
+  "warnings": []
+}
+"#;
+
+        let result: Result<ApiResponse, serde_json::Error> = serde_json::from_str(data);
+        assert!(result.is_ok());
+        assert!(
+            matches!(result.unwrap(), ApiResponse::Error(err) if err.kind.as_str() == "bad_data")
+        );
+    }
+
+    #[test]
+    fn test_api_success_deserialization() {
+        let data = r#"
+{
+  "status": "success",
+  "data": {
+    "resultType": "scalar",
+    "result": [ 0, "0.0" ]
+  },
+  "warnings": []
+}
+"#;
+
+        let result: Result<ApiResponse, serde_json::Error> = serde_json::from_str(data);
+        assert!(result.is_ok());
+        assert!(matches!(result.unwrap(), ApiResponse::Success { data: _ }));
+    }
+
+    #[test]
+    fn test_bad_combination_in_deserialization() {
+        let data = r#"
+{
+  "status": "error",
+  "data": {
+    "resultType": "scalar",
+    "result": [ 0, "0.0" ]
+  },
+  "warnings": []
+}
+"#;
+
+        let result: Result<ApiResponse, serde_json::Error> = serde_json::from_str(data);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_another_bad_combination_in_deserialization() {
+        let data = r#"
+{
+  "status": "success",
+  "warnings": []
+  "errorType": "bad_data",
+  "error": "1:14: parse error: unexpected end of input in aggregation",
+}
+"#;
+
+        let result: Result<ApiResponse, serde_json::Error> = serde_json::from_str(data);
+        assert!(result.is_err());
+    }
+
+    #[test]
     fn test_query_result_deserialization() {
         let data = r#"
 {
