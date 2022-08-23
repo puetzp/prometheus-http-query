@@ -1059,7 +1059,7 @@ mod tests {
         let result: Result<ApiResponse, serde_json::Error> = serde_json::from_str(data);
         assert!(result.is_ok());
         assert!(
-            matches!(result.unwrap(), ApiResponse::Error(err) if err.kind.as_str() == "bad_data")
+            matches!(result.unwrap(), ApiResponse::Error(err) if err.error_type == crate::error::ApiErrorType::BadData)
         );
     }
 

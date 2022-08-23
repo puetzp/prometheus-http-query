@@ -176,7 +176,7 @@
 //! * Warnings contained in a API response will be ignored
 mod client;
 mod direct;
-mod error;
+pub mod error;
 pub mod response;
 mod selector;
 mod util;
