@@ -6,14 +6,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.6.2] - unreleased
 ### Added
-- `prometheus_http_query::error::ApiErrorType` that mimics the error variants that are used within the Prometheus API code.
+- `prometheus_http_query::error::ApiErrorType` that corresponds to the error variants that are used within the Prometheus API code.
 
 ### Changed
-- `prometheus_http_query::error::ApiError` is now part of the crate API and provides methods to inspect the cause of the error, e.g. `ApiError::error_type` and `ApiError::is_timeout`.
+- `prometheus_http_query::error::ApiError` is now part of the public crate API and provides methods to inspect the cause of the error, e.g. `ApiError::error_type`, `ApiError::is_timeout` and `ApiError::message`.
+
+### Fixed
 - `Client` methods now return the proper error variant when e.g. a reverse proxy acts as intermediary. This considers the following three cases:
 	- Prometheus returns 2xx with JSON body -> JSON is parsed and function returns the result in a `Result::Ok`.
 	- Prometheus returns 4xx or 5xx -> JSON is parsed and function returns the `ApiError` containing the error details within `Result::Err`.
-	- Proxy cannot handle the request and responds with a 4xx or 5xx itself -> error is raised and function returns the wrapped `reqwest::Error` within `Result::Err`.
+	- A proxy cannot handle the request and responds with a 4xx or 5xx itself -> error is raised and function returns the wrapped `reqwest::Error` within `Result::Err`.
 
 ## [0.6.1] - 2022-08-22
 ### Fixed

@@ -7,11 +7,11 @@ use std::fmt;
 #[non_exhaustive]
 #[derive(Debug)]
 pub enum Error {
-    /// Wraps errors from the underlying [reqwest::Client] when e.g. a HTTP 5xx
-    /// is returned by Prometheus.
+    /// Wraps errors from the underlying [reqwest::Client] that cannot be mapped
+    /// to a more specific error type.
     Client(reqwest::Error),
-    /// Occurs when Prometheus responds with HTTP 4xx (e.g. due to a syntax error in a PromQL query).<br>
-    /// The details of this error are included in [ApiError].
+    /// Occurs when Prometheus responds with e.g. HTTP 4xx (e.g. due to a syntax error in a PromQL query).<br>
+    /// Details on the error as reported by Prometheus are included in [ApiError].
     ApiError(ApiError),
     EmptySeriesSelector,
     UrlParse(url::ParseError),
@@ -55,9 +55,14 @@ impl fmt::Display for ApiError {
 }
 
 impl ApiError {
-    /// Returns the parsed version of the error type as reported by the Prometheus API.
+    /// Returns the parsed version of the error type that was given by the Prometheus API.
     pub fn error_type(&self) -> ApiErrorType {
         self.error_type
+    }
+
+    /// Returns the error message that was given by the Prometheus API.
+    pub fn message(&self) -> &str {
+        &self.message
     }
 
     pub fn is_timeout(&self) -> bool {

@@ -41,7 +41,7 @@ async fn main() -> Result<(), Error> {
 
 ## Compatibility
 
-This library is compatible with all Prometheus versions starting from v2.30. Individual client methods might fail with older versions.
+This library is generally compatible with Prometheus versions starting from v2.30. Individual client methods might fail with older versions.
 
 ## Tests
 

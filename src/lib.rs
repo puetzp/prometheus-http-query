@@ -140,7 +140,25 @@
 //!
 //! # Compatibility
 //!
-//! See the `README` for details on this matter.
+//! The crate is generally compatible with Prometheus server >=2.30. However individual [Client] methods might
+//! only work with the latest Prometheus server version when the corresponding API endpoint has only recently
+//! been introduced.<br>
+//! Also some features may only work when the Prometheus server is started with certain flags. An example
+//! are query statistics that can be enabled via [RangeQueryBuilder::stats]. The response
+//! will not contain per-step stats unless Prometheus is started with `--enable-feature=promql-per-step-stats`.
+//!
+//! # Error handling
+//!
+//! All client methods that interact with the Prometheus API return a `Result`. Also each request to the API
+//! may fail at different stages. In general the following approach is taken to return the most significant
+//! error to the caller:
+//! - When the server's response contains the header `Content-Type: application/json` the JSON body is parsed
+//! to the target type, regardless of the HTTP status code, because the Prometheus API provides more details on
+//! errors within the JSON response. A JSON response having `"status": "success"` is deserialized to the target
+//! type of this function and returned within `Result::Ok`. A response with `"status": "error"` is instead
+//! deserialized to a [error::ApiError] and returned within `Result::Err`.
+//! - Any other server HTTP 4xx/5xx responses without the proper header indicating a JSON-encoded body are
+//! returned as [Error::Client] within `Result::Err`.
 //!
 //! # Supported operations
 //!
@@ -159,21 +177,12 @@
 //! - [x] Prometheus server runtime information
 //! - [ ] Prometheus server config
 //!
-//! # Notes
-//!
-//! ## On parsing an error handling
-//!
-//! If the JSON response from the Prometheus HTTP API indicates an error (field `status` == `"error"`),
-//! then the contents of both fields `errorType` and `error` are captured and then returned by the client
-//! as a variant of the [Error] enum, just as any HTTP errors (non-200) that may indicate a problem
-//! with the provided query string. Thus any syntax problems etc. that cannot be caught at compile time
-//! or before executing the query will at least be propagated as returned by the HTTP API.
-//!
 //! # Limitations
 //!
-//! * Some [Client] methods may not work with older versions of the Prometheus server
+//! * Some [Client] methods may not work with older versions of the Prometheus server.
 //! * The [String](https://prometheus.io/docs/prometheus/latest/querying/api/#strings) result type is not supported
-//! * Warnings contained in a API response will be ignored
+//! as it is currently not used by Prometheus.
+//! * Warnings contained in an API response will be ignored.
 mod client;
 mod direct;
 pub mod error;
