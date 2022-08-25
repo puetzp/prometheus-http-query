@@ -948,6 +948,60 @@ impl Client {
             .and_then(map_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
     }
+
+    /// Check Prometheus server health.
+    ///
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/management_api/#health-check)
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Error};
+    ///
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), Error> {
+    ///     let client = Client::default();
+    ///     let health = client.is_server_healthy().await;
+    ///     assert!(health.is_ok());
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn is_server_healthy(&self) -> Result<(), Error> {
+        let url = build_final_url(self.base_url.clone(), "-/healthy");
+        self.client
+            .get(url)
+            .send()
+            .await
+            .map_err(Error::Client)?
+            .error_for_status()
+            .map_err(Error::Client)
+            .map(|_| ())
+    }
+
+    /// Check Prometheus server readiness.
+    ///
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/management_api/#readiness-check)
+    ///
+    /// ```rust
+    /// use prometheus_http_query::{Client, Error};
+    ///
+    /// #[tokio::main(flavor = "current_thread")]
+    /// async fn main() -> Result<(), Error> {
+    ///     let client = Client::default();
+    ///     let readiness = client.is_server_ready().await;
+    ///     assert!(readiness.is_ok());
+    ///     Ok(())
+    /// }
+    /// ```
+    pub async fn is_server_ready(&self) -> Result<(), Error> {
+        let url = build_final_url(self.base_url.clone(), "-/ready");
+        self.client
+            .get(url)
+            .send()
+            .await
+            .map_err(Error::Client)?
+            .error_for_status()
+            .map_err(Error::Client)
+            .map(|_| ())
+    }
 }
 
 // Map the API response object to a Result:
