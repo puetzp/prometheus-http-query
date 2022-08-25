@@ -12,37 +12,16 @@ use url::Url;
 #[derive(Clone)]
 pub struct InstantQueryBuilder {
     client: Client,
-    query: String,
-    time: Option<i64>,
-    timeout: Option<i64>,
-    stats: bool,
+    params: Vec<(&'static str, String)>,
 }
 
 impl InstantQueryBuilder {
-    fn build_params(&self) -> Vec<(&str, String)> {
-        let mut params = vec![("query", self.query.to_string())];
-
-        if let Some(t) = self.time {
-            params.push(("time", t.to_string()));
-        }
-
-        if let Some(t) = self.timeout {
-            params.push(("timeout", format!("{}ms", t)));
-        }
-
-        if self.stats {
-            params.push(("stats", String::from("all")));
-        }
-
-        params
-    }
-
     /// Set the evaluation timestamp (Unix timestamp in seconds, e.g. 1659182624).
     /// If this is not set the evaluation timestamp will default to the current Prometheus
     /// server time.
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
     pub fn at(mut self, time: i64) -> Self {
-        self.time = Some(time);
+        self.params.push(("time", time.to_string()));
         self
     }
 
@@ -50,20 +29,20 @@ impl InstantQueryBuilder {
     /// If this is not set the timeout will default to the value of the "-query.timeout" flag of the Prometheus server.
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
     pub fn timeout(mut self, timeout: i64) -> Self {
-        self.timeout = Some(timeout);
+        self.params.push(("timeout", format!("{}ms", timeout)));
         self
     }
 
     /// Instruct Prometheus to compile query statistics as part of the API response.
     pub fn stats(mut self) -> Self {
-        self.stats = true;
+        self.params.push(("stats", String::from("all")));
         self
     }
 
     /// Execute the instant query (using HTTP GET) and return the parsed API response.
     pub async fn get(self) -> Result<PromqlResult, Error> {
         self.client
-            .send("api/v1/query", Some(self.build_params()), HttpMethod::GET)
+            .send("api/v1/query", Some(self.params), HttpMethod::GET)
             .await
             .and_then(map_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -75,7 +54,7 @@ impl InstantQueryBuilder {
     /// character limits.
     pub async fn post(self) -> Result<PromqlResult, Error> {
         self.client
-            .send("api/v1/query", Some(self.build_params()), HttpMethod::POST)
+            .send("api/v1/query", Some(self.params), HttpMethod::POST)
             .await
             .and_then(map_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -87,56 +66,28 @@ impl InstantQueryBuilder {
 #[derive(Clone)]
 pub struct RangeQueryBuilder {
     client: Client,
-    query: String,
-    start: i64,
-    end: i64,
-    step: f64,
-    timeout: Option<i64>,
-    stats: bool,
+    params: Vec<(&'static str, String)>,
 }
 
 impl RangeQueryBuilder {
-    fn build_params(&self) -> Vec<(&str, String)> {
-        let mut params = vec![
-            ("query", self.query.to_string()),
-            ("start", self.start.to_string()),
-            ("end", self.end.to_string()),
-            ("step", self.step.to_string()),
-        ];
-
-        if let Some(t) = self.timeout {
-            params.push(("timeout", format!("{}ms", t)));
-        }
-
-        if self.stats {
-            params.push(("stats", String::from("all")));
-        }
-
-        params
-    }
-
     /// Set the evaluation timeout (milliseconds, e.g. 1000).
     /// If this is not set the timeout will default to the value of the "-query.timeout" flag of the Prometheus server.
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries)
     pub fn timeout(mut self, timeout: i64) -> Self {
-        self.timeout = Some(timeout);
+        self.params.push(("timeout", format!("{}ms", timeout)));
         self
     }
 
     /// Instruct Prometheus to compile query statistics as part of the API response.
     pub fn stats(mut self) -> Self {
-        self.stats = true;
+        self.params.push(("stats", String::from("all")));
         self
     }
 
     /// Execute the range query (using HTTP GET) and return the parsed API response.
     pub async fn get(self) -> Result<PromqlResult, Error> {
         self.client
-            .send(
-                "api/v1/query_range",
-                Some(self.build_params()),
-                HttpMethod::GET,
-            )
+            .send("api/v1/query_range", Some(self.params), HttpMethod::GET)
             .await
             .and_then(map_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -148,11 +99,7 @@ impl RangeQueryBuilder {
     /// character limits.
     pub async fn post(self) -> Result<PromqlResult, Error> {
         self.client
-            .send(
-                "api/v1/query_range",
-                Some(self.build_params()),
-                HttpMethod::POST,
-            )
+            .send("api/v1/query_range", Some(self.params), HttpMethod::POST)
             .await
             .and_then(map_api_response)
             .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
@@ -391,10 +338,7 @@ impl Client {
     pub fn query(&self, query: impl std::string::ToString) -> InstantQueryBuilder {
         InstantQueryBuilder {
             client: self.clone(),
-            query: query.to_string(),
-            time: None,
-            timeout: None,
-            stats: false,
+            params: vec![("query", query.to_string())],
         }
     }
 
@@ -439,12 +383,12 @@ impl Client {
     ) -> RangeQueryBuilder {
         RangeQueryBuilder {
             client: self.clone(),
-            query: query.to_string(),
-            timeout: None,
-            stats: false,
-            start,
-            end,
-            step,
+            params: vec![
+                ("query", query.to_string()),
+                ("start", start.to_string()),
+                ("end", end.to_string()),
+                ("step", step.to_string()),
+            ],
         }
     }
 
