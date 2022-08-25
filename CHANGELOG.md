@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.3] - unreleased
+### Added
+- `Client::is_server_healthy`
+- `Client::is_server_ready`
+
 ## [0.6.2] - 2022-08-23
 ### Added
 - `prometheus_http_query::error::ApiErrorType` that corresponds to the error variants that are used within the Prometheus API code.
