@@ -959,12 +959,11 @@ impl Client {
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), Error> {
     ///     let client = Client::default();
-    ///     let health = client.is_server_healthy().await;
-    ///     assert!(health.is_ok());
+    ///     assert!(client.is_server_healthy().await?);
     ///     Ok(())
     /// }
     /// ```
-    pub async fn is_server_healthy(&self) -> Result<(), Error> {
+    pub async fn is_server_healthy(&self) -> Result<bool, Error> {
         let url = build_final_url(self.base_url.clone(), "-/healthy");
         self.client
             .get(url)
@@ -973,7 +972,7 @@ impl Client {
             .map_err(Error::Client)?
             .error_for_status()
             .map_err(Error::Client)
-            .map(|_| ())
+            .map(|_| true)
     }
 
     /// Check Prometheus server readiness.
@@ -986,12 +985,11 @@ impl Client {
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), Error> {
     ///     let client = Client::default();
-    ///     let readiness = client.is_server_ready().await;
-    ///     assert!(readiness.is_ok());
+    ///     assert!(client.is_server_ready().await?);
     ///     Ok(())
     /// }
     /// ```
-    pub async fn is_server_ready(&self) -> Result<(), Error> {
+    pub async fn is_server_ready(&self) -> Result<bool, Error> {
         let url = build_final_url(self.base_url.clone(), "-/ready");
         self.client
             .get(url)
@@ -1000,7 +998,7 @@ impl Client {
             .map_err(Error::Client)?
             .error_for_status()
             .map_err(Error::Client)
-            .map(|_| ())
+            .map(|_| true)
     }
 }
 
