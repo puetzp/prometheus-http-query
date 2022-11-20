@@ -172,6 +172,7 @@
 //! - [x] Query target metadata
 //! - [x] Query metric metadata
 //! - [x] Query alertmanager service discovery status
+//! - [x] Prometheus server health and readiness
 //! - [x] Prometheus server flags
 //! - [x] Prometheus server build information
 //! - [x] Prometheus server runtime information
