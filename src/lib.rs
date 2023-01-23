@@ -138,6 +138,11 @@
 //! }
 //! ```
 //!
+//! # Features
+//!
+//! At this point all available feature flags enable functionality related to TLS as provided by the `reqwest` crate.
+//! See the [reqwest documentation](https://docs.rs/reqwest/0.11.14/reqwest/index.html#optional-features) for details.
+//!
 //! # Compatibility
 //!
 //! The crate is generally compatible with Prometheus server >=2.30. However individual [Client] methods might
