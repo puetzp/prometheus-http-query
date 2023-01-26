@@ -1,10 +1,10 @@
-//! This crate provides an interface to the [Prometheus HTTP API](https://prometheus.io/docs/prometheus/latest/querying/api/) and leverage Rust's type system in the process where applicable.
-//!
-//! The [Client] uses as [reqwest::Client] as HTTP client internally as you will see in the usage section. Thus its features and limitations also apply to this library.
+//! This crate provides an interface to the [Prometheus HTTP API](https://prometheus.io/docs/prometheus/latest/querying/api/).
+//! The [Client] is used to interact with a Prometheus server. It is basically a wrapper around a [reqwest::Client] and implements
+//! additional methods to execute PromQL queries and fetch metadata.
 //!
 //! # Usage
 //!
-//! The following code contains just a few examples. See [Client] for the complete set of query functions.
+//! The following code contains just a few examples. See [Client] for the complete set of available functions.
 //!
 //!
 //! ## Initialize a client
@@ -140,7 +140,8 @@
 //!
 //! # Features
 //!
-//! At this point all available feature flags enable functionality related to TLS as provided by the `reqwest` crate.
+//! At this point all available feature flags pertain to the `Client`s TLS configuration. They enable feature flags of
+//! the `reqwest` crate by the same name.<br>
 //! See the [reqwest documentation](https://docs.rs/reqwest/0.11.14/reqwest/index.html#optional-features) for details.
 //!
 //! # Compatibility

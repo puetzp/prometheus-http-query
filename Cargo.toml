@@ -1,6 +1,6 @@
 [package]
 name = "prometheus-http-query"
-version = "0.6.3"
+version = "0.6.4"
 authors = ["Peter Sebastian Puetz <ppuetz@protonmail.com>"]
 edition = "2021"
 repository = "https://github.com/puetzp/prometheus-http-query"
@@ -21,5 +21,12 @@ time = { version = "0.3.9", features = ["parsing", "macros"] }
 tokio = { version = "1", features = ["macros", "rt"] }
 
 [features]
-default = ["reqwest/default-tls"]
+default = ["reqwest/default"]
+default-ts = ["reqwest/default-tls"]
+native-tls = ["reqwest/native-tls"]
+native-tls-vendored = ["reqwest/native-tls-vendored"]
+native-tls-alpn = ["reqwest/native-tls-alpn"]
 rustls-tls = ["reqwest/rustls-tls"]
+rustls-tls-manual-roots = ["reqwest/rustls-tls-manual-roots"]
+rustls-tls-webpki-roots = ["reqwest/rustls-tls-webpki-roots"]
+rustls-tls-native-roots = ["reqwest/rustls-tls-native-roots"]
