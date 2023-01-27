@@ -22,7 +22,7 @@ tokio = { version = "1", features = ["macros", "rt"] }
 
 [features]
 default = ["reqwest/default"]
-default-ts = ["reqwest/default-tls"]
+default-tls = ["reqwest/default-tls"]
 native-tls = ["reqwest/native-tls"]
 native-tls-vendored = ["reqwest/native-tls-vendored"]
 native-tls-alpn = ["reqwest/native-tls-alpn"]
