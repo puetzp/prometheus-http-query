@@ -11,7 +11,7 @@ description = "Prometheus HTTP API client"
 keywords = [ "prometheus", "prometheus-http-api", "promql", "api", "reqwest" ]
 
 [dependencies]
-reqwest = { version = "0.11", features = ["json"] }
+reqwest = { version = "0.11", default-features = false, features = ["json"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 url = { version = "2.3", features = ["serde"] }
@@ -21,7 +21,7 @@ time = { version = "0.3.9", features = ["parsing", "macros"] }
 tokio = { version = "1", features = ["macros", "rt"] }
 
 [features]
-default = ["reqwest/default"]
+default = ["reqwest/default-tls"]
 default-tls = ["reqwest/default-tls"]
 native-tls = ["reqwest/native-tls"]
 native-tls-vendored = ["reqwest/native-tls-vendored"]
