@@ -140,9 +140,14 @@
 //!
 //! # Features
 //!
-//! At this point all available feature flags pertain to the `Client`s TLS configuration. They enable feature flags of
+//! At this point all available feature flags pertain to the [Client]s TLS configuration. They enable feature flags of
 //! the `reqwest` crate by the same name.<br>
-//! See the [reqwest documentation](https://docs.rs/reqwest/0.11.14/reqwest/index.html#optional-features) for details.
+//! See the [reqwest documentation](https://docs.rs/reqwest/0.11.14/reqwest/index.html#optional-features) for details on
+//! these feature flags.<br>
+//! Also make sure that default features of `prometheus-http-query` are disabled if you choose a TLS library other than
+//! the default:
+//!
+//! `prometheus-http-query = { version = "0.6", default-features = false, features = ["rustls-tls"] }`
 //!
 //! # Compatibility
 //!
