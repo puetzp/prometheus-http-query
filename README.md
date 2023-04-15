@@ -45,9 +45,7 @@ This library is generally compatible with Prometheus versions starting from v2.3
 
 ## Tests
 
-In order to run all tests a Prometheus server must be running at `http://localhost:9090`. No special configuration is required at this point.
-
-Run: `RUSTFLAGS="--cfg unsound_local_offset" cargo test`
+In order to run all tests a Prometheus server must be running at `http://localhost:9090`. No special configuration is required at this point, simply run: `cargo test`
 
 ## Contributing
 
