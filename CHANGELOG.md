@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.6.6] - unreleased
+## [0.6.6] - 2023-04-17
 ### Added
 - `InstantQueryBuilder::header` and `RangeQueryBuilder::header` (see also [PR #6](https://github.com/puetzp/prometheus-http-query/pull/6#issue-1667934427), thank you @lasantosr)
 
