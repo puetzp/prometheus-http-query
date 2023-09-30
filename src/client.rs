@@ -1,7 +1,7 @@
 use crate::error::{Error, MissingFieldError};
 use crate::response::*;
 use crate::selector::Selector;
-use crate::util::{build_final_url, RuleType, TargetState, ToBaseUrl};
+use crate::util::{self, build_final_url, RuleType, TargetState, ToBaseUrl};
 use reqwest::header::{HeaderMap, HeaderValue, IntoHeaderName, CONTENT_TYPE};
 use reqwest::Method as HttpMethod;
 use serde::Serialize;
@@ -299,7 +299,9 @@ impl Client {
         Ok(Client { base_url, client })
     }
 
-    /// Build and send the final HTTP request. Parse the result as JSON.
+    /// Build and send the final HTTP request. Parse the result as JSON if the
+    /// `Content-Type` header indicates that the payload is JSON. Otherwise it is
+    /// assumed that an intermediate proxy sends a plain text error.
     async fn send<T: Serialize>(
         &self,
         path: &str,
@@ -320,10 +322,10 @@ impl Client {
         }
 
         let response = request.send().await.map_err(Error::Client)?;
-        let headers = response.headers();
-        let content_type = HeaderValue::from_static("application/json");
 
-        if headers.get(CONTENT_TYPE) == Some(&content_type) {
+        let header = CONTENT_TYPE;
+
+        if util::is_json(response.headers().get(header)) {
             response.json().await.map_err(Error::Client)
         } else {
             Err(Error::Client(response.error_for_status().unwrap_err()))

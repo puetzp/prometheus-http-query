@@ -1,4 +1,6 @@
 use crate::error::Error;
+use mime::Mime;
+use reqwest::header::HeaderValue;
 use serde::Deserialize;
 use std::fmt;
 use url::Url;
@@ -152,9 +154,22 @@ pub(crate) fn build_final_url(mut url: Url, path: &str) -> Url {
     url
 }
 
+pub(crate) fn is_json(v: Option<&HeaderValue>) -> bool {
+    match v
+        .and_then(|h| h.to_str().ok())
+        .and_then(|h| h.parse::<Mime>().ok())
+    {
+        Some(mime) => match (mime.type_(), mime.subtype()) {
+            (mime::APPLICATION, mime::JSON) => true,
+            _ => false,
+        },
+        None => false,
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{build_final_url, ToBaseUrl};
+    use super::{build_final_url, is_json, ToBaseUrl};
 
     #[test]
     fn test_simple_str_to_url() {
@@ -201,5 +216,17 @@ mod tests {
             "http://proxy.example.com/prometheus/api/v1/targets",
             final_url.as_str()
         );
+    }
+
+    #[test]
+    fn test_is_json() {
+        let header = reqwest::header::HeaderValue::from_static("application/json");
+        assert!(is_json(Some(&header)));
+    }
+
+    #[test]
+    fn test_is_json_with_charset() {
+        let header = reqwest::header::HeaderValue::from_static("application/json; charset=utf-8");
+        assert!(is_json(Some(&header)));
     }
 }

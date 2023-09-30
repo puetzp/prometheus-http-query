@@ -11,6 +11,7 @@ description = "Prometheus HTTP API client"
 keywords = [ "prometheus", "prometheus-http-api", "promql", "api", "reqwest" ]
 
 [dependencies]
+mime = "0.3"
 reqwest = { version = "0.11", default-features = false, features = ["json"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
