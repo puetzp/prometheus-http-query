@@ -1,4 +1,4 @@
-//! All types that may be returned when querying the Prometheus API.
+//! All types that are returned when querying the Prometheus API.
 use crate::util::{AlertState, RuleHealth, TargetHealth};
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -225,18 +225,18 @@ pub struct PromqlResult {
 }
 
 impl PromqlResult {
-    /// Return the response [Data] from this query.
+    /// Return the response [`Data`] from this query.
     pub fn data(&self) -> &Data {
         &self.data
     }
 
-    /// Return the [Stats] that the Prometheus server gathered while the query was processed.
+    /// Return the [`Stats`] that the Prometheus server gathered while the query was processed.
     pub fn stats(&self) -> Option<&Stats> {
         self.stats.as_ref()
     }
 }
 
-/// A wrapper for possible result types of expression queries ([crate::Client::query] and [crate::Client::query_range]).
+/// A wrapper for possible result types of expression queries ([`Client::query`](crate::Client::query) and [`Client::query_range`](crate::Client::query_range)).
 #[derive(Clone, Debug, Deserialize)]
 #[serde(tag = "resultType", content = "result")]
 pub enum Data {
@@ -249,7 +249,7 @@ pub enum Data {
 }
 
 impl Data {
-    /// If the result type of the query is `vector`, returns an array of [InstantVector]s. Returns `None` otherwise.
+    /// If the result type of the query is `vector`, returns an array of [`InstantVector`]s. Returns `None` otherwise.
     pub fn as_vector(&self) -> Option<&[InstantVector]> {
         match self {
             Data::Vector(v) => Some(v.as_ref()),
@@ -257,7 +257,7 @@ impl Data {
         }
     }
 
-    /// If the result type of the query is `matrix` returns an array of [RangeVector]s. Returns `None` otherwise.
+    /// If the result type of the query is `matrix` returns an array of [`RangeVector`]s. Returns `None` otherwise.
     pub fn as_matrix(&self) -> Option<&[RangeVector]> {
         match self {
             Data::Matrix(v) => Some(v.as_ref()),
@@ -265,7 +265,7 @@ impl Data {
         }
     }
 
-    /// If the result type of the query is `scalar`, returns a single [Sample]. Returns `None` otherwise.
+    /// If the result type of the query is `scalar`, returns a single [`Sample`]. Returns `None` otherwise.
     pub fn as_scalar(&self) -> Option<&Sample> {
         match self {
             Data::Scalar(v) => Some(v),
@@ -273,7 +273,7 @@ impl Data {
         }
     }
 
-    /// Check if this [PromqlResult] contains a list of [InstantVector]s (i.e. result type `vector`).
+    /// Check if this [`PromqlResult`] contains a list of [`InstantVector`]s (i.e. result type `vector`).
     pub fn is_vector(&self) -> bool {
         match self {
             Data::Vector(_) => true,
@@ -281,7 +281,7 @@ impl Data {
         }
     }
 
-    /// Check if this [PromqlResult] contains a list of [RangeVector]s (i.e. result type `matrix`).
+    /// Check if this [`PromqlResult`] contains a list of [`RangeVector`]s (i.e. result type `matrix`).
     pub fn is_matrix(&self) -> bool {
         match self {
             Data::Matrix(_) => true,
@@ -289,7 +289,7 @@ impl Data {
         }
     }
 
-    /// Check if this [PromqlResult] contains a scalar value (i.e. result type `scalar`, a single [Sample]).
+    /// Check if this [`PromqlResult`] contains a scalar value (i.e. result type `scalar`, a single [`Sample`]).
     pub fn is_scalar(&self) -> bool {
         match self {
             Data::Scalar(_) => true,
@@ -489,7 +489,7 @@ impl DroppedTarget {
     }
 }
 
-/// This is a wrapper around a collection of `RuleGroup`s as it is
+/// This is a wrapper around a collection of [`RuleGroup`]s as it is
 /// returned by the API.
 #[derive(Debug, Deserialize)]
 pub(crate) struct RuleGroups {
@@ -617,7 +617,7 @@ impl RecordingRule {
     }
 }
 
-/// A wrapper around a collection of `Alert`s as it is returned by
+/// A wrapper around a collection of [`Alert`]s as it is returned by
 /// the API.
 #[derive(Debug, Deserialize)]
 pub(crate) struct Alerts {

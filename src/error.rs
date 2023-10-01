@@ -1,3 +1,4 @@
+//! All error types that are returned by methods in this crate.
 use serde::Deserialize;
 use std::error::Error as StdError;
 use std::fmt;
@@ -17,7 +18,7 @@ pub enum Error {
     /// Details on the error as reported by Prometheus are included in [`PrometheusError`].
     Prometheus(PrometheusError),
     /// Occurs when the [`Client::series`](crate::Client::series) method is called with an empty set of
-    /// series [Selector]s. According to the Prometheus API description at least one
+    /// series [`Selector`](crate::selector::Selector)s. According to the Prometheus API description at least one
     /// [`Selector`](crate::selector::Selector) must be provided.
     EmptySeriesSelector,
     ParseUrl {

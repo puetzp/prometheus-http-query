@@ -155,7 +155,7 @@ impl RangeQueryBuilder {
     }
 }
 
-/// A client used to execute queries. It uses a [reqwest::Client] internally
+/// A client used to execute queries. It uses a [`reqwest::Client`] internally
 /// that manages connections for us.
 #[derive(Clone)]
 pub struct Client {
@@ -204,7 +204,7 @@ impl std::str::FromStr for Client {
 impl std::convert::TryFrom<&str> for Client {
     type Error = crate::error::Error;
 
-    /// Create a [Client] from a custom base URL. Note that the API-specific
+    /// Create a [`Client`] from a custom base URL. Note that the API-specific
     /// path segments (like `/api/v1/query`) are added automatically.
     ///
     /// ```rust
@@ -226,7 +226,7 @@ impl std::convert::TryFrom<&str> for Client {
 impl std::convert::TryFrom<String> for Client {
     type Error = crate::error::Error;
 
-    /// Create a [Client] from a custom base URL. Note that the API-specific
+    /// Create a [`Client`] from a custom base URL. Note that the API-specific
     /// path segments (like `/api/v1/query`) are added automatically.
     ///
     /// ```rust
@@ -247,7 +247,7 @@ impl std::convert::TryFrom<String> for Client {
 }
 
 impl Client {
-    /// Return a reference to the wrapped [reqwest::Client], i.e. to
+    /// Return a reference to the wrapped [`reqwest::Client`], i.e. to
     /// use it for other requests unrelated to the Prometheus API.
     ///
     /// ```rust
@@ -293,10 +293,10 @@ impl Client {
         &self.base_url
     }
 
-    /// Create a Client from a custom [reqwest::Client] and URL.
+    /// Create a Client from a custom [`reqwest::Client`] and URL.
     /// This way you can account for all extra parameters (e.g. x509 authentication)
     /// that may be needed to connect to Prometheus or an intermediate proxy,
-    /// by building it into the [reqwest::Client].
+    /// by building it into the [`reqwest::Client`].
     ///
     /// ```rust
     /// use prometheus_http_query::{Client, Error};
@@ -361,7 +361,7 @@ impl Client {
         }
     }
 
-    /// Create an [InstantQueryBuilder] from a PromQL query allowing you to set some query parameters
+    /// Create an [`InstantQueryBuilder`] from a PromQL query allowing you to set some query parameters
     /// (e.g. evaluation timeout) before finally sending the instant query to the server.
     ///
     /// # Arguments
@@ -396,7 +396,7 @@ impl Client {
         }
     }
 
-    /// Create a [RangeQueryBuilder] from a PromQL query allowing you to set some query parameters
+    /// Create a [`RangeQueryBuilder`] from a PromQL query allowing you to set some query parameters
     /// (e.g. evaluation timeout) before finally sending the range query to the server.
     ///
     /// # Arguments
@@ -447,7 +447,7 @@ impl Client {
         }
     }
 
-    /// Find time series that match certain label sets ([Selector]s).
+    /// Find time series that match certain label sets ([`Selector`]s).
     ///
     /// # Arguments
     /// * `selectors` - List of [Selector]s that select the series to return. Must not be empty!
@@ -518,7 +518,7 @@ impl Client {
     /// Retrieve label names.
     ///
     /// # Arguments
-    /// * `selectors` - List of [Selector]s to restrict the set of time series to read the label names from. Optional.
+    /// * `selectors` - List of [`Selector`]s to restrict the set of time series to read the label names from. Optional.
     /// * `start` - Start timestamp as Unix timestamp (seconds). Optional.
     /// * `end` - End timestamp as Unix timestamp (seconds). Optional.
     ///
@@ -591,7 +591,7 @@ impl Client {
     ///
     /// # Arguments
     /// * `label` - Name of the label to return all occuring label values for.
-    /// * `selectors` - List of [Selector]s to restrict the set of time series to read the label values from. Optional.
+    /// * `selectors` - List of [`Selector`]s to restrict the set of time series to read the label values from. Optional.
     /// * `start` - Start timestamp as Unix timestamp (seconds). Optional.
     /// * `end` - End timestamp as Unix timestamp (seconds). Optional.
     ///

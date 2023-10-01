@@ -1,15 +1,15 @@
 //! This crate provides an interface to the [Prometheus HTTP API](https://prometheus.io/docs/prometheus/latest/querying/api/).
-//! The [Client] is used to interact with a Prometheus server. It is basically a wrapper around a [reqwest::Client] and implements
+//! The [`Client`] is used to interact with a Prometheus server. It is basically a wrapper around a [`reqwest::Client`] and implements
 //! additional methods to execute PromQL queries and fetch metadata.
 //!
 //! # Usage
 //!
-//! The following code contains just a few examples. See [Client] for the complete set of available functions.
+//! The following code contains just a few examples. See [`Client`] for the complete set of available functions.
 //!
 //!
 //! ## Initialize a client
 //!
-//! The [Client] can be constructed in various ways depending on your need to add customizations.
+//! The [`Client`] can be constructed in various ways depending on your need to add customizations.
 //!
 //! ```rust
 //! use prometheus_http_query::Client;
@@ -65,7 +65,7 @@
 //!
 //! ## Metadata queries
 //!
-//! Retrieve a list of time series that match a certain label set by providing one or more series [Selector]s.
+//! Retrieve a list of time series that match a certain label set by providing one or more series [`Selector`]s.
 //!
 //! ```rust
 //! use prometheus_http_query::{Client, Error, Selector};
@@ -140,7 +140,7 @@
 //!
 //! # Features
 //!
-//! At this point all available feature flags pertain to the [Client]s TLS configuration. They enable feature flags of
+//! At this point all available feature flags pertain to the [`Client`]s TLS configuration. They enable feature flags of
 //! the `reqwest` crate by the same name.<br>
 //! See the [reqwest documentation](https://docs.rs/reqwest/0.11.14/reqwest/index.html#optional-features) for details on
 //! these feature flags.<br>
@@ -151,26 +151,26 @@
 //!
 //! # Compatibility
 //!
-//! The crate is generally compatible with Prometheus server >=2.30. However individual [Client] methods might
+//! The crate is generally compatible with Prometheus server >=2.30. However individual [`Client`] methods might
 //! only work with the latest Prometheus server version when the corresponding API endpoint has only recently
 //! been introduced.<br>
 //! Also some features may only work when the Prometheus server is started with certain flags. An example
-//! are query statistics that can be enabled via [RangeQueryBuilder::stats]. The response
+//! are query statistics that can be enabled via [`RangeQueryBuilder::stats`]. The response
 //! will not contain per-step stats unless Prometheus is started with `--enable-feature=promql-per-step-stats`.
 //!
 //! # Error handling
 //!
-//! All client methods that interact with the Prometheus API return a `Result`. Also each request to the API
+//! All [`Client`] methods that interact with the Prometheus API return a `Result`. Also each request to the API
 //! may fail at different stages. In general the following approach is taken to return the most significant
 //! error to the caller:
 //! - When the server's response contains header `Content-Type: application/json` (or variants thereof) the
 //! JSON body is parsed to the target type, regardless of the HTTP status code, since Prometheus returns elaborate
 //! error messages within the HTTP body in any case.
 //! A JSON response having `"status": "success"` is deserialized to the target type of this function and returned
-//! within `Result::Ok`. A response with `"status": "error"` is instead deserialized to a [error::PrometheusError]
+//! within `Result::Ok`. A response with `"status": "error"` is instead deserialized to a [`error::PrometheusError`]
 //! and returned within `Result::Err`.
 //! - Any other server HTTP 4xx/5xx responses without the proper header indicating a JSON-encoded body are
-//! returned as [Error::Client] within `Result::Err`. For example, this may happen when an intermediate proxy server
+//! returned as [`Error::Client`] within `Result::Err`. For example, this may happen when an intermediate proxy server
 //! fails to handle a request and subsequently return a plain text error message and a non-2xx HTTP status code.
 //!
 //! # Supported operations
@@ -193,7 +193,7 @@
 //!
 //! # Limitations
 //!
-//! * Some [Client] methods may not work with older versions of the Prometheus server.
+//! * Some [`Client`] methods may not work with older versions of the Prometheus server.
 //! * The [String](https://prometheus.io/docs/prometheus/latest/querying/api/#strings) result type is not supported
 //! as it is currently not used by Prometheus.
 //! * Warnings contained in an API response will be ignored.

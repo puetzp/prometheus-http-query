@@ -8,7 +8,7 @@ use std::str::FromStr;
 
 /// Execute an instant query.
 ///
-/// This is just a convenience function for one-off requests, see [Client::query].
+/// This is just a convenience function for one-off requests, see [`Client::query`].
 ///
 /// ```rust
 /// use prometheus_http_query::{Error, query};
@@ -35,7 +35,7 @@ pub fn query(host: &str, query: impl std::string::ToString) -> Result<InstantQue
 
 /// Execute a range query.
 ///
-/// This is just a convenience function for one-off requests, see [Client::query_range].
+/// This is just a convenience function for one-off requests, see [`Client::query_range`].
 ///
 /// ```rust
 /// use prometheus_http_query::{Error, query_range};
@@ -66,9 +66,9 @@ pub fn query_range(
     Client::from_str(host).map(|c| c.query_range(query, start, end, step))
 }
 
-/// Find time series that match certain label sets ([Selector]s).
+/// Find time series that match certain label sets ([`Selector`]s).
 ///
-/// This is just a convenience function for one-off requests, see [Client::series].
+/// This is just a convenience function for one-off requests, see [`Client::series`].
 ///
 /// ```rust
 /// use prometheus_http_query::{series, Error, Selector};
@@ -96,7 +96,7 @@ pub async fn series(
 
 /// Retrieve all label names (or use [Selector]s to select time series to read label names from).
 ///
-/// This is just a convenience function for one-off requests, see [Client::label_names].
+/// This is just a convenience function for one-off requests, see [`Client::label_names`].
 ///
 /// ```rust
 /// use prometheus_http_query::{label_names, Error};
@@ -121,9 +121,9 @@ pub async fn label_names(
         .await
 }
 
-/// Retrieve all label values for a label name (or use [Selector]s to select the time series to read label values from)
+/// Retrieve all label values for a label name (or use [`Selector`]s to select the time series to read label values from)
 ///
-/// This is just a convenience function for one-off requests, see [Client::label_values].
+/// This is just a convenience function for one-off requests, see [`Client::label_values`].
 ///
 /// ```rust
 /// use prometheus_http_query::{label_values, Error};
@@ -151,7 +151,7 @@ pub async fn label_values(
 
 /// Query the current state of target discovery.
 ///
-/// This is just a convenience function for one-off requests, see [Client::targets].
+/// This is just a convenience function for one-off requests, see [`Client::targets`].
 ///
 /// ```rust
 /// use prometheus_http_query::{targets, Error, TargetState};
@@ -191,7 +191,7 @@ pub async fn rules(host: &str, rule_type: Option<RuleType>) -> Result<Vec<RuleGr
 
 /// Retrieve a list of active alerts.
 ///
-/// This is just a convenience function for one-off requests, see [Client::alerts].
+/// This is just a convenience function for one-off requests, see [`Client::alerts`].
 ///
 /// ```rust
 /// use prometheus_http_query::{alerts, Error};
@@ -211,7 +211,7 @@ pub async fn alerts(host: &str) -> Result<Vec<Alert>, Error> {
 
 /// Retrieve a list of flags that Prometheus was configured with.
 ///
-/// This is just a convenience function for one-off requests, see [Client::flags].
+/// This is just a convenience function for one-off requests, see [`Client::flags`].
 ///
 /// ```rust
 /// use prometheus_http_query::{flags, Error};
@@ -231,7 +231,7 @@ pub async fn flags(host: &str) -> Result<HashMap<String, String>, Error> {
 
 /// Retrieve Prometheus server build information.
 ///
-/// This is just a convenience function for one-off requests, see [Client::build_information].
+/// This is just a convenience function for one-off requests, see [`Client::build_information`].
 ///
 /// ```rust
 /// use prometheus_http_query::{build_information, Error};
@@ -251,7 +251,7 @@ pub async fn build_information(host: &str) -> Result<BuildInformation, Error> {
 
 /// Retrieve Prometheus server runtime information.
 ///
-/// This is just a convenience function for one-off requests, see [Client::runtime_information].
+/// This is just a convenience function for one-off requests, see [`Client::runtime_information`].
 ///
 /// ```rust
 /// use prometheus_http_query::{runtime_information, Error};
@@ -271,7 +271,7 @@ pub async fn runtime_information(host: &str) -> Result<RuntimeInformation, Error
 
 /// Query the current state of alertmanager discovery.
 ///
-/// This is just a convenience function for one-off requests, see [Client::alertmanagers].
+/// This is just a convenience function for one-off requests, see [`Client::alertmanagers`].
 ///
 /// ```rust
 /// use prometheus_http_query::{alertmanagers, Error};
@@ -291,7 +291,7 @@ pub async fn alertmanagers(host: &str) -> Result<Alertmanagers, Error> {
 
 /// Retrieve metadata about metrics that are currently scraped from targets, along with target information.
 ///
-/// This is just a convenience function for one-off requests, see [Client::target_metadata].
+/// This is just a convenience function for one-off requests, see [`Client::target_metadata`].
 ///
 /// ```rust
 /// use prometheus_http_query::{target_metadata, Error, Selector};
@@ -321,7 +321,7 @@ pub async fn target_metadata(
 
 /// Retrieve metadata about metrics that are currently scraped from targets.
 ///
-/// This is just a convenience function for one-off requests, see [Client::metric_metadata].
+/// This is just a convenience function for one-off requests, see [`Client::metric_metadata`].
 ///
 /// ```rust
 /// use prometheus_http_query::{metric_metadata, Error, Selector};
