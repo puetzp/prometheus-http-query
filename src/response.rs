@@ -132,7 +132,7 @@ pub(crate) enum ApiResponse {
     #[serde(alias = "success")]
     Success { data: serde_json::Value },
     #[serde(alias = "error")]
-    Error(crate::error::ApiError),
+    Error(crate::error::PrometheusError),
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -489,6 +489,13 @@ impl DroppedTarget {
     }
 }
 
+/// This is a wrapper around a collection of `RuleGroup`s as it is
+/// returned by the API.
+#[derive(Debug, Deserialize)]
+pub(crate) struct RuleGroups {
+    pub groups: Vec<RuleGroup>,
+}
+
 /// A group of rules.
 #[derive(Clone, Debug, Deserialize)]
 pub struct RuleGroup {
@@ -608,6 +615,13 @@ impl RecordingRule {
     pub fn labels(&self) -> &Option<HashMap<String, String>> {
         &self.labels
     }
+}
+
+/// A wrapper around a collection of `Alert`s as it is returned by
+/// the API.
+#[derive(Debug, Deserialize)]
+pub(crate) struct Alerts {
+    pub alerts: Vec<Alert>,
 }
 
 /// A single alert.

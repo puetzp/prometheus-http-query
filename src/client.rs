@@ -1,4 +1,4 @@
-use crate::error::{Error, MissingFieldError};
+use crate::error::Error;
 use crate::response::*;
 use crate::selector::Selector;
 use crate::util::{self, build_final_url, RuleType, TargetState, ToBaseUrl};
@@ -55,7 +55,12 @@ impl InstantQueryBuilder {
             .send("api/v1/query", &self.params, HttpMethod::GET, self.headers)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
+            .and_then(move |res| {
+                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
+                    message: String::from("failed to parse API response from instant query"),
+                    source,
+                })
+            })
     }
 
     /// Execute the instant query (using HTTP POST) and return the parsed API response.
@@ -67,7 +72,12 @@ impl InstantQueryBuilder {
             .send("api/v1/query", &self.params, HttpMethod::POST, self.headers)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
+            .and_then(move |res| {
+                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
+                    message: String::from("failed to parse API response from instant query"),
+                    source,
+                })
+            })
     }
 }
 
@@ -114,7 +124,12 @@ impl RangeQueryBuilder {
             )
             .await
             .and_then(map_api_response)
-            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
+            .and_then(move |res| {
+                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
+                    message: String::from("failed to parse API response from range query"),
+                    source,
+                })
+            })
     }
 
     /// Execute the instant query (using HTTP POST) and return the parsed API response.
@@ -131,7 +146,12 @@ impl RangeQueryBuilder {
             )
             .await
             .and_then(map_api_response)
-            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
+            .and_then(move |res| {
+                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
+                    message: String::from("failed to parse API response from range query"),
+                    source,
+                })
+            })
     }
 }
 
@@ -321,14 +341,25 @@ impl Client {
             request = request.headers(headers);
         }
 
-        let response = request.send().await.map_err(Error::Client)?;
+        let response = request.send().await.map_err(|source| Error::Client {
+            message: String::from("failed to send HTTP request to server"),
+            source: Some(source),
+        })?;
 
         let header = CONTENT_TYPE;
 
         if util::is_json(response.headers().get(header)) {
-            response.json().await.map_err(Error::Client)
+            response.json().await.map_err(|source| Error::Client {
+                message: String::from("failed to parse JSON response from server"),
+                source: Some(source),
+            })
         } else {
-            Err(Error::Client(response.error_for_status().unwrap_err()))
+            Err(Error::Client {
+                message: String::from(
+                    "failed to parse response from server due to invalid media type",
+                ),
+                source: response.error_for_status().err(),
+            })
         }
     }
 
@@ -478,7 +509,12 @@ impl Client {
         self.send("api/v1/series", &params, HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
+            .and_then(move |res| {
+                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
+                    message: String::from("failed to parse JSON response from series endpoint"),
+                    source,
+                })
+            })
     }
 
     /// Retrieve label names.
@@ -545,7 +581,14 @@ impl Client {
         self.send("api/v1/labels", &params, HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
+            .and_then(move |res| {
+                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
+                    message: String::from(
+                        "failed to parse JSON response from label names endpoint",
+                    ),
+                    source,
+                })
+            })
     }
 
     /// Retrieve all label values for a specific label name.
@@ -611,7 +654,14 @@ impl Client {
         self.send(&path, &params, HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
+            .and_then(move |res| {
+                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
+                    message: String::from(
+                        "failed to parse JSON response from label values endpoint",
+                    ),
+                    source,
+                })
+            })
     }
 
     /// Query the current state of target discovery.
@@ -647,7 +697,12 @@ impl Client {
         self.send("api/v1/targets", &params, HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
+            .and_then(move |res| {
+                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
+                    message: String::from("failed to parse JSON response from targets endpoint"),
+                    source,
+                })
+            })
     }
 
     /// Retrieve a list of rule groups of recording and alerting rules.
@@ -684,13 +739,12 @@ impl Client {
             .await
             .and_then(map_api_response)
             .and_then(move |res| {
-                res.as_object()
-                    .unwrap()
-                    .get("groups")
-                    .ok_or(Error::MissingField(MissingFieldError("groups")))
-                    .and_then(|d| {
-                        serde_json::from_value(d.to_owned()).map_err(Error::ResponseParse)
+                serde_json::from_value::<RuleGroups>(res)
+                    .map_err(|source| Error::ParseResponse {
+                        message: String::from("failed to parse JSON response from rules endpoint"),
+                        source,
                     })
+                    .groups
             })
     }
 
@@ -717,13 +771,12 @@ impl Client {
             .await
             .and_then(map_api_response)
             .and_then(move |res| {
-                res.as_object()
-                    .unwrap()
-                    .get("alerts")
-                    .ok_or(Error::MissingField(MissingFieldError("alerts")))
-                    .and_then(|d| {
-                        serde_json::from_value(d.to_owned()).map_err(Error::ResponseParse)
+                serde_json::from_value::<Alerts>(res)
+                    .map_err(|source| Error::ParseResponse {
+                        message: String::from("failed to parse JSON response from alerts endpoint"),
+                        source,
                     })
+                    .alerts
             })
     }
 
@@ -749,7 +802,12 @@ impl Client {
         self.send("api/v1/status/flags", &(), HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
+            .and_then(move |res| {
+                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
+                    message: String::from("failed to parse JSON response from flags endpoint"),
+                    source,
+                })
+            })
     }
 
     /// Retrieve Prometheus server build information.
@@ -774,7 +832,14 @@ impl Client {
         self.send("api/v1/status/buildinfo", &(), HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
+            .and_then(move |res| {
+                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
+                    message: String::from(
+                        "failed to parse JSON response from build information endpoint",
+                    ),
+                    source,
+                })
+            })
     }
 
     /// Retrieve Prometheus server runtime information.
@@ -799,7 +864,14 @@ impl Client {
         self.send("api/v1/status/runtimeinfo", &(), HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
+            .and_then(move |res| {
+                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
+                    message: String::from(
+                        "failed to parse JSON response from runtime information endpoint",
+                    ),
+                    source,
+                })
+            })
     }
 
     /// Retrieve Prometheus TSDB statistics.
@@ -824,7 +896,14 @@ impl Client {
         self.send("api/v1/status/tsdb", &(), HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
+            .and_then(move |res| {
+                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
+                    messag: String::from(
+                        "failed to parse JSON response from TSDB statistics endpoint",
+                    ),
+                    source,
+                })
+            })
     }
 
     /// Retrieve WAL replay statistics.
@@ -849,7 +928,7 @@ impl Client {
         self.send("api/v1/status/walreplay", &(), HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
+            .and_then(move |res| serde_json::from_value(res).map_err(Error::ParseResponse))
     }
 
     /// Query the current state of alertmanager discovery.
@@ -874,7 +953,7 @@ impl Client {
         self.send("api/v1/alertmanagers", &(), HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
+            .and_then(move |res| serde_json::from_value(res).map_err(Error::ParseResponse))
     }
 
     /// Retrieve metadata about metrics that are currently scraped from targets, along with target information.
@@ -933,7 +1012,7 @@ impl Client {
         self.send("api/v1/targets/metadata", &params, HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
+            .and_then(move |res| serde_json::from_value(res).map_err(Error::ParseResponse))
     }
 
     /// Retrieve metadata about metrics that are currently scraped from targets.
@@ -983,7 +1062,7 @@ impl Client {
         self.send("api/v1/metadata", &params, HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| serde_json::from_value(res).map_err(Error::ResponseParse))
+            .and_then(move |res| serde_json::from_value(res).map_err(Error::ParseResponse))
     }
 
     /// Check Prometheus server health.
@@ -1046,6 +1125,9 @@ impl Client {
 fn map_api_response(response: ApiResponse) -> Result<serde_json::Value, Error> {
     match response {
         ApiResponse::Success { data } => Ok(data),
-        ApiResponse::Error(e) => Err(Error::ApiError(e)),
+        ApiResponse::Error(source) => Err(Error::Prometheus {
+            message: "Prometheus HTTP API returned an error",
+            source,
+        }),
     }
 }
