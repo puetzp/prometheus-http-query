@@ -450,7 +450,7 @@ impl Client {
     /// Find time series that match certain label sets ([Selector]s).
     ///
     /// # Arguments
-    /// * `selectors` - List of [Selector]s that select the series to return. Must not be empty.
+    /// * `selectors` - List of [Selector]s that select the series to return. Must not be empty!
     /// * `start` - Start timestamp as Unix timestamp (seconds). Optional.
     /// * `end` - End timestamp as Unix timestamp (seconds). Optional.
     ///

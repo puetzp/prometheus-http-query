@@ -1,3 +1,5 @@
+use crate::selector::Selector;
+use crate::Client;
 use serde::Deserialize;
 use std::error::Error as StdError;
 use std::fmt;
@@ -16,6 +18,9 @@ pub enum Error {
     /// Occurs when Prometheus responds with e.g. HTTP 4xx (e.g. due to a syntax error in a PromQL query).<br>
     /// Details on the error as reported by Prometheus are included in [PrometheusError].
     Prometheus(PrometheusError),
+    /// Occurs when the [Client::series] method is called with an empty set of
+    /// series [Selector]s. According to the Prometheus API description at least one
+    /// [Selector] must be provided.
     EmptySeriesSelector,
     ParseUrl {
         message: &'static str,

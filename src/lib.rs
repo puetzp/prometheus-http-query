@@ -163,13 +163,15 @@
 //! All client methods that interact with the Prometheus API return a `Result`. Also each request to the API
 //! may fail at different stages. In general the following approach is taken to return the most significant
 //! error to the caller:
-//! - When the server's response contains the header `Content-Type: application/json` the JSON body is parsed
-//! to the target type, regardless of the HTTP status code, because the Prometheus API provides more details on
-//! errors within the JSON response. A JSON response having `"status": "success"` is deserialized to the target
-//! type of this function and returned within `Result::Ok`. A response with `"status": "error"` is instead
-//! deserialized to a [error::ApiError] and returned within `Result::Err`.
+//! - When the server's response contains header `Content-Type: application/json` (or variants thereof) the
+//! JSON body is parsed to the target type, regardless of the HTTP status code, since Prometheus returns elaborate
+//! error messages within the HTTP body in any case.
+//! A JSON response having `"status": "success"` is deserialized to the target type of this function and returned
+//! within `Result::Ok`. A response with `"status": "error"` is instead deserialized to a [error::PrometheusError]
+//! and returned within `Result::Err`.
 //! - Any other server HTTP 4xx/5xx responses without the proper header indicating a JSON-encoded body are
-//! returned as [Error::Client] within `Result::Err`.
+//! returned as [Error::Client] within `Result::Err`. For example, this may happen when an intermediate proxy server
+//! fails to handle a request and subsequently return a plain text error message and a non-2xx HTTP status code.
 //!
 //! # Supported operations
 //!
