@@ -10,7 +10,7 @@ pub enum Error {
     /// Wraps errors from the underlying [reqwest::Client] that cannot be mapped
     /// to a more specific error type.
     Client {
-        message: String,
+        message: &'static str,
         source: Option<reqwest::Error>,
     },
     /// Occurs when Prometheus responds with e.g. HTTP 4xx (e.g. due to a syntax error in a PromQL query).<br>
@@ -22,7 +22,7 @@ pub enum Error {
         source: url::ParseError,
     },
     ParseResponse {
-        message: String,
+        message: &'static str,
         source: serde_json::Error,
     },
 }

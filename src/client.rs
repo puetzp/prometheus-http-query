@@ -57,7 +57,7 @@ impl InstantQueryBuilder {
             .and_then(map_api_response)
             .and_then(move |res| {
                 serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: String::from("failed to parse API response from instant query"),
+                    message: "failed to parse API response from instant query",
                     source,
                 })
             })
@@ -74,7 +74,7 @@ impl InstantQueryBuilder {
             .and_then(map_api_response)
             .and_then(move |res| {
                 serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: String::from("failed to parse API response from instant query"),
+                    message: "failed to parse API response from instant query",
                     source,
                 })
             })
@@ -126,7 +126,7 @@ impl RangeQueryBuilder {
             .and_then(map_api_response)
             .and_then(move |res| {
                 serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: String::from("failed to parse API response from range query"),
+                    message: "failed to parse API response from range query",
                     source,
                 })
             })
@@ -148,7 +148,7 @@ impl RangeQueryBuilder {
             .and_then(map_api_response)
             .and_then(move |res| {
                 serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: String::from("failed to parse API response from range query"),
+                    message: "failed to parse API response from range query",
                     source,
                 })
             })
@@ -342,7 +342,7 @@ impl Client {
         }
 
         let response = request.send().await.map_err(|source| Error::Client {
-            message: String::from("failed to send request to server"),
+            message: "failed to send request to server",
             source: Some(source),
         })?;
 
@@ -350,14 +350,12 @@ impl Client {
 
         if util::is_json(response.headers().get(header)) {
             response.json().await.map_err(|source| Error::Client {
-                message: String::from("failed to parse JSON response from server"),
+                message: "failed to parse JSON response from server",
                 source: Some(source),
             })
         } else {
             Err(Error::Client {
-                message: String::from(
-                    "failed to parse response from server due to invalid media type",
-                ),
+                message: "failed to parse response from server due to invalid media type",
                 source: response.error_for_status().err(),
             })
         }
@@ -511,7 +509,7 @@ impl Client {
             .and_then(map_api_response)
             .and_then(move |res| {
                 serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: String::from("failed to parse JSON response from series endpoint"),
+                    message: "failed to parse JSON response from series endpoint",
                     source,
                 })
             })
@@ -583,9 +581,7 @@ impl Client {
             .and_then(map_api_response)
             .and_then(move |res| {
                 serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: String::from(
-                        "failed to parse JSON response from label names endpoint",
-                    ),
+                    message: "failed to parse JSON response from label names endpoint",
                     source,
                 })
             })
@@ -656,9 +652,7 @@ impl Client {
             .and_then(map_api_response)
             .and_then(move |res| {
                 serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: String::from(
-                        "failed to parse JSON response from label values endpoint",
-                    ),
+                    message: "failed to parse JSON response from label values endpoint",
                     source,
                 })
             })
@@ -699,7 +693,7 @@ impl Client {
             .and_then(map_api_response)
             .and_then(move |res| {
                 serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: String::from("failed to parse JSON response from targets endpoint"),
+                    message: "failed to parse JSON response from targets endpoint",
                     source,
                 })
             })
@@ -740,7 +734,7 @@ impl Client {
             .and_then(map_api_response)
             .and_then(move |res| {
                 serde_json::from_value::<RuleGroups>(res).map_err(|source| Error::ParseResponse {
-                    message: String::from("failed to parse JSON response from rules endpoint"),
+                    message: "failed to parse JSON response from rules endpoint",
                     source,
                 })
             })
@@ -771,7 +765,7 @@ impl Client {
             .and_then(map_api_response)
             .and_then(move |res| {
                 serde_json::from_value::<Alerts>(res).map_err(|source| Error::ParseResponse {
-                    message: String::from("failed to parse JSON response from alerts endpoint"),
+                    message: "failed to parse JSON response from alerts endpoint",
                     source,
                 })
             })
@@ -802,7 +796,7 @@ impl Client {
             .and_then(map_api_response)
             .and_then(move |res| {
                 serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: String::from("failed to parse JSON response from flags endpoint"),
+                    message: "failed to parse JSON response from flags endpoint",
                     source,
                 })
             })
@@ -832,9 +826,7 @@ impl Client {
             .and_then(map_api_response)
             .and_then(move |res| {
                 serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: String::from(
-                        "failed to parse JSON response from build information endpoint",
-                    ),
+                    message: "failed to parse JSON response from build information endpoint",
                     source,
                 })
             })
@@ -864,9 +856,7 @@ impl Client {
             .and_then(map_api_response)
             .and_then(move |res| {
                 serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: String::from(
-                        "failed to parse JSON response from runtime information endpoint",
-                    ),
+                    message: "failed to parse JSON response from runtime information endpoint",
                     source,
                 })
             })
@@ -896,9 +886,7 @@ impl Client {
             .and_then(map_api_response)
             .and_then(move |res| {
                 serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: String::from(
-                        "failed to parse JSON response from TSDB statistics endpoint",
-                    ),
+                    message: "failed to parse JSON response from TSDB statistics endpoint",
                     source,
                 })
             })
@@ -928,9 +916,7 @@ impl Client {
             .and_then(map_api_response)
             .and_then(move |res| {
                 serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: String::from(
-                        "failed to parse JSON response from WAL replay statistics endpoint",
-                    ),
+                    message: "failed to parse JSON response from WAL replay statistics endpoint",
                     source,
                 })
             })
@@ -960,9 +946,7 @@ impl Client {
             .and_then(map_api_response)
             .and_then(move |res| {
                 serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: String::from(
-                        "failed to parse JSON response from alertmanagers endpoint",
-                    ),
+                    message: "failed to parse JSON response from alertmanagers endpoint",
                     source,
                 })
             })
@@ -1026,9 +1010,7 @@ impl Client {
             .and_then(map_api_response)
             .and_then(move |res| {
                 serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: String::from(
-                        "failed to parse JSON response from target metadata endpoint",
-                    ),
+                    message: "failed to parse JSON response from target metadata endpoint",
                     source,
                 })
             })
@@ -1083,9 +1065,7 @@ impl Client {
             .and_then(map_api_response)
             .and_then(move |res| {
                 serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: String::from(
-                        "failed to parse JSON response from metric metadata endpoint",
-                    ),
+                    message: "failed to parse JSON response from metric metadata endpoint",
                     source,
                 })
             })
@@ -1112,12 +1092,12 @@ impl Client {
             .send()
             .await
             .map_err(|source| Error::Client {
-                message: String::from("failed to send request to health endpoint"),
+                message: "failed to send request to health endpoint",
                 source: Some(source),
             })?
             .error_for_status()
             .map_err(|source| Error::Client {
-                message: String::from("request to health endpoint returned an error"),
+                message: "request to health endpoint returned an error",
                 source: Some(source),
             })
             .map(|_| true)
@@ -1144,12 +1124,12 @@ impl Client {
             .send()
             .await
             .map_err(|source| Error::Client {
-                message: String::from("failed to send request to readiness endpoint"),
+                message: "failed to send request to readiness endpoint",
                 source: Some(source),
             })?
             .error_for_status()
             .map_err(|source| Error::Client {
-                message: String::from("request to readiness endpoint returned an error"),
+                message: "request to readiness endpoint returned an error",
                 source: Some(source),
             })
             .map(|_| true)
