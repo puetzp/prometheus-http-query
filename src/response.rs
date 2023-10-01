@@ -1070,10 +1070,11 @@ mod tests {
 }
 "#;
 
-        let result: Result<ApiResponse, serde_json::Error> = serde_json::from_str(data);
+        let result: Result<ApiResponse<PromqlResult>, serde_json::Error> =
+            serde_json::from_str(data);
         assert!(result.is_ok());
         assert!(
-            matches!(result.unwrap(), ApiResponse::Error(err) if err.error_type == crate::error::ApiErrorType::BadData)
+            matches!(result.unwrap(), ApiResponse::Error(err) if err.error_type == crate::error::PrometheusErrorType::BadData)
         );
     }
 
@@ -1090,7 +1091,8 @@ mod tests {
 }
 "#;
 
-        let result: Result<ApiResponse, serde_json::Error> = serde_json::from_str(data);
+        let result: Result<ApiResponse<PromqlResult>, serde_json::Error> =
+            serde_json::from_str(data);
         assert!(result.is_ok());
         assert!(matches!(result.unwrap(), ApiResponse::Success { data: _ }));
     }
@@ -1108,7 +1110,7 @@ mod tests {
 }
 "#;
 
-        let result: Result<ApiResponse, serde_json::Error> = serde_json::from_str(data);
+        let result: Result<ApiResponse<()>, serde_json::Error> = serde_json::from_str(data);
         assert!(result.is_err());
     }
 
@@ -1123,7 +1125,7 @@ mod tests {
 }
 "#;
 
-        let result: Result<ApiResponse, serde_json::Error> = serde_json::from_str(data);
+        let result: Result<ApiResponse<()>, serde_json::Error> = serde_json::from_str(data);
         assert!(result.is_err());
     }
 

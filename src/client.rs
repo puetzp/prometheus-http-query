@@ -239,7 +239,7 @@ impl Client {
     ///         .head("http://127.0.0.1:9090")
     ///         .send()
     ///         .await
-    ///         .map_err(Error::Client)?;
+    ///         .unwrap();
     ///
     ///     // Prometheus does not allow HEAD requests.
     ///     assert_eq!(response.status(), reqwest::StatusCode::METHOD_NOT_ALLOWED);
@@ -282,7 +282,7 @@ impl Client {
     ///         let c = reqwest::Client::builder()
     ///             .no_proxy()
     ///             .build()
-    ///             .map_err(Error::Client)?;
+    ///             .unwrap();
     ///         Client::from(c, "https://prometheus.example.com")
     ///     };
     ///
