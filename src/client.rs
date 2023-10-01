@@ -342,7 +342,7 @@ impl Client {
         }
 
         let response = request.send().await.map_err(|source| Error::Client {
-            message: String::from("failed to send HTTP request to server"),
+            message: String::from("failed to send request to server"),
             source: Some(source),
         })?;
 
@@ -739,13 +739,12 @@ impl Client {
             .await
             .and_then(map_api_response)
             .and_then(move |res| {
-                serde_json::from_value::<RuleGroups>(res)
-                    .map_err(|source| Error::ParseResponse {
-                        message: String::from("failed to parse JSON response from rules endpoint"),
-                        source,
-                    })
-                    .groups
+                serde_json::from_value::<RuleGroups>(res).map_err(|source| Error::ParseResponse {
+                    message: String::from("failed to parse JSON response from rules endpoint"),
+                    source,
+                })
             })
+            .map(|w| w.groups)
     }
 
     /// Retrieve a list of active alerts.
@@ -771,13 +770,12 @@ impl Client {
             .await
             .and_then(map_api_response)
             .and_then(move |res| {
-                serde_json::from_value::<Alerts>(res)
-                    .map_err(|source| Error::ParseResponse {
-                        message: String::from("failed to parse JSON response from alerts endpoint"),
-                        source,
-                    })
-                    .alerts
+                serde_json::from_value::<Alerts>(res).map_err(|source| Error::ParseResponse {
+                    message: String::from("failed to parse JSON response from alerts endpoint"),
+                    source,
+                })
             })
+            .map(|w| w.alerts)
     }
 
     /// Retrieve a list of flags that Prometheus was configured with.
@@ -898,7 +896,7 @@ impl Client {
             .and_then(map_api_response)
             .and_then(move |res| {
                 serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    messag: String::from(
+                    message: String::from(
                         "failed to parse JSON response from TSDB statistics endpoint",
                     ),
                     source,
@@ -928,7 +926,14 @@ impl Client {
         self.send("api/v1/status/walreplay", &(), HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| serde_json::from_value(res).map_err(Error::ParseResponse))
+            .and_then(move |res| {
+                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
+                    message: String::from(
+                        "failed to parse JSON response from WAL replay statistics endpoint",
+                    ),
+                    source,
+                })
+            })
     }
 
     /// Query the current state of alertmanager discovery.
@@ -953,7 +958,14 @@ impl Client {
         self.send("api/v1/alertmanagers", &(), HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| serde_json::from_value(res).map_err(Error::ParseResponse))
+            .and_then(move |res| {
+                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
+                    message: String::from(
+                        "failed to parse JSON response from alertmanagers endpoint",
+                    ),
+                    source,
+                })
+            })
     }
 
     /// Retrieve metadata about metrics that are currently scraped from targets, along with target information.
@@ -1012,7 +1024,14 @@ impl Client {
         self.send("api/v1/targets/metadata", &params, HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| serde_json::from_value(res).map_err(Error::ParseResponse))
+            .and_then(move |res| {
+                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
+                    message: String::from(
+                        "failed to parse JSON response from target metadata endpoint",
+                    ),
+                    source,
+                })
+            })
     }
 
     /// Retrieve metadata about metrics that are currently scraped from targets.
@@ -1062,7 +1081,14 @@ impl Client {
         self.send("api/v1/metadata", &params, HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| serde_json::from_value(res).map_err(Error::ParseResponse))
+            .and_then(move |res| {
+                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
+                    message: String::from(
+                        "failed to parse JSON response from metric metadata endpoint",
+                    ),
+                    source,
+                })
+            })
     }
 
     /// Check Prometheus server health.
@@ -1085,9 +1111,15 @@ impl Client {
             .get(url)
             .send()
             .await
-            .map_err(Error::Client)?
+            .map_err(|source| Error::Client {
+                message: String::from("failed to send request to health endpoint"),
+                source: Some(source),
+            })?
             .error_for_status()
-            .map_err(Error::Client)
+            .map_err(|source| Error::Client {
+                message: String::from("request to health endpoint returned an error"),
+                source: Some(source),
+            })
             .map(|_| true)
     }
 
@@ -1111,9 +1143,15 @@ impl Client {
             .get(url)
             .send()
             .await
-            .map_err(Error::Client)?
+            .map_err(|source| Error::Client {
+                message: String::from("failed to send request to readiness endpoint"),
+                source: Some(source),
+            })?
             .error_for_status()
-            .map_err(Error::Client)
+            .map_err(|source| Error::Client {
+                message: String::from("request to readiness endpoint returned an error"),
+                source: Some(source),
+            })
             .map(|_| true)
     }
 }
@@ -1125,9 +1163,6 @@ impl Client {
 fn map_api_response(response: ApiResponse) -> Result<serde_json::Value, Error> {
     match response {
         ApiResponse::Success { data } => Ok(data),
-        ApiResponse::Error(source) => Err(Error::Prometheus {
-            message: "Prometheus HTTP API returned an error",
-            source,
-        }),
+        ApiResponse::Error(e) => Err(Error::Prometheus(e)),
     }
 }

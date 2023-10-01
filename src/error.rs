@@ -14,14 +14,11 @@ pub enum Error {
         source: Option<reqwest::Error>,
     },
     /// Occurs when Prometheus responds with e.g. HTTP 4xx (e.g. due to a syntax error in a PromQL query).<br>
-    /// Details on the error as reported by Prometheus are included in [ApiError].
-    Prometheus {
-        message: &'static str,
-        source: PrometheusError,
-    },
+    /// Details on the error as reported by Prometheus are included in [PrometheusError].
+    Prometheus(PrometheusError),
     EmptySeriesSelector,
     ParseUrl {
-        message: String,
+        message: &'static str,
         source: url::ParseError,
     },
     ParseResponse {
@@ -34,7 +31,7 @@ impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
             Self::Client { message, source: _ } => f.write_str(&message),
-            Self::Prometheus { message, source: _ } => f.write_str(&message),
+            Self::Prometheus(e) => e.fmt(f),
             Self::EmptySeriesSelector => f.write_str("at least one series selector must be provided in order to query the series endpoint"),
             Self::ParseUrl {message, source: _ } => f.write_str(&message),
             Self::ParseResponse { message, source: _ } => f.write_str(&message),
@@ -45,8 +42,8 @@ impl fmt::Display for Error {
 impl StdError for Error {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
-            Self::Client { message: _, source } => source,
-            Self::Prometheus { message: _, source } => Some(source),
+            Self::Client { message: _, source } => source.as_ref().map(|e| e as &dyn StdError),
+            Self::Prometheus(_) => None,
             Self::EmptySeriesSelector => None,
             Self::ParseUrl { message: _, source } => Some(source),
             Self::ParseResponse { message: _, source } => Some(source),
