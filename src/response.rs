@@ -128,9 +128,9 @@ mod de {
 
 #[derive(Debug, Deserialize)]
 #[serde(tag = "status")]
-pub(crate) enum ApiResponse {
+pub(crate) enum ApiResponse<D> {
     #[serde(alias = "success")]
-    Success { data: serde_json::Value },
+    Success { data: D },
     #[serde(alias = "error")]
     Error(crate::error::PrometheusError),
 }

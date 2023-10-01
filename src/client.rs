@@ -4,7 +4,7 @@ use crate::selector::Selector;
 use crate::util::{self, build_final_url, RuleType, TargetState, ToBaseUrl};
 use reqwest::header::{HeaderMap, HeaderValue, IntoHeaderName, CONTENT_TYPE};
 use reqwest::Method as HttpMethod;
-use serde::Serialize;
+use serde::{de::DeserializeOwned, Serialize};
 use std::collections::HashMap;
 use url::Url;
 
@@ -55,12 +55,6 @@ impl InstantQueryBuilder {
             .send("api/v1/query", &self.params, HttpMethod::GET, self.headers)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| {
-                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: "failed to parse API response from instant query",
-                    source,
-                })
-            })
     }
 
     /// Execute the instant query (using HTTP POST) and return the parsed API response.
@@ -72,12 +66,6 @@ impl InstantQueryBuilder {
             .send("api/v1/query", &self.params, HttpMethod::POST, self.headers)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| {
-                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: "failed to parse API response from instant query",
-                    source,
-                })
-            })
     }
 }
 
@@ -124,12 +112,6 @@ impl RangeQueryBuilder {
             )
             .await
             .and_then(map_api_response)
-            .and_then(move |res| {
-                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: "failed to parse API response from range query",
-                    source,
-                })
-            })
     }
 
     /// Execute the instant query (using HTTP POST) and return the parsed API response.
@@ -146,12 +128,6 @@ impl RangeQueryBuilder {
             )
             .await
             .and_then(map_api_response)
-            .and_then(move |res| {
-                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: "failed to parse API response from range query",
-                    source,
-                })
-            })
     }
 }
 
@@ -322,13 +298,13 @@ impl Client {
     /// Build and send the final HTTP request. Parse the result as JSON if the
     /// `Content-Type` header indicates that the payload is JSON. Otherwise it is
     /// assumed that an intermediate proxy sends a plain text error.
-    async fn send<T: Serialize>(
+    async fn send<S: Serialize, D: DeserializeOwned>(
         &self,
         path: &str,
-        params: &T,
+        params: &S,
         method: HttpMethod,
         headers: Option<HeaderMap<HeaderValue>>,
-    ) -> Result<ApiResponse, Error> {
+    ) -> Result<ApiResponse<D>, Error> {
         let url = build_final_url(self.base_url.clone(), path);
 
         let mut request = match method {
@@ -349,10 +325,13 @@ impl Client {
         let header = CONTENT_TYPE;
 
         if util::is_json(response.headers().get(header)) {
-            response.json().await.map_err(|source| Error::Client {
-                message: "failed to parse JSON response from server",
-                source: Some(source),
-            })
+            response
+                .json::<ApiResponse<D>>()
+                .await
+                .map_err(|source| Error::Client {
+                    message: "failed to parse JSON response from server",
+                    source: Some(source),
+                })
         } else {
             Err(Error::Client {
                 message: "failed to parse response from server due to invalid media type",
@@ -507,12 +486,6 @@ impl Client {
         self.send("api/v1/series", &params, HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| {
-                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: "failed to parse JSON response from series endpoint",
-                    source,
-                })
-            })
     }
 
     /// Retrieve label names.
@@ -579,12 +552,6 @@ impl Client {
         self.send("api/v1/labels", &params, HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| {
-                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: "failed to parse JSON response from label names endpoint",
-                    source,
-                })
-            })
     }
 
     /// Retrieve all label values for a specific label name.
@@ -650,12 +617,6 @@ impl Client {
         self.send(&path, &params, HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| {
-                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: "failed to parse JSON response from label values endpoint",
-                    source,
-                })
-            })
     }
 
     /// Query the current state of target discovery.
@@ -691,12 +652,6 @@ impl Client {
         self.send("api/v1/targets", &params, HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| {
-                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: "failed to parse JSON response from targets endpoint",
-                    source,
-                })
-            })
     }
 
     /// Retrieve a list of rule groups of recording and alerting rules.
@@ -732,13 +687,7 @@ impl Client {
         self.send("api/v1/rules", &params, HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| {
-                serde_json::from_value::<RuleGroups>(res).map_err(|source| Error::ParseResponse {
-                    message: "failed to parse JSON response from rules endpoint",
-                    source,
-                })
-            })
-            .map(|w| w.groups)
+            .map(|r: RuleGroups| r.groups)
     }
 
     /// Retrieve a list of active alerts.
@@ -763,13 +712,7 @@ impl Client {
         self.send("api/v1/alerts", &(), HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| {
-                serde_json::from_value::<Alerts>(res).map_err(|source| Error::ParseResponse {
-                    message: "failed to parse JSON response from alerts endpoint",
-                    source,
-                })
-            })
-            .map(|w| w.alerts)
+            .map(|r: Alerts| r.alerts)
     }
 
     /// Retrieve a list of flags that Prometheus was configured with.
@@ -794,12 +737,6 @@ impl Client {
         self.send("api/v1/status/flags", &(), HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| {
-                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: "failed to parse JSON response from flags endpoint",
-                    source,
-                })
-            })
     }
 
     /// Retrieve Prometheus server build information.
@@ -824,12 +761,6 @@ impl Client {
         self.send("api/v1/status/buildinfo", &(), HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| {
-                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: "failed to parse JSON response from build information endpoint",
-                    source,
-                })
-            })
     }
 
     /// Retrieve Prometheus server runtime information.
@@ -854,12 +785,6 @@ impl Client {
         self.send("api/v1/status/runtimeinfo", &(), HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| {
-                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: "failed to parse JSON response from runtime information endpoint",
-                    source,
-                })
-            })
     }
 
     /// Retrieve Prometheus TSDB statistics.
@@ -884,12 +809,6 @@ impl Client {
         self.send("api/v1/status/tsdb", &(), HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| {
-                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: "failed to parse JSON response from TSDB statistics endpoint",
-                    source,
-                })
-            })
     }
 
     /// Retrieve WAL replay statistics.
@@ -914,12 +833,6 @@ impl Client {
         self.send("api/v1/status/walreplay", &(), HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| {
-                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: "failed to parse JSON response from WAL replay statistics endpoint",
-                    source,
-                })
-            })
     }
 
     /// Query the current state of alertmanager discovery.
@@ -944,12 +857,6 @@ impl Client {
         self.send("api/v1/alertmanagers", &(), HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| {
-                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: "failed to parse JSON response from alertmanagers endpoint",
-                    source,
-                })
-            })
     }
 
     /// Retrieve metadata about metrics that are currently scraped from targets, along with target information.
@@ -1008,12 +915,6 @@ impl Client {
         self.send("api/v1/targets/metadata", &params, HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| {
-                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: "failed to parse JSON response from target metadata endpoint",
-                    source,
-                })
-            })
     }
 
     /// Retrieve metadata about metrics that are currently scraped from targets.
@@ -1063,12 +964,6 @@ impl Client {
         self.send("api/v1/metadata", &params, HttpMethod::GET, None)
             .await
             .and_then(map_api_response)
-            .and_then(move |res| {
-                serde_json::from_value(res).map_err(|source| Error::ParseResponse {
-                    message: "failed to parse JSON response from metric metadata endpoint",
-                    source,
-                })
-            })
     }
 
     /// Check Prometheus server health.
@@ -1140,7 +1035,7 @@ impl Client {
 // Data is returned as is, errors within the response body are converted to
 // this crate's error type.
 #[inline]
-fn map_api_response(response: ApiResponse) -> Result<serde_json::Value, Error> {
+fn map_api_response<D: DeserializeOwned>(response: ApiResponse<D>) -> Result<D, Error> {
     match response {
         ApiResponse::Success { data } => Ok(data),
         ApiResponse::Error(e) => Err(Error::Prometheus(e)),
