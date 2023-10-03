@@ -1421,72 +1421,75 @@ mod tests {
     #[test]
     fn test_rule_group_deserialization() {
         let data = r#"
-[
-  {
-    "rules": [
-      {
-        "alerts": [
-          {
-            "activeAt": "2018-07-04T20:27:12.60602144+02:00",
-            "annotations": {
-              "summary": "High request latency"
-            },
-            "labels": {
-              "alertname": "HighRequestLatency",
-              "severity": "page"
-            },
-            "state": "firing",
-            "value": "1e+00"
-          }
-        ],
-        "annotations": {
-          "summary": "High request latency"
+{
+  "groups": [
+    {
+      "rules": [
+        {
+          "alerts": [
+            {
+              "activeAt": "2018-07-04T20:27:12.60602144+02:00",
+              "annotations": {
+                "summary": "High request latency"
+              },
+              "labels": {
+                "alertname": "HighRequestLatency",
+                "severity": "page"
+              },
+              "state": "firing",
+              "value": "1e+00"
+            }
+          ],
+          "annotations": {
+            "summary": "High request latency"
+          },
+          "duration": 600,
+          "health": "ok",
+          "labels": {
+            "severity": "page"
+          },
+          "name": "HighRequestLatency",
+          "query": "job:request_latency_seconds:mean5m{job=\"myjob\"} > 0.5",
+          "type": "alerting"
         },
-        "duration": 600,
-        "health": "ok",
-        "labels": {
-          "severity": "page"
-        },
-        "name": "HighRequestLatency",
-        "query": "job:request_latency_seconds:mean5m{job=\"myjob\"} > 0.5",
-        "type": "alerting"
-      },
-      {
-        "health": "ok",
-        "name": "job:http_inprogress_requests:sum",
-        "query": "sum by (job) (http_inprogress_requests)",
-        "type": "recording"
-      }
-    ],
-    "file": "/rules.yaml",
-    "interval": 60,
-    "limit": 0,
-    "name": "example"
-  }
-]
+        {
+          "health": "ok",
+          "name": "job:http_inprogress_requests:sum",
+          "query": "sum by (job) (http_inprogress_requests)",
+          "type": "recording"
+        }
+      ],
+      "file": "/rules.yaml",
+      "interval": 60,
+      "limit": 0,
+      "name": "example"
+    }
+  ]
+}
 "#;
-        let result: Result<Vec<RuleGroup>, serde_json::Error> = serde_json::from_str(data);
+        let result: Result<RuleGroups, serde_json::Error> = serde_json::from_str(data);
         assert!(result.is_ok());
     }
 
     #[test]
     fn test_alert_deserialization() {
         let data = r#"
-[
-   {
-      "activeAt":"2018-07-04T20:27:12.60602144+02:00",
-      "annotations":{
-         
-      },
-      "labels":{
-         "alertname":"my-alert"
-      },
-      "state":"firing",
-      "value":"1e+00"
-   }
-]
+{
+  "alerts": [
+     {
+        "activeAt":"2018-07-04T20:27:12.60602144+02:00",
+        "annotations":{
+        },
+        "labels":{
+           "alertname":"my-alert"
+        },
+        "state":"firing",
+        "value":"1e+00"
+     }
+  ]
+}
 "#;
-        let result: Result<Vec<Alert>, serde_json::Error> = serde_json::from_str(data);
+        let result: Result<Alerts, serde_json::Error> = serde_json::from_str(data);
         assert!(result.is_ok());
     }
 
