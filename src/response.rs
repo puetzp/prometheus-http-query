@@ -7,7 +7,10 @@ use time::{Duration, OffsetDateTime, PrimitiveDateTime};
 use url::Url;
 
 mod de {
-    use serde::{de::Unexpected, Deserialize, Deserializer};
+    use serde::{
+        de::{Error as SerdeError, Unexpected},
+        Deserialize, Deserializer,
+    };
     use std::str::FromStr;
     use time::format_description::FormatItem;
     use time::macros::format_description;
@@ -30,7 +33,7 @@ mod de {
 
         match Value::deserialize(deserializer)? {
             Value::Str(s) => f64::from_str(&s).map_err(|_| {
-                serde::de::Error::invalid_value(
+                SerdeError::invalid_value(
                     Unexpected::Str(&s),
                     &"a float value inside a quoted JSON string",
                 )
@@ -49,7 +52,7 @@ mod de {
         let raw = String::deserialize(deserializer)?;
 
         PrimitiveDateTime::parse(&raw, &BUILD_INFO_DATE_FORMAT)
-            .map_err(|e| serde::de::Error::custom(format!("error parsing '{}': {}", raw, e)))
+            .map_err(|e| SerdeError::custom(format!("error parsing '{}': {}", raw, e)))
     }
 
     // This function is used to deserialize Prometheus duration strings like "1d" or "5m" or
@@ -64,8 +67,6 @@ mod de {
     where
         D: Deserializer<'de>,
     {
-        use serde::de::Error as SerdeError;
-
         let raw_str = String::deserialize(deserializer)?;
 
         let mut total_milliseconds: i64 = 0;
