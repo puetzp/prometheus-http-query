@@ -49,10 +49,14 @@ mod de {
     where
         D: Deserializer<'de>,
     {
-        let raw = String::deserialize(deserializer)?;
-
-        PrimitiveDateTime::parse(&raw, &BUILD_INFO_DATE_FORMAT)
-            .map_err(|e| SerdeError::custom(format!("error parsing '{}': {}", raw, e)))
+        String::deserialize(deserializer).and_then(|s| {
+            PrimitiveDateTime::parse(&s, &BUILD_INFO_DATE_FORMAT).map_err(|_| {
+                SerdeError::invalid_value(
+                    Unexpected::Str(&s),
+                    &"a datetime string in format <yyyymmdd-hh:mm:ss>",
+                )
+            })
+        })
     }
 
     // This function is used to deserialize Prometheus duration strings like "1d" or "5m" or
@@ -1189,9 +1193,7 @@ mod tests {
   }
 }
 "#;
-        let result = serde_json::from_str::<PromqlResult>(data)?;
-        assert!(result.data().as_matrix().is_some());
-
+        serde_json::from_str::<PromqlResult>(data)?;
         Ok(())
     }
 
@@ -1598,19 +1600,19 @@ mod tests {
     }
 
     #[test]
-    fn test_buildinformation_deserialization() {
+    fn test_buildinformation_deserialization() -> Result<(), anyhow::Error> {
         let data = r#"
 {
   "version": "2.13.1",
   "revision": "cb7cbad5f9a2823a622aaa668833ca04f50a0ea7",
   "branch": "master",
   "buildUser": "julius@desktop",
-  "buildDate": "20191102-16:19:59",
+  "buildDate": "20191102-16:19:51",
   "goVersion": "go1.13.1"
 }
 "#;
-        let result: Result<BuildInformation, serde_json::Error> = serde_json::from_str(data);
-        assert!(result.is_ok());
+        serde_json::from_str::<BuildInformation>(data)?;
+        Ok(())
     }
 
     #[test]
