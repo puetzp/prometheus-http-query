@@ -7,8 +7,7 @@ use time::{Duration, OffsetDateTime, PrimitiveDateTime};
 use url::Url;
 
 mod de {
-    use serde::{Deserialize, Deserializer};
-    use serde_json::Value;
+    use serde::{de::Unexpected, Deserialize, Deserializer};
     use std::str::FromStr;
     use time::format_description::well_known::Rfc3339;
     use time::format_description::FormatItem;
@@ -23,16 +22,21 @@ mod de {
     where
         D: Deserializer<'de>,
     {
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum Value {
+            Str(String),
+            Number(f64),
+        }
+
         match Value::deserialize(deserializer)? {
-            Value::String(s) => f64::from_str(&s).map_err(serde::de::Error::custom),
-            Value::Number(s) => s.as_f64().ok_or(serde::de::Error::custom(
-                "failed to convert sample value to float",
-            )),
-            _ => {
-                return Err(serde::de::Error::custom(
-                    "unexpected type for sample value, expected string or integer",
-                ))
-            }
+            Value::Str(s) => f64::from_str(&s).map_err(|_| {
+                serde::de::Error::invalid_value(
+                    Unexpected::Str(&s),
+                    &"a float value inside a quoted JSON string",
+                )
+            }),
+            Value::Number(n) => Ok(n),
         }
     }
 
@@ -1130,7 +1134,7 @@ mod tests {
     }
 
     #[test]
-    fn test_query_result_deserialization() {
+    fn test_query_result_deserialization() -> Result<(), anyhow::Error> {
         let data = r#"
 {
   "resultType": "matrix",
@@ -1195,8 +1199,10 @@ mod tests {
   }
 }
 "#;
-        let result: Result<PromqlResult, serde_json::Error> = serde_json::from_str(data);
-        assert!(result.is_ok());
+        let result = serde_json::from_str::<PromqlResult>(data)?;
+        assert!(true);
+
+        Ok(())
     }
 
     #[test]
