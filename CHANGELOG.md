@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Refactored deserialization of Prometheus server responses so the explicit dependency on `serde_json` could be removed.
 - Refactored the `error` module and some custom errors related to deserialization using `serde::de::Error`. The `Error` enum inside the `error` module now contains one variant less and existing error variants were improved by _properly_ implementing `std::error::Error::source()`. Libraries like `anyhow` are now able to display more detailed error messages. This change is not breaking if you did not match on specific error enum variants before.
+- `Client` methods now return a more concise error if the server response (from Prometheus or an intermediate proxy) does not contain a `Content-Type` header identifying the payload as JSON, that is the media type from the response is not as expected.
 
 ## [0.6.7] - 2023-09-30
 ### Fixed
