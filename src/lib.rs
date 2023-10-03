@@ -34,10 +34,10 @@
 //! ## Execute PromQL queries
 //!
 //! ```rust
-//! use prometheus_http_query::{Client, Error, Selector};
+//! use prometheus_http_query::{Client, Selector};
 //!
 //! #[tokio::main(flavor = "current_thread")]
-//! async fn main() -> Result<(), Error> {
+//! async fn main() -> Result<(), anyhow::Error> {
 //!     let client = Client::default();
 //!
 //!     // Execute a query using HTTP GET.
@@ -68,10 +68,10 @@
 //! Retrieve a list of time series that match a certain label set by providing one or more series [`Selector`]s.
 //!
 //! ```rust
-//! use prometheus_http_query::{Client, Error, Selector};
+//! use prometheus_http_query::{Client, Selector};
 //!
 //! #[tokio::main(flavor = "current_thread")]
-//! async fn main() -> Result<(), Error> {
+//! async fn main() -> Result<(), anyhow::Error> {
 //!     let client = Client::default();
 //!
 //!     let s1 = Selector::new()
@@ -94,10 +94,10 @@
 //! Retrieve recording/alerting rules and active alerts.
 //!
 //! ```rust
-//! use prometheus_http_query::{Client, Error, RuleType};
+//! use prometheus_http_query::{Client, RuleType};
 //!
 //! #[tokio::main(flavor = "current_thread")]
-//! async fn main() -> Result<(), Error> {
+//! async fn main() -> Result<(), anyhow::Error> {
 //!     let client = Client::default();
 //!
 //!     let response = client.rules(None).await;
@@ -121,10 +121,10 @@
 //! ## Convenience functions for one-off requests
 //!
 //! ```rust
-//! use prometheus_http_query::{Error, query, runtime_information};
+//! use prometheus_http_query::{query, runtime_information};
 //!
 //! #[tokio::main(flavor = "current_thread")]
-//! async fn main() -> Result<(), Error> {
+//! async fn main() -> Result<(), anyhow::Error> {
 //!     let q = "topk by (code) (5, prometheus_http_requests_total)";
 //!     let response = query("http://localhost:9090", q)?.get().await?;
 //!

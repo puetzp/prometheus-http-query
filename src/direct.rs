@@ -11,10 +11,10 @@ use std::str::FromStr;
 /// This is just a convenience function for one-off requests, see [`Client::query`].
 ///
 /// ```rust
-/// use prometheus_http_query::{Error, query};
+/// use prometheus_http_query::query;
 ///
 /// #[tokio::main(flavor = "current_thread")]
-/// async fn main() -> Result<(), Error> {
+/// async fn main() -> Result<(), anyhow::Error> {
 ///     let q = "sum(prometheus_http_requests_total)";
 ///
 ///     let response = query("http://localhost:9090", q)?.timeout(1000).get().await?;
@@ -38,10 +38,10 @@ pub fn query(host: &str, query: impl std::string::ToString) -> Result<InstantQue
 /// This is just a convenience function for one-off requests, see [`Client::query_range`].
 ///
 /// ```rust
-/// use prometheus_http_query::{Error, query_range};
+/// use prometheus_http_query::query_range;
 ///
 /// #[tokio::main(flavor = "current_thread")]
-/// async fn main() -> Result<(), Error> {
+/// async fn main() -> Result<(), anyhow::Error> {
 ///     let q = "sum(prometheus_http_requests_total)";
 ///
 ///     let response = query_range("http://localhost:9090", q, 1648373100, 1648373300, 10.0)?.get().await?;
@@ -71,10 +71,10 @@ pub fn query_range(
 /// This is just a convenience function for one-off requests, see [`Client::series`].
 ///
 /// ```rust
-/// use prometheus_http_query::{series, Error, Selector};
+/// use prometheus_http_query::{series, Selector};
 ///
 /// #[tokio::main(flavor = "current_thread")]
-/// async fn main() -> Result<(), Error> {
+/// async fn main() -> Result<(), anyhow::Error> {
 ///     let select = Selector::new()
 ///         .eq("handler", "/api/v1/query");
 ///
@@ -99,10 +99,10 @@ pub async fn series(
 /// This is just a convenience function for one-off requests, see [`Client::label_names`].
 ///
 /// ```rust
-/// use prometheus_http_query::{label_names, Error};
+/// use prometheus_http_query::label_names;
 ///
 /// #[tokio::main(flavor = "current_thread")]
-/// async fn main() -> Result<(), Error> {
+/// async fn main() -> Result<(), anyhow::Error> {
 ///     let response = label_names("http://localhost:9090", None, None, None).await;
 ///
 ///     assert!(response.is_ok());
@@ -126,10 +126,10 @@ pub async fn label_names(
 /// This is just a convenience function for one-off requests, see [`Client::label_values`].
 ///
 /// ```rust
-/// use prometheus_http_query::{label_values, Error};
+/// use prometheus_http_query::label_values;
 ///
 /// #[tokio::main(flavor = "current_thread")]
-/// async fn main() -> Result<(), Error> {
+/// async fn main() -> Result<(), anyhow::Error> {
 ///     let response = label_values("http://localhost:9090", "job", None, None, None).await;
 ///
 ///     assert!(response.is_ok());
@@ -154,10 +154,10 @@ pub async fn label_values(
 /// This is just a convenience function for one-off requests, see [`Client::targets`].
 ///
 /// ```rust
-/// use prometheus_http_query::{targets, Error, TargetState};
+/// use prometheus_http_query::{targets, TargetState};
 ///
 /// #[tokio::main(flavor = "current_thread")]
-/// async fn main() -> Result<(), Error> {
+/// async fn main() -> Result<(), anyhow::Error> {
 ///     let response = targets("http://localhost:9090", Some(TargetState::Active)).await;
 ///
 ///     assert!(response.is_ok());
@@ -174,10 +174,10 @@ pub async fn targets(host: &str, state: Option<TargetState>) -> Result<Targets, 
 /// This is just a convenience function for one-off requests, see [Client::rules].
 ///
 /// ```rust
-/// use prometheus_http_query::{rules, Error, RuleType};
+/// use prometheus_http_query::{rules, RuleType};
 ///
 /// #[tokio::main(flavor = "current_thread")]
-/// async fn main() -> Result<(), Error> {
+/// async fn main() -> Result<(), anyhow::Error> {
 ///     let response = rules("http://localhost:9090", Some(RuleType::Alert)).await;
 ///
 ///     assert!(response.is_ok());
@@ -194,10 +194,10 @@ pub async fn rules(host: &str, rule_type: Option<RuleType>) -> Result<Vec<RuleGr
 /// This is just a convenience function for one-off requests, see [`Client::alerts`].
 ///
 /// ```rust
-/// use prometheus_http_query::{alerts, Error};
+/// use prometheus_http_query::alerts;
 ///
 /// #[tokio::main(flavor = "current_thread")]
-/// async fn main() -> Result<(), Error> {
+/// async fn main() -> Result<(), anyhow::Error> {
 ///     let response = alerts("http://localhost:9090").await;
 ///
 ///     assert!(response.is_ok());
@@ -214,10 +214,10 @@ pub async fn alerts(host: &str) -> Result<Vec<Alert>, Error> {
 /// This is just a convenience function for one-off requests, see [`Client::flags`].
 ///
 /// ```rust
-/// use prometheus_http_query::{flags, Error};
+/// use prometheus_http_query::flags;
 ///
 /// #[tokio::main(flavor = "current_thread")]
-/// async fn main() -> Result<(), Error> {
+/// async fn main() -> Result<(), anyhow::Error> {
 ///     let response = flags("http://localhost:9090").await;
 ///
 ///     assert!(response.is_ok());
@@ -234,10 +234,10 @@ pub async fn flags(host: &str) -> Result<HashMap<String, String>, Error> {
 /// This is just a convenience function for one-off requests, see [`Client::build_information`].
 ///
 /// ```rust
-/// use prometheus_http_query::{build_information, Error};
+/// use prometheus_http_query::build_information;
 ///
 /// #[tokio::main(flavor = "current_thread")]
-/// async fn main() -> Result<(), Error> {
+/// async fn main() -> Result<(), anyhow::Error> {
 ///     let response = build_information("http://localhost:9090").await;
 ///
 ///     assert!(response.is_ok());
@@ -254,10 +254,10 @@ pub async fn build_information(host: &str) -> Result<BuildInformation, Error> {
 /// This is just a convenience function for one-off requests, see [`Client::runtime_information`].
 ///
 /// ```rust
-/// use prometheus_http_query::{runtime_information, Error};
+/// use prometheus_http_query::runtime_information;
 ///
 /// #[tokio::main(flavor = "current_thread")]
-/// async fn main() -> Result<(), Error> {
+/// async fn main() -> Result<(), anyhow::Error> {
 ///     let response = runtime_information("http://localhost:9090").await;
 ///
 ///     assert!(response.is_ok());
@@ -274,10 +274,10 @@ pub async fn runtime_information(host: &str) -> Result<RuntimeInformation, Error
 /// This is just a convenience function for one-off requests, see [`Client::alertmanagers`].
 ///
 /// ```rust
-/// use prometheus_http_query::{alertmanagers, Error};
+/// use prometheus_http_query::alertmanagers;
 ///
 /// #[tokio::main(flavor = "current_thread")]
-/// async fn main() -> Result<(), Error> {
+/// async fn main() -> Result<(), anyhow::Error> {
 ///     let response = alertmanagers("http://localhost:9090").await;
 ///
 ///     assert!(response.is_ok());
@@ -294,10 +294,10 @@ pub async fn alertmanagers(host: &str) -> Result<Alertmanagers, Error> {
 /// This is just a convenience function for one-off requests, see [`Client::target_metadata`].
 ///
 /// ```rust
-/// use prometheus_http_query::{target_metadata, Error, Selector};
+/// use prometheus_http_query::{target_metadata, Selector};
 ///
 /// #[tokio::main(flavor = "current_thread")]
-/// async fn main() -> Result<(), Error> {
+/// async fn main() -> Result<(), anyhow::Error> {
 ///     let response = target_metadata("http://localhost:9090", Some("go_routines"), None, None).await;
 ///     assert!(response.is_ok());
 ///
@@ -324,10 +324,10 @@ pub async fn target_metadata(
 /// This is just a convenience function for one-off requests, see [`Client::metric_metadata`].
 ///
 /// ```rust
-/// use prometheus_http_query::{metric_metadata, Error, Selector};
+/// use prometheus_http_query::{metric_metadata, Selector};
 ///
 /// #[tokio::main(flavor = "current_thread")]
-/// async fn main() -> Result<(), Error> {
+/// async fn main() -> Result<(), anyhow::Error> {
 ///     let response = metric_metadata("http://localhost:9090", None, None).await;
 ///     assert!(response.is_ok());
 ///

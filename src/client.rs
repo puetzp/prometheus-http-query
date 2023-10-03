@@ -227,10 +227,10 @@ impl Client {
     /// use it for other requests unrelated to the Prometheus API.
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Error};
+    /// use prometheus_http_query::{Client};
     ///
     /// #[tokio::main(flavor = "current_thread")]
-    /// async fn main() -> Result<(), Error> {
+    /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
     ///     // An amittedly bad example, but that is not the point.
@@ -238,8 +238,7 @@ impl Client {
     ///         .inner()
     ///         .head("http://127.0.0.1:9090")
     ///         .send()
-    ///         .await
-    ///         .unwrap();
+    ///         .await?;
     ///
     ///     // Prometheus does not allow HEAD requests.
     ///     assert_eq!(response.status(), reqwest::StatusCode::METHOD_NOT_ALLOWED);
@@ -275,14 +274,13 @@ impl Client {
     /// by building it into the [`reqwest::Client`].
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Error};
+    /// use prometheus_http_query::Client;
     ///
-    /// fn main() -> Result<(), Error> {
+    /// fn main() -> Result<(), anyhow::Error> {
     ///     let client = {
     ///         let c = reqwest::Client::builder()
     ///             .no_proxy()
-    ///             .build()
-    ///             .unwrap();
+    ///             .build()?;
     ///         Client::from(c, "https://prometheus.example.com")
     ///     };
     ///
@@ -349,10 +347,10 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Error, Client};
+    /// use prometheus_http_query::Client;
     ///
     /// #[tokio::main(flavor = "current_thread")]
-    /// async fn main() -> Result<(), Error> {
+    /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
     ///     let response = client.query("prometheus_http_request_total").get().await?;
@@ -387,10 +385,10 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Error};
+    /// use prometheus_http_query::Client;
     ///
     /// #[tokio::main(flavor = "current_thread")]
-    /// async fn main() -> Result<(), Error> {
+    /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
     ///     let q = "prometheus_http_requests_total";
@@ -436,10 +434,10 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Selector, Error};
+    /// use prometheus_http_query::{Client, Selector};
     ///
     /// #[tokio::main(flavor = "current_thread")]
-    /// async fn main() -> Result<(), Error> {
+    /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
     ///     let s1 = Selector::new()
@@ -498,10 +496,10 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#getting-label-names)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Selector, Error};
+    /// use prometheus_http_query::{Client, Selector};
     ///
     /// #[tokio::main(flavor = "current_thread")]
-    /// async fn main() -> Result<(), Error> {
+    /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
     ///     // To retrieve a list of all labels:
@@ -565,10 +563,10 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-label-values)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Selector, Error};
+    /// use prometheus_http_query::{Client, Selector};
     ///
     /// #[tokio::main(flavor = "current_thread")]
-    /// async fn main() -> Result<(), Error> {
+    /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
     ///     // To retrieve a list of all label values for a specific label name:
@@ -624,10 +622,10 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#targets)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Error, TargetState};
+    /// use prometheus_http_query::{Client, TargetState};
     ///
     /// #[tokio::main(flavor = "current_thread")]
-    /// async fn main() -> Result<(), Error> {
+    /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
     ///     let response = client.targets(None).await;
@@ -659,10 +657,10 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#rules)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Error, RuleType};
+    /// use prometheus_http_query::{Client, RuleType};
     ///
     /// #[tokio::main(flavor = "current_thread")]
-    /// async fn main() -> Result<(), Error> {
+    /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
     ///     let response = client.rules(None).await;
@@ -695,10 +693,10 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#alerts)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Error};
+    /// use prometheus_http_query::Client;
     ///
     /// #[tokio::main(flavor = "current_thread")]
-    /// async fn main() -> Result<(), Error> {
+    /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
     ///     let response = client.alerts().await;
@@ -720,10 +718,10 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#flags)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Error};
+    /// use prometheus_http_query::Client;
     ///
     /// #[tokio::main(flavor = "current_thread")]
-    /// async fn main() -> Result<(), Error> {
+    /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
     ///     let response = client.flags().await;
@@ -744,10 +742,10 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#build-information)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Error};
+    /// use prometheus_http_query::Client;
     ///
     /// #[tokio::main(flavor = "current_thread")]
-    /// async fn main() -> Result<(), Error> {
+    /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
     ///     let response = client.build_information().await;
@@ -768,10 +766,10 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#runtime-information)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Error};
+    /// use prometheus_http_query::Client;
     ///
     /// #[tokio::main(flavor = "current_thread")]
-    /// async fn main() -> Result<(), Error> {
+    /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
     ///     let response = client.runtime_information().await;
@@ -792,10 +790,10 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#tsdb-stats)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Error};
+    /// use prometheus_http_query::Client;
     ///
     /// #[tokio::main(flavor = "current_thread")]
-    /// async fn main() -> Result<(), Error> {
+    /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
     ///     let response = client.tsdb_statistics().await;
@@ -816,10 +814,10 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#wal-replay-stats)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Error};
+    /// use prometheus_http_query::Client;
     ///
     /// #[tokio::main(flavor = "current_thread")]
-    /// async fn main() -> Result<(), Error> {
+    /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
     ///     let response = client.wal_replay_statistics().await;
@@ -840,10 +838,10 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#alertmanagers)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Error};
+    /// use prometheus_http_query::Client;
     ///
     /// #[tokio::main(flavor = "current_thread")]
-    /// async fn main() -> Result<(), Error> {
+    /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
     ///     let response = client.alertmanagers().await;
@@ -864,10 +862,10 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-target-metadata)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Error, Selector};
+    /// use prometheus_http_query::{Client, Selector};
     ///
     /// #[tokio::main(flavor = "current_thread")]
-    /// async fn main() -> Result<(), Error> {
+    /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
     ///     // Retrieve metadata for a specific metric from all targets.
@@ -922,10 +920,10 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-metric-metadata)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Error};
+    /// use prometheus_http_query::Client;
     ///
     /// #[tokio::main(flavor = "current_thread")]
-    /// async fn main() -> Result<(), Error> {
+    /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
     ///     // Retrieve metadata for a all metrics.
@@ -971,10 +969,10 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/management_api/#health-check)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Error};
+    /// use prometheus_http_query::Client;
     ///
     /// #[tokio::main(flavor = "current_thread")]
-    /// async fn main() -> Result<(), Error> {
+    /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///     assert!(client.is_server_healthy().await?);
     ///     Ok(())
@@ -1003,10 +1001,10 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/management_api/#readiness-check)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Error};
+    /// use prometheus_http_query::Client;
     ///
     /// #[tokio::main(flavor = "current_thread")]
-    /// async fn main() -> Result<(), Error> {
+    /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///     assert!(client.is_server_ready().await?);
     ///     Ok(())
