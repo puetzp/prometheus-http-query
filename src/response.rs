@@ -1057,7 +1057,7 @@ mod tests {
     use std::collections::HashMap;
 
     #[test]
-    fn test_api_error_deserialization() {
+    fn test_api_error_deserialization() -> Result<(), anyhow::Error> {
         let data = r#"
 {
   "status": "error",
@@ -1068,16 +1068,16 @@ mod tests {
 }
 "#;
 
-        let result: Result<ApiResponse<PromqlResult>, serde_json::Error> =
-            serde_json::from_str(data);
-        assert!(result.is_ok());
+        let result = serde_json::from_str::<ApiResponse<PromqlResult>>(data)?;
         assert!(
-            matches!(result.unwrap(), ApiResponse::Error(err) if err.error_type == crate::error::PrometheusErrorType::BadData)
+            matches!(result, ApiResponse::Error(err) if err.error_type == crate::error::PrometheusErrorType::BadData)
         );
+
+        Ok(())
     }
 
     #[test]
-    fn test_api_success_deserialization() {
+    fn test_api_success_deserialization() -> Result<(), anyhow::Error> {
         let data = r#"
 {
   "status": "success",
@@ -1089,14 +1089,14 @@ mod tests {
 }
 "#;
 
-        let result: Result<ApiResponse<PromqlResult>, serde_json::Error> =
-            serde_json::from_str(data);
-        assert!(result.is_ok());
-        assert!(matches!(result.unwrap(), ApiResponse::Success { data: _ }));
+        let result = serde_json::from_str::<ApiResponse<PromqlResult>>(data)?;
+        assert!(matches!(result, ApiResponse::Success { data: _ }));
+
+        Ok(())
     }
 
     #[test]
-    fn test_bad_combination_in_deserialization() {
+    fn test_bad_combination_in_deserialization() -> Result<(), anyhow::Error> {
         let data = r#"
 {
   "status": "error",
@@ -1108,12 +1108,14 @@ mod tests {
 }
 "#;
 
-        let result: Result<ApiResponse<()>, serde_json::Error> = serde_json::from_str(data);
+        let result = serde_json::from_str::<ApiResponse<()>>(data);
         assert!(result.is_err());
+
+        Ok(())
     }
 
     #[test]
-    fn test_another_bad_combination_in_deserialization() {
+    fn test_another_bad_combination_in_deserialization() -> Result<(), anyhow::Error> {
         let data = r#"
 {
   "status": "success",
@@ -1123,8 +1125,10 @@ mod tests {
 }
 "#;
 
-        let result: Result<ApiResponse<()>, serde_json::Error> = serde_json::from_str(data);
+        let result = serde_json::from_str::<ApiResponse<()>>(data);
         assert!(result.is_err());
+
+        Ok(())
     }
 
     #[test]
@@ -1198,7 +1202,7 @@ mod tests {
     }
 
     #[test]
-    fn test_query_result_no_per_step_stats_deserialization() {
+    fn test_query_result_no_per_step_stats_deserialization() -> Result<(), anyhow::Error> {
         let data = r#"
 {
   "resultType": "matrix",
@@ -1245,12 +1249,13 @@ mod tests {
   }
 }
 "#;
-        let result: Result<PromqlResult, serde_json::Error> = serde_json::from_str(data);
-        assert!(result.is_ok());
+        serde_json::from_str::<PromqlResult>(data)?;
+
+        Ok(())
     }
 
     #[test]
-    fn test_query_result_no_stats_deserialization() {
+    fn test_query_result_no_stats_deserialization() -> Result<(), anyhow::Error> {
         let data = r#"
 {
   "resultType": "matrix",
@@ -1283,12 +1288,13 @@ mod tests {
   ]
 }
 "#;
-        let result: Result<PromqlResult, serde_json::Error> = serde_json::from_str(data);
-        assert!(result.is_ok());
+        serde_json::from_str::<PromqlResult>(data)?;
+
+        Ok(())
     }
 
     #[test]
-    fn test_instant_vector_deserialization() {
+    fn test_instant_vector_deserialization() -> Result<(), anyhow::Error> {
         let data = r#"
 [
   {
@@ -1315,12 +1321,12 @@ mod tests {
   }
 ]
 "#;
-        let result: Result<Vec<InstantVector>, serde_json::Error> = serde_json::from_str(data);
-        assert!(result.is_ok());
+        serde_json::from_str::<Vec<InstantVector>>(data)?;
+        Ok(())
     }
 
     #[test]
-    fn test_range_vector_deserialization() {
+    fn test_range_vector_deserialization() -> Result<(), anyhow::Error> {
         let data = r#"
 [
   {
@@ -1367,12 +1373,12 @@ mod tests {
   }
 ]
 "#;
-        let result: Result<Vec<RangeVector>, serde_json::Error> = serde_json::from_str(data);
-        assert!(result.is_ok());
+        serde_json::from_str::<Vec<RangeVector>>(data)?;
+        Ok(())
     }
 
     #[test]
-    fn test_target_deserialization() {
+    fn test_target_deserialization() -> Result<(), anyhow::Error> {
         let data = r#"
 {
   "activeTargets": [
@@ -1412,12 +1418,12 @@ mod tests {
   ]
 }
 "#;
-        let result: Result<Targets, serde_json::Error> = serde_json::from_str(data);
-        assert!(result.is_ok());
+        serde_json::from_str::<Targets>(data)?;
+        Ok(())
     }
 
     #[test]
-    fn test_rule_group_deserialization() {
+    fn test_rule_group_deserialization() -> Result<(), anyhow::Error> {
         let data = r#"
 {
   "groups": [
@@ -1465,12 +1471,12 @@ mod tests {
   ]
 }
 "#;
-        let result: Result<RuleGroups, serde_json::Error> = serde_json::from_str(data);
-        assert!(result.is_ok());
+        serde_json::from_str::<RuleGroups>(data)?;
+        Ok(())
     }
 
     #[test]
-    fn test_alert_deserialization() {
+    fn test_alert_deserialization() -> Result<(), anyhow::Error> {
         let data = r#"
 {
   "alerts": [
@@ -1487,12 +1493,12 @@ mod tests {
   ]
 }
 "#;
-        let result: Result<Alerts, serde_json::Error> = serde_json::from_str(data);
-        assert!(result.is_ok());
+        serde_json::from_str::<Alerts>(data)?;
+        Ok(())
     }
 
     #[test]
-    fn test_target_metadata_deserialization_1() {
+    fn test_target_metadata_deserialization_1() -> Result<(), anyhow::Error> {
         let data = r#"
 [
   {
@@ -1515,12 +1521,12 @@ mod tests {
   }
 ]
 "#;
-        let result: Result<Vec<TargetMetadata>, serde_json::Error> = serde_json::from_str(data);
-        assert!(result.is_ok());
+        serde_json::from_str::<Vec<TargetMetadata>>(data)?;
+        Ok(())
     }
 
     #[test]
-    fn test_target_metadata_deserialization_2() {
+    fn test_target_metadata_deserialization_2() -> Result<(), anyhow::Error> {
         let data = r#"
 [
   {
@@ -1545,12 +1551,12 @@ mod tests {
   }
 ]
 "#;
-        let result: Result<Vec<TargetMetadata>, serde_json::Error> = serde_json::from_str(data);
-        assert!(result.is_ok());
+        serde_json::from_str::<Vec<TargetMetadata>>(data)?;
+        Ok(())
     }
 
     #[test]
-    fn test_metric_metadata_deserialization() {
+    fn test_metric_metadata_deserialization() -> Result<(), anyhow::Error> {
         let data = r#"
 {
   "cortex_ring_tokens": [
@@ -1574,13 +1580,12 @@ mod tests {
   ]
 }
 "#;
-        let result: Result<HashMap<String, Vec<MetricMetadata>>, serde_json::Error> =
-            serde_json::from_str(data);
-        assert!(result.is_ok());
+        serde_json::from_str::<HashMap<String, Vec<MetricMetadata>>>(data)?;
+        Ok(())
     }
 
     #[test]
-    fn test_alertmanagers_deserialization() {
+    fn test_alertmanagers_deserialization() -> Result<(), anyhow::Error> {
         let data = r#"
 {
   "activeAlertmanagers": [
@@ -1595,8 +1600,8 @@ mod tests {
   ]
 }
 "#;
-        let result: Result<Alertmanagers, serde_json::Error> = serde_json::from_str(data);
-        assert!(result.is_ok());
+        serde_json::from_str::<Alertmanagers>(data)?;
+        Ok(())
     }
 
     #[test]
@@ -1616,7 +1621,7 @@ mod tests {
     }
 
     #[test]
-    fn test_runtimeinformation_deserialization() {
+    fn test_runtimeinformation_deserialization() -> Result<(), anyhow::Error> {
         let data = r#"
 {
   "startTime": "2019-11-02T17:23:59.301361365+01:00",
@@ -1632,12 +1637,12 @@ mod tests {
   "storageRetention": "15d"
 }
 "#;
-        let result: Result<RuntimeInformation, serde_json::Error> = serde_json::from_str(data);
-        assert!(result.is_ok());
+        serde_json::from_str::<RuntimeInformation>(data)?;
+        Ok(())
     }
 
     #[test]
-    fn test_tsdb_stats_deserialization() {
+    fn test_tsdb_stats_deserialization() -> Result<(), anyhow::Error> {
         let data = r#"
 {
   "headStats": {
@@ -1688,12 +1693,12 @@ mod tests {
   ]
 }
 "#;
-        let result: Result<TsdbStatistics, serde_json::Error> = serde_json::from_str(data);
-        assert!(result.is_ok());
+        serde_json::from_str::<TsdbStatistics>(data)?;
+        Ok(())
     }
 
     #[test]
-    fn test_wal_replay_deserialization() {
+    fn test_wal_replay_deserialization() -> Result<(), anyhow::Error> {
         let data = r#"
 {
   "min": 2,
@@ -1734,7 +1739,7 @@ mod tests {
   "current": 40
 }
 "#;
-        let result: Result<WalReplayStatistics, serde_json::Error> = serde_json::from_str(data);
-        assert!(result.is_ok());
+        serde_json::from_str::<WalReplayStatistics>(data)?;
+        Ok(())
     }
 }
