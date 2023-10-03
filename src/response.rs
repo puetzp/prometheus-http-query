@@ -9,10 +9,9 @@ use url::Url;
 mod de {
     use serde::{de::Unexpected, Deserialize, Deserializer};
     use std::str::FromStr;
-    use time::format_description::well_known::Rfc3339;
     use time::format_description::FormatItem;
     use time::macros::format_description;
-    use time::{Duration, OffsetDateTime, PrimitiveDateTime};
+    use time::{Duration, PrimitiveDateTime};
 
     const BUILD_INFO_DATE_FORMAT: &[FormatItem] = format_description!(
         "[year repr:full][month repr:numerical][day]-[hour repr:24]:[minute]:[second]"
@@ -38,16 +37,6 @@ mod de {
             }),
             Value::Number(n) => Ok(n),
         }
-    }
-
-    pub(super) fn deserialize_rfc3339<'de, D>(deserializer: D) -> Result<OffsetDateTime, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let raw = String::deserialize(deserializer)?;
-
-        OffsetDateTime::parse(&raw, &Rfc3339)
-            .map_err(|e| serde::de::Error::custom(format!("error parsing '{}': {}", raw, e)))
     }
 
     // This function is used to deserialize a specific datetime string like "20191102-16:19:59".
@@ -409,7 +398,7 @@ pub struct ActiveTarget {
     #[serde(alias = "lastError")]
     pub(crate) last_error: String,
     #[serde(alias = "lastScrape")]
-    #[serde(deserialize_with = "de::deserialize_rfc3339")]
+    #[serde(with = "time::serde::rfc3339")]
     pub(crate) last_scrape: OffsetDateTime,
     #[serde(alias = "lastScrapeDuration")]
     pub(crate) last_scrape_duration: f64,
@@ -632,7 +621,7 @@ pub(crate) struct Alerts {
 #[derive(Clone, Debug, Deserialize)]
 pub struct Alert {
     #[serde(alias = "activeAt")]
-    #[serde(deserialize_with = "de::deserialize_rfc3339")]
+    #[serde(with = "time::serde::rfc3339")]
     pub(crate) active_at: OffsetDateTime,
     pub(crate) annotations: HashMap<String, String>,
     pub(crate) labels: HashMap<String, String>,
@@ -852,14 +841,14 @@ impl BuildInformation {
 #[derive(Clone, Debug, Deserialize)]
 pub struct RuntimeInformation {
     #[serde(alias = "startTime")]
-    #[serde(deserialize_with = "de::deserialize_rfc3339")]
+    #[serde(with = "time::serde::rfc3339")]
     pub(crate) start_time: OffsetDateTime,
     #[serde(alias = "CWD")]
     pub(crate) cwd: String,
     #[serde(alias = "reloadConfigSuccess")]
     pub(crate) reload_config_success: bool,
     #[serde(alias = "lastConfigTime")]
-    #[serde(deserialize_with = "de::deserialize_rfc3339")]
+    #[serde(with = "time::serde::rfc3339")]
     pub(crate) last_config_time: OffsetDateTime,
     #[serde(alias = "corruptionCount")]
     pub(crate) corruption_count: i64,
@@ -1200,7 +1189,7 @@ mod tests {
 }
 "#;
         let result = serde_json::from_str::<PromqlResult>(data)?;
-        assert!(true);
+        assert!(result.data().as_matrix().is_some());
 
         Ok(())
     }
