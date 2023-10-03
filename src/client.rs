@@ -1,4 +1,4 @@
-use crate::error::Error;
+use crate::error::{ClientError, Error};
 use crate::response::*;
 use crate::selector::Selector;
 use crate::util::{self, build_final_url, RuleType, TargetState, ToBaseUrl};
@@ -315,26 +315,27 @@ impl Client {
             request = request.headers(headers);
         }
 
-        let response = request.send().await.map_err(|source| Error::Client {
-            message: "failed to send request to server",
-            source: Some(source),
+        let response = request.send().await.map_err(|source| {
+            Error::Client(ClientError {
+                message: "failed to send request to server",
+                source: Some(source),
+            })
         })?;
 
         let header = CONTENT_TYPE;
 
         if util::is_json(response.headers().get(header)) {
-            response
-                .json::<ApiResponse<D>>()
-                .await
-                .map_err(|source| Error::Client {
+            response.json::<ApiResponse<D>>().await.map_err(|source| {
+                Error::Client(ClientError {
                     message: "failed to parse JSON response from server",
                     source: Some(source),
                 })
+            })
         } else {
-            Err(Error::Client {
+            Err(Error::Client(ClientError {
                 message: "failed to parse response from server due to invalid media type",
                 source: response.error_for_status().err(),
-            })
+            }))
         }
     }
 
@@ -984,14 +985,18 @@ impl Client {
             .get(url)
             .send()
             .await
-            .map_err(|source| Error::Client {
-                message: "failed to send request to health endpoint",
-                source: Some(source),
+            .map_err(|source| {
+                Error::Client(ClientError {
+                    message: "failed to send request to health endpoint",
+                    source: Some(source),
+                })
             })?
             .error_for_status()
-            .map_err(|source| Error::Client {
-                message: "request to health endpoint returned an error",
-                source: Some(source),
+            .map_err(|source| {
+                Error::Client(ClientError {
+                    message: "request to health endpoint returned an error",
+                    source: Some(source),
+                })
             })
             .map(|_| true)
     }
@@ -1016,14 +1021,18 @@ impl Client {
             .get(url)
             .send()
             .await
-            .map_err(|source| Error::Client {
-                message: "failed to send request to readiness endpoint",
-                source: Some(source),
+            .map_err(|source| {
+                Error::Client(ClientError {
+                    message: "failed to send request to readiness endpoint",
+                    source: Some(source),
+                })
             })?
             .error_for_status()
-            .map_err(|source| Error::Client {
-                message: "request to readiness endpoint returned an error",
-                source: Some(source),
+            .map_err(|source| {
+                Error::Client(ClientError {
+                    message: "request to readiness endpoint returned an error",
+                    source: Some(source),
+                })
             })
             .map(|_| true)
     }

@@ -1,4 +1,4 @@
-use crate::error::Error;
+use crate::error::{Error, ParseUrlError};
 use mime::Mime;
 use reqwest::header::HeaderValue;
 use serde::Deserialize;
@@ -132,18 +132,22 @@ pub(crate) trait ToBaseUrl {
 
 impl ToBaseUrl for &str {
     fn to_base_url(self) -> Result<Url, Error> {
-        Url::parse(self).map_err(|source| Error::ParseUrl {
-            message: "failed to build Prometheus server base URL",
-            source,
+        Url::parse(self).map_err(|source| {
+            Error::ParseUrl(ParseUrlError {
+                message: "failed to build Prometheus server base URL",
+                source,
+            })
         })
     }
 }
 
 impl ToBaseUrl for String {
     fn to_base_url(self) -> Result<Url, Error> {
-        Url::parse(&self).map_err(|source| Error::ParseUrl {
-            message: "failed to build Prometheus server base URL",
-            source,
+        Url::parse(&self).map_err(|source| {
+            Error::ParseUrl(ParseUrlError {
+                message: "failed to build Prometheus server base URL",
+                source,
+            })
         })
     }
 }

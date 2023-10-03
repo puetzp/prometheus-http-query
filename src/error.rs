@@ -3,17 +3,16 @@ use serde::Deserialize;
 use std::error::Error as StdError;
 use std::fmt;
 
-/// A global error enum that encapsulates other more specific
-/// types of errors.
+/// A global error enum that encapsulates other more specific types of errors.
+/// Some variants contain errors that in turn wrap errors from underlying libraries
+/// like [`reqwest`]. These errors can be obtained from [`Error::source()`](StdError::source()).
 #[non_exhaustive]
 #[derive(Debug)]
 pub enum Error {
     /// Wraps errors from the underlying [`reqwest::Client`] that cannot be mapped
-    /// to a more specific error type.
-    Client {
-        message: &'static str,
-        source: Option<reqwest::Error>,
-    },
+    /// to a more specific error type. Deserialization errors also fall into this
+    /// category.
+    Client(ClientError),
     /// Occurs when Prometheus responds with e.g. HTTP 4xx (e.g. due to a syntax error in a PromQL query).<br>
     /// Details on the error as reported by Prometheus are included in [`PrometheusError`].
     Prometheus(PrometheusError),
@@ -21,19 +20,17 @@ pub enum Error {
     /// series [`Selector`](crate::selector::Selector)s. According to the Prometheus API description at least one
     /// [`Selector`](crate::selector::Selector) must be provided.
     EmptySeriesSelector,
-    ParseUrl {
-        message: &'static str,
-        source: url::ParseError,
-    },
+    /// Wraps errors from the [`url`] crate.
+    ParseUrl(ParseUrlError),
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Client { message, source: _ } => f.write_str(&message),
+            Self::Client(e) => e.fmt(f),
             Self::Prometheus(e) => e.fmt(f),
             Self::EmptySeriesSelector => f.write_str("at least one series selector must be provided in order to query the series endpoint"),
-            Self::ParseUrl {message, source: _ } => f.write_str(&message),
+            Self::ParseUrl(e) => e.fmt(f),
         }
     }
 }
@@ -41,10 +38,10 @@ impl fmt::Display for Error {
 impl StdError for Error {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
-            Self::Client { message: _, source } => source.as_ref().map(|e| e as &dyn StdError),
+            Self::Client(e) => e.source(),
             Self::Prometheus(_) => None,
             Self::EmptySeriesSelector => None,
-            Self::ParseUrl { message: _, source } => Some(source),
+            Self::ParseUrl(e) => e.source(),
         }
     }
 }
@@ -58,6 +55,8 @@ pub struct PrometheusError {
     #[serde(alias = "error")]
     pub(crate) message: String,
 }
+
+impl StdError for PrometheusError {}
 
 impl fmt::Display for PrometheusError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -128,13 +127,49 @@ pub enum PrometheusErrorType {
 impl fmt::Display for PrometheusErrorType {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match self {
-            Self::Timeout => write!(f, "timeout"),
-            Self::Canceled => write!(f, "canceled"),
-            Self::Execution => write!(f, "execution"),
-            Self::BadData => write!(f, "bad_data"),
-            Self::Internal => write!(f, "internal"),
-            Self::Unavailable => write!(f, "unavailable"),
-            Self::NotFound => write!(f, "not_found"),
+            Self::Timeout => f.write_str("timeout"),
+            Self::Canceled => f.write_str("canceled"),
+            Self::Execution => f.write_str("execution"),
+            Self::BadData => f.write_str("bad_data"),
+            Self::Internal => f.write_str("internal"),
+            Self::Unavailable => f.write_str("unavailable"),
+            Self::NotFound => f.write_str("not_found"),
         }
+    }
+}
+
+#[derive(Debug)]
+pub struct ClientError {
+    pub(crate) message: &'static str,
+    pub(crate) source: Option<reqwest::Error>,
+}
+
+impl fmt::Display for ClientError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(&self.message)
+    }
+}
+
+impl StdError for ClientError {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        self.source.as_ref().map(|e| e as &dyn StdError)
+    }
+}
+
+#[derive(Debug)]
+pub struct ParseUrlError {
+    pub(crate) message: &'static str,
+    pub(crate) source: url::ParseError,
+}
+
+impl fmt::Display for ParseUrlError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_str(&self.message)
+    }
+}
+
+impl StdError for ParseUrlError {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
+        Some(&self.source)
     }
 }
