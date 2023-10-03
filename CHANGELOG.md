@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - unreleased
+### Changed
+- Refactored deserialization of Prometheus server responses so the explicit dependency on `serde_json` could be removed.
+- Refactored the `error` module and some custom errors related to deserialization using `serde::de::Error`. The `Error` enum inside the `error` module now contains one variant less and existing error variants were improved by _properly_ implementing `std::error::Error::source()`. Libraries like `anyhow` are now able to display more detailed error messages. This change is not breaking if you did not match on specific error enum variants before.
+
 ## [0.6.7] - 2023-09-30
 ### Fixed
 - Fixes an issue where a Prometheus server sends an HTTP response with `Content-Type: application/json; charset=utf-8` (see [issue](https://github.com/puetzp/prometheus-http-query/issues/7))
