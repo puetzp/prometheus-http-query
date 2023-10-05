@@ -80,7 +80,7 @@ impl fmt::Display for RuleHealth {
 }
 
 /// A helper type to represent possible rule health states.
-#[derive(Debug, Copy, Clone, Deserialize)]
+#[derive(Debug, Copy, Clone, Deserialize, Eq, PartialEq)]
 pub enum AlertState {
     #[serde(alias = "inactive")]
     Inactive,
@@ -88,6 +88,20 @@ pub enum AlertState {
     Pending,
     #[serde(alias = "firing")]
     Firing,
+}
+
+impl AlertState {
+    pub fn is_inactive(&self) -> bool {
+        *self == Self::Inactive
+    }
+
+    pub fn is_pending(&self) -> bool {
+        *self == Self::Pending
+    }
+
+    pub fn is_firing(&self) -> bool {
+        *self == Self::Firing
+    }
 }
 
 impl fmt::Display for AlertState {

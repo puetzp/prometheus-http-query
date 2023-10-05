@@ -697,7 +697,8 @@ pub struct Alert {
     pub(crate) annotations: HashMap<String, String>,
     pub(crate) labels: HashMap<String, String>,
     pub(crate) state: AlertState,
-    pub(crate) value: String,
+    #[serde(deserialize_with = "de::deserialize_f64")]
+    pub(crate) value: f64,
 }
 
 impl Alert {
@@ -722,8 +723,8 @@ impl Alert {
     }
 
     /// Get the value as evaluated by the PromQL expression that caused the alert to fire.
-    pub fn value(&self) -> &str {
-        &self.value
+    pub fn value(&self) -> f64 {
+        self.value
     }
 }
 
@@ -1566,6 +1567,10 @@ mod tests {
             .annotations()
             .get("summary")
             .is_some_and(|v| v == "High request latency"));
+        let alert = &alerting_rule.alerts()[0];
+        assert!(alert.value() == 1.0);
+        assert!(alert.state().is_firing());
+        assert!(alert.active_at() == &datetime!(2018-07-04 20:27:12.60602144 +2));
         let recording_rule = &group.rules[1].as_recording().unwrap();
         assert!(recording_rule.health() == RuleHealth::Good);
         assert!(recording_rule.name() == "job:http_inprogress_requests:sum");
