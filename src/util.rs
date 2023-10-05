@@ -55,6 +55,20 @@ pub enum RuleHealth {
     Unknown,
 }
 
+impl RuleHealth {
+    pub fn is_good(&self) -> bool {
+        *self == Self::Good
+    }
+
+    pub fn is_bad(&self) -> bool {
+        *self == Self::Bad
+    }
+
+    pub fn is_unknown(&self) -> bool {
+        *self == Self::Unknown
+    }
+}
+
 impl fmt::Display for RuleHealth {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {

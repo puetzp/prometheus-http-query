@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Rule::as_recording()`
 - `Rule::as_alerting()`
 - `impl Eq for RuleHealth`
+- `RuleHealth::is_good()`
+- `RuleHealth::is_bad()`
+- `RuleHealth::is_unknown()`
 
 ### Changed
 - Refactored deserialization of Prometheus server responses so the explicit dependency on `serde_json` could be removed.
