@@ -501,6 +501,11 @@ pub struct RuleGroup {
     pub(crate) file: String,
     pub(crate) interval: f64,
     pub(crate) name: String,
+    #[serde(alias = "evaluationTime")]
+    pub(crate) evaluation_time: f64,
+    #[serde(alias = "lastEvaluation", with = "time::serde::rfc3339")]
+    pub(crate) last_evaluation: OffsetDateTime,
+    pub(crate) limit: usize,
 }
 
 impl RuleGroup {
@@ -522,6 +527,22 @@ impl RuleGroup {
     /// Get the name of this rule group.
     pub fn name(&self) -> &str {
         &self.name
+    }
+
+    /// Get the time when the rule was last evaluated.
+    pub fn last_evaluation(&self) -> &OffsetDateTime {
+        &self.last_evaluation
+    }
+
+    /// Get duration in seconds that Prometheus took to evaluate this rule.
+    pub fn evaluation_time(&self) -> f64 {
+        self.evaluation_time
+    }
+
+    /// Return the limit of alerts (alerting rule) or series (recording rule)
+    /// that the rules in this group may produce. Zero means not limit.
+    pub fn limit(&self) -> usize {
+        self.limit
     }
 }
 
@@ -1055,6 +1076,7 @@ mod tests {
 
     use super::*;
     use std::collections::HashMap;
+    use time::macros::{datetime, offset};
 
     #[test]
     fn test_api_error_deserialization() -> Result<(), anyhow::Error> {
@@ -1466,12 +1488,22 @@ mod tests {
       "file": "/rules.yaml",
       "interval": 60,
       "limit": 0,
-      "name": "example"
+      "name": "example",
+      "evaluationTime": 0.000267716,
+      "lastEvaluation": "2023-10-05T19:51:25.052974842+02:00"
     }
   ]
 }
 "#;
-        serde_json::from_str::<RuleGroups>(data)?;
+        let groups = serde_json::from_str::<RuleGroups>(data)?.groups;
+        assert!(groups.len() == 1);
+        let rule = &groups[0];
+        assert!(rule.name() == "example");
+        assert!(rule.file() == "/rules.yaml");
+        assert!(rule.interval() == 60.0);
+        assert!(rule.limit() == 0);
+        assert!(rule.evaluation_time() == 0.000267716);
+        assert!(rule.last_evaluation() == &datetime!(2023-10-05 7:51:25.052974842 pm +2));
         Ok(())
     }
 
