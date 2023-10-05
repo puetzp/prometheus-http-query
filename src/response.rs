@@ -529,12 +529,13 @@ impl RuleGroup {
         &self.name
     }
 
-    /// Get the time when the rule was last evaluated.
+    /// Get the time when the group of rules was last evaluated.
     pub fn last_evaluation(&self) -> &OffsetDateTime {
         &self.last_evaluation
     }
 
-    /// Get duration in seconds that Prometheus took to evaluate this rule.
+    /// Get duration in seconds that Prometheus took to evaluate this group of
+    /// rules.
     pub fn evaluation_time(&self) -> f64 {
         self.evaluation_time
     }
@@ -556,6 +557,22 @@ pub enum Rule {
     Alerting(AlertingRule),
 }
 
+impl Rule {
+    pub fn as_recording(&self) -> Option<&RecordingRule> {
+        match self {
+            Self::Recording(rule) => Some(&rule),
+            _ => None,
+        }
+    }
+
+    pub fn as_alerting(&self) -> Option<&AlertingRule> {
+        match self {
+            Self::Alerting(rule) => Some(&rule),
+            _ => None,
+        }
+    }
+}
+
 /// An alerting rule.
 #[derive(Clone, Debug, Deserialize)]
 pub struct AlertingRule {
@@ -566,6 +583,10 @@ pub struct AlertingRule {
     pub(crate) labels: HashMap<String, String>,
     pub(crate) name: String,
     pub(crate) query: String,
+    #[serde(alias = "evaluationTime")]
+    pub(crate) evaluation_time: f64,
+    #[serde(alias = "lastEvaluation", with = "time::serde::rfc3339")]
+    pub(crate) last_evaluation: OffsetDateTime,
 }
 
 impl AlertingRule {
@@ -603,6 +624,16 @@ impl AlertingRule {
     pub fn query(&self) -> &str {
         &self.query
     }
+
+    /// Get the time when the rule was last evaluated.
+    pub fn last_evaluation(&self) -> &OffsetDateTime {
+        &self.last_evaluation
+    }
+
+    /// Get duration in seconds that Prometheus took to evaluate this rule.
+    pub fn evaluation_time(&self) -> f64 {
+        self.evaluation_time
+    }
 }
 
 /// A recording rule.
@@ -612,6 +643,10 @@ pub struct RecordingRule {
     pub(crate) name: String,
     pub(crate) query: String,
     pub(crate) labels: Option<HashMap<String, String>>,
+    #[serde(alias = "evaluationTime")]
+    pub(crate) evaluation_time: f64,
+    #[serde(alias = "lastEvaluation", with = "time::serde::rfc3339")]
+    pub(crate) last_evaluation: OffsetDateTime,
 }
 
 impl RecordingRule {
@@ -633,6 +668,16 @@ impl RecordingRule {
     /// Get a set of labels defined for this rule.
     pub fn labels(&self) -> &Option<HashMap<String, String>> {
         &self.labels
+    }
+
+    /// Get the time when the rule was last evaluated.
+    pub fn last_evaluation(&self) -> &OffsetDateTime {
+        &self.last_evaluation
+    }
+
+    /// Get duration in seconds that Prometheus took to evaluate this rule.
+    pub fn evaluation_time(&self) -> f64 {
+        self.evaluation_time
     }
 }
 
@@ -1476,13 +1521,17 @@ mod tests {
           },
           "name": "HighRequestLatency",
           "query": "job:request_latency_seconds:mean5m{job=\"myjob\"} > 0.5",
-          "type": "alerting"
+          "type": "alerting",
+          "evaluationTime": 0.000312805,
+          "lastEvaluation": "2023-10-05T19:51:25.462004334+02:00"
         },
         {
           "health": "ok",
           "name": "job:http_inprogress_requests:sum",
           "query": "sum by (job) (http_inprogress_requests)",
-          "type": "recording"
+          "type": "recording",
+          "evaluationTime": 0.000256946,
+          "lastEvaluation": "2023-10-05T19:51:25.052982522+02:00"
         }
       ],
       "file": "/rules.yaml",
@@ -1497,13 +1546,32 @@ mod tests {
 "#;
         let groups = serde_json::from_str::<RuleGroups>(data)?.groups;
         assert!(groups.len() == 1);
-        let rule = &groups[0];
-        assert!(rule.name() == "example");
-        assert!(rule.file() == "/rules.yaml");
-        assert!(rule.interval() == 60.0);
-        assert!(rule.limit() == 0);
-        assert!(rule.evaluation_time() == 0.000267716);
-        assert!(rule.last_evaluation() == &datetime!(2023-10-05 7:51:25.052974842 pm +2));
+        let group = &groups[0];
+        assert!(group.name() == "example");
+        assert!(group.file() == "/rules.yaml");
+        assert!(group.interval() == 60.0);
+        assert!(group.limit() == 0);
+        assert!(group.evaluation_time() == 0.000267716);
+        assert!(group.last_evaluation() == &datetime!(2023-10-05 7:51:25.052974842 pm +2));
+        assert!(group.rules().len() == 2);
+        let alerting_rule = &group.rules[0].as_alerting().unwrap();
+        assert!(alerting_rule.health() == RuleHealth::Good);
+        assert!(alerting_rule.name() == "HighRequestLatency");
+        assert!(alerting_rule.query() == "job:request_latency_seconds:mean5m{job=\"myjob\"} > 0.5");
+        assert!(alerting_rule.evaluation_time() == 0.000312805);
+        assert!(alerting_rule.last_evaluation() == &datetime!(2023-10-05 7:51:25.462004334 pm +2));
+        assert!(alerting_rule.duration() == 600.0);
+        assert!(alerting_rule.alerts().len() == 1);
+        assert!(alerting_rule
+            .annotations()
+            .get("summary")
+            .is_some_and(|v| v == "High request latency"));
+        let recording_rule = &group.rules[1].as_recording().unwrap();
+        assert!(recording_rule.health() == RuleHealth::Good);
+        assert!(recording_rule.name() == "job:http_inprogress_requests:sum");
+        assert!(recording_rule.query() == "sum by (job) (http_inprogress_requests)");
+        assert!(recording_rule.evaluation_time() == 0.000256946);
+        assert!(recording_rule.last_evaluation() == &datetime!(2023-10-05 7:51:25.052982522 pm +2));
         Ok(())
     }
 

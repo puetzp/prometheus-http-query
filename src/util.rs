@@ -45,7 +45,7 @@ impl fmt::Display for TargetHealth {
 }
 
 /// A helper type to represent possible rule health states.
-#[derive(Debug, Copy, Clone, Deserialize)]
+#[derive(Debug, Copy, Clone, Deserialize, Eq, PartialEq)]
 pub enum RuleHealth {
     #[serde(alias = "ok")]
     Good,
