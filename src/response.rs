@@ -1363,7 +1363,10 @@ mod tests {
   }
 }
 "#;
-        serde_json::from_str::<PromqlResult>(data)?;
+        let result = serde_json::from_str::<PromqlResult>(data)?;
+        assert!(result.stats().is_some());
+        let stats = result.stats().unwrap();
+        assert!(stats.samples().total_queryable_samples_per_step().is_none());
 
         Ok(())
     }
