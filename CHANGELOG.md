@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `MetricType::is_info()`
 - `MetricType::is_stateset()`
 - `MetricType::is_unknown()`
+- `AlertingRule::keep_firing_for()`
 
 ### Changed
 - `Alert::value()` now returns f64.

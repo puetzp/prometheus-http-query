@@ -587,6 +587,8 @@ pub struct AlertingRule {
     pub(crate) evaluation_time: f64,
     #[serde(alias = "lastEvaluation", with = "time::serde::rfc3339")]
     pub(crate) last_evaluation: OffsetDateTime,
+    #[serde(alias = "keepFiringFor")]
+    pub(crate) keep_firing_for: f64,
 }
 
 impl AlertingRule {
@@ -633,6 +635,12 @@ impl AlertingRule {
     /// Get duration in seconds that Prometheus took to evaluate this rule.
     pub fn evaluation_time(&self) -> f64 {
         self.evaluation_time
+    }
+
+    /// Get the duration that Prometheus waits before clearing an alert that
+    /// has previously been firing.
+    pub fn keep_firing_for(&self) -> f64 {
+        self.keep_firing_for
     }
 }
 
@@ -1671,7 +1679,8 @@ mod tests {
           "query": "job:request_latency_seconds:mean5m{job=\"myjob\"} > 0.5",
           "type": "alerting",
           "evaluationTime": 0.000312805,
-          "lastEvaluation": "2023-10-05T19:51:25.462004334+02:00"
+          "lastEvaluation": "2023-10-05T19:51:25.462004334+02:00",
+          "keepFiringFor": 60
         },
         {
           "health": "ok",
@@ -1709,6 +1718,7 @@ mod tests {
         assert!(alerting_rule.evaluation_time() == 0.000312805);
         assert!(alerting_rule.last_evaluation() == &datetime!(2023-10-05 7:51:25.462004334 pm +2));
         assert!(alerting_rule.duration() == 600.0);
+        assert!(alerting_rule.keep_firing_for() == 60.0);
         assert!(alerting_rule.alerts().len() == 1);
         assert!(alerting_rule
             .annotations()
