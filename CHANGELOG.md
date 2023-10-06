@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `TargetHealth::is_up()`
 - `TargetHealth::is_down()`
 - `TargetHealth::is_unknown()`
+- `impl Eq for MetricType`
 - `MetricType::is_counter()`
 - `MetricType::is_gauge()`
 - `MetricType::is_histogram()`

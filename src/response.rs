@@ -763,7 +763,7 @@ impl Alertmanager {
 }
 
 /// Possible metric types that the HTTP API may return.
-#[derive(Debug, Copy, Clone, Deserialize)]
+#[derive(Debug, Copy, Clone, Deserialize, Eq, PartialEq)]
 pub enum MetricType {
     #[serde(alias = "counter")]
     Counter,
@@ -1770,10 +1770,108 @@ mod tests {
     "type": "gauge",
     "help": "Number of goroutines that currently exist.",
     "unit": ""
+  },
+  {
+    "target": {
+      "instance": "localhost:9090",
+      "job": "prometheus"
+    },
+    "metric": "process_virtual_memory_bytes",
+    "type": "gauge",
+    "help": "Virtual memory size in bytes.",
+    "unit": ""
+  },
+  {
+    "target": {
+      "instance": "localhost:9090",
+      "job": "prometheus"
+    },
+    "metric": "prometheus_http_response_size_bytes",
+    "type": "histogram",
+    "help": "Histogram of response size for HTTP requests.",
+    "unit": ""
+  },
+  {
+    "target": {
+      "instance": "localhost:9090",
+      "job": "prometheus"
+    },
+    "metric": "prometheus_ready",
+    "type": "gauge",
+    "help": "Whether Prometheus startup was fully completed and the server is ready for normal operation.",
+    "unit": ""
+  },
+  {
+    "target": {
+      "instance": "localhost:9090",
+      "job": "prometheus"
+    },
+    "metric": "prometheus_rule_group_iterations_missed_total",
+    "type": "counter",
+    "help": "The total number of rule group evaluations missed due to slow rule group evaluation.",
+    "unit": ""
+  },
+  {
+    "target": {
+      "instance": "localhost:9090",
+      "job": "prometheus"
+    },
+    "metric": "prometheus_target_scrape_pool_reloads_failed_total",
+    "type": "counter",
+    "help": "Total number of failed scrape pool reloads.",
+    "unit": ""
+  },
+  {
+    "target": {
+      "instance": "localhost:9090",
+      "job": "prometheus"
+    },
+    "metric": "prometheus_target_scrape_pool_reloads_total",
+    "type": "counter",
+    "help": "Total number of scrape pool reloads.",
+    "unit": ""
   }
 ]
 "#;
-        serde_json::from_str::<Vec<TargetMetadata>>(data)?;
+        let metadata = serde_json::from_str::<Vec<TargetMetadata>>(data)?;
+        assert!(metadata.len() == 8);
+        let first = &metadata[0];
+        assert!(first
+            .target()
+            .get("instance")
+            .is_some_and(|v| v == "127.0.0.1:9090"));
+        assert!(first.target().get("job").is_some_and(|v| v == "prometheus"));
+        assert!(first.metric_type().is_gauge());
+        assert!(first.help() == "Number of goroutines that currently exist.");
+        assert!(first.unit().is_empty());
+        assert!(first.metric().is_none());
+        let third = &metadata[2];
+        assert!(third
+            .target()
+            .get("instance")
+            .is_some_and(|v| v == "localhost:9090"));
+        assert!(third.target().get("job").is_some_and(|v| v == "prometheus"));
+        assert!(third.metric_type().is_gauge());
+        assert!(third.help() == "Virtual memory size in bytes.");
+        assert!(third.unit().is_empty());
+        assert!(third
+            .metric()
+            .is_some_and(|v| v == "process_virtual_memory_bytes"));
+        let fourth = &metadata[3];
+        assert!(fourth
+            .target()
+            .get("instance")
+            .is_some_and(|v| v == "localhost:9090"));
+        assert!(fourth
+            .target()
+            .get("job")
+            .is_some_and(|v| v == "prometheus"));
+        assert!(fourth.metric_type().is_histogram());
+        assert!(fourth.help() == "Histogram of response size for HTTP requests.");
+        assert!(fourth.unit().is_empty());
+        assert!(fourth
+            .metric()
+            .is_some_and(|v| v == "prometheus_http_response_size_bytes"));
         Ok(())
     }
 
