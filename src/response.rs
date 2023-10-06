@@ -1266,7 +1266,52 @@ mod tests {
   }
 }
 "#;
-        serde_json::from_str::<PromqlResult>(data)?;
+        let result = serde_json::from_str::<PromqlResult>(data)?;
+        let data = &result.data;
+        assert!(data.is_matrix());
+        let matrix = data.as_matrix().unwrap();
+        assert!(matrix.len() == 1);
+        let range_vector = &matrix[0];
+        let metric = &range_vector.metric();
+        assert!(metric.len() == 3);
+        assert!(metric.get("__name__").is_some_and(|v| v == "up"));
+        assert!(metric
+            .get("instance")
+            .is_some_and(|v| v == "localhost:9090"));
+        assert!(metric.get("job").is_some_and(|v| v == "prometheus"));
+        let samples = range_vector.samples();
+        assert!(samples.len() == 4);
+        assert!(samples[0].timestamp() == 1659268100.0);
+        assert!(samples[0].value() == 1.0);
+        assert!(samples[1].timestamp() == 1659268160.0);
+        assert!(samples[1].value() == 1.0);
+        assert!(samples[2].timestamp() == 1659268220.0);
+        assert!(samples[2].value() == 1.0);
+        assert!(samples[3].timestamp() == 1659268280.0);
+        assert!(samples[3].value() == 1.0);
+        assert!(result.stats().is_some());
+        let stats = result.stats().unwrap();
+        let timings = stats.timings();
+        assert!(timings.eval_total_time() == 0.000102139);
+        assert!(timings.result_sort_time() == 8.7e-07_f64);
+        assert!(timings.query_preparation_time() == 5.4169e-05_f64);
+        assert!(timings.inner_eval_time() == 3.787e-05_f64);
+        assert!(timings.exec_queue_time() == 4.07e-05_f64);
+        assert!(timings.exec_total_time() == 0.000151989);
+        let samples = stats.samples();
+        assert!(samples.peak_samples() == 4);
+        assert!(samples.total_queryable_samples() == 4);
+        assert!(samples.total_queryable_samples_per_step().is_some());
+        let per_step = samples.total_queryable_samples_per_step().unwrap();
+        assert!(per_step.len() == 4);
+        assert!(per_step[0].timestamp() == 1659268100.0);
+        assert!(per_step[0].value() == 1.0);
+        assert!(per_step[1].timestamp() == 1659268160.0);
+        assert!(per_step[1].value() == 1.0);
+        assert!(per_step[2].timestamp() == 1659268220.0);
+        assert!(per_step[2].value() == 1.0);
+        assert!(per_step[3].timestamp() == 1659268280.0);
+        assert!(per_step[3].value() == 1.0);
         Ok(())
     }
 
