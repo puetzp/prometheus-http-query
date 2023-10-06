@@ -783,6 +783,40 @@ pub enum MetricType {
     Unknown,
 }
 
+impl MetricType {
+    pub fn is_counter(&self) -> bool {
+        *self == Self::Counter
+    }
+
+    pub fn is_gauge(&self) -> bool {
+        *self == Self::Gauge
+    }
+
+    pub fn is_histogram(&self) -> bool {
+        *self == Self::Histogram
+    }
+
+    pub fn is_gauge_histogram(&self) -> bool {
+        *self == Self::GaugeHistogram
+    }
+
+    pub fn is_summary(&self) -> bool {
+        *self == Self::Summary
+    }
+
+    pub fn is_info(&self) -> bool {
+        *self == Self::Info
+    }
+
+    pub fn is_stateset(&self) -> bool {
+        *self == Self::Stateset
+    }
+
+    pub fn is_unknown(&self) -> bool {
+        *self == Self::Unknown
+    }
+}
+
 impl fmt::Display for MetricType {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {

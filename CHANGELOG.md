@@ -27,6 +27,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `TargetHealth::is_up()`
 - `TargetHealth::is_down()`
 - `TargetHealth::is_unknown()`
+- `MetricType::is_counter()`
+- `MetricType::is_gauge()`
+- `MetricType::is_histogram()`
+- `MetricType::is_gauge_histogram()`
+- `MetricType::is_summary()`
+- `MetricType::is_info()`
+- `MetricType::is_stateset()`
+- `MetricType::is_unknown()`
 
 ### Changed
 - `Alert::value()` now returns f64.
