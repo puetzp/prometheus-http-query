@@ -1405,7 +1405,8 @@ mod tests {
   ]
 }
 "#;
-        serde_json::from_str::<PromqlResult>(data)?;
+        let result = serde_json::from_str::<PromqlResult>(data)?;
+        assert!(result.stats().is_none());
 
         Ok(())
     }
