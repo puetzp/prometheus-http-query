@@ -1118,7 +1118,8 @@ pub enum WalReplayState {
 
 #[cfg(test)]
 mod tests {
-    // The examples used in these test cases are taken from prometheus.io.
+    // The examples used in these test cases are partly taken from prometheus.io.
+    // Others are copied from responses of live Prometheus servers.
 
     use super::*;
     use std::collections::HashMap;
