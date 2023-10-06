@@ -1930,7 +1930,18 @@ mod tests {
   ]
 }
 "#;
-        serde_json::from_str::<HashMap<String, Vec<MetricMetadata>>>(data)?;
+        let metadata = serde_json::from_str::<HashMap<String, Vec<MetricMetadata>>>(data)?;
+        assert!(metadata.len() == 2);
+        assert!(metadata
+            .get("cortex_ring_tokens")
+            .is_some_and(|v| v[0].metric_type().is_gauge()
+                && v[0].help() == "Number of tokens in the ring"
+                && v[0].unit().is_empty()));
+        assert!(metadata.get("http_requests_total").is_some_and(|v| v[0]
+            .metric_type()
+            .is_counter()
+            && v[0].help() == "Number of HTTP requests"
+            && v[0].unit().is_empty()));
         Ok(())
     }
 
