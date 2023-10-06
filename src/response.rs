@@ -1122,7 +1122,7 @@ mod tests {
 
     use super::*;
     use std::collections::HashMap;
-    use time::macros::{datetime, offset};
+    use time::macros::datetime;
 
     #[test]
     fn test_api_error_deserialization() -> Result<(), anyhow::Error> {
@@ -1486,7 +1486,70 @@ mod tests {
   ]
 }
 "#;
-        serde_json::from_str::<Targets>(data)?;
+        let targets = serde_json::from_str::<Targets>(data)?;
+        let active = &targets.active();
+        assert!(active.len() == 1);
+        let target = &active[0];
+        assert!(target
+            .discovered_labels()
+            .get("__address__")
+            .is_some_and(|v| v == "127.0.0.1:9090"));
+        assert!(target
+            .discovered_labels()
+            .get("__metrics_path__")
+            .is_some_and(|v| v == "/metrics"));
+        assert!(target
+            .discovered_labels()
+            .get("__scheme__")
+            .is_some_and(|v| v == "http"));
+        assert!(target
+            .discovered_labels()
+            .get("job")
+            .is_some_and(|v| v == "prometheus"));
+        assert!(target
+            .labels()
+            .get("instance")
+            .is_some_and(|v| v == "127.0.0.1:9090"));
+        assert!(target
+            .labels()
+            .get("job")
+            .is_some_and(|v| v == "prometheus"));
+        assert!(target.scrape_pool() == "prometheus");
+        assert!(target.scrape_url() == &Url::parse("http://127.0.0.1:9090/metrics")?);
+        assert!(target.global_url() == &Url::parse("http://example-prometheus:9090/metrics")?);
+        assert!(target.last_error().is_empty());
+        assert!(target.last_scrape() == &datetime!(2017-01-17 15:07:44.723715405 +1));
+        assert!(target.last_scrape_duration() == 0.050688943);
+        assert!(target.health().is_up());
+        assert!(target.scrape_interval() == &Duration::seconds(60));
+        assert!(target.scrape_timeout() == &Duration::seconds(10));
+        let dropped = &targets.dropped();
+        assert!(dropped.len() == 1);
+        let target = &dropped[0];
+        assert!(target
+            .discovered_labels()
+            .get("__address__")
+            .is_some_and(|v| v == "127.0.0.1:9100"));
+        assert!(target
+            .discovered_labels()
+            .get("__metrics_path__")
+            .is_some_and(|v| v == "/metrics"));
+        assert!(target
+            .discovered_labels()
+            .get("__scheme__")
+            .is_some_and(|v| v == "http"));
+        assert!(target
+            .discovered_labels()
+            .get("__scrape_interval__")
+            .is_some_and(|v| v == "1m"));
+        assert!(target
+            .discovered_labels()
+            .get("__scrape_timeout__")
+            .is_some_and(|v| v == "10s"));
+        assert!(target
+            .discovered_labels()
+            .get("job")
+            .is_some_and(|v| v == "node"));
         Ok(())
     }
 

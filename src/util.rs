@@ -24,7 +24,7 @@ impl fmt::Display for TargetState {
 }
 
 /// A helper type to represent possible target health states.
-#[derive(Debug, Copy, Clone, Deserialize)]
+#[derive(Debug, Copy, Clone, Deserialize, Eq, PartialEq)]
 pub enum TargetHealth {
     #[serde(alias = "up")]
     Up,
@@ -32,6 +32,20 @@ pub enum TargetHealth {
     Down,
     #[serde(alias = "unknown")]
     Unknown,
+}
+
+impl TargetHealth {
+    pub fn is_up(&self) -> bool {
+        *self == Self::Up
+    }
+
+    pub fn is_down(&self) -> bool {
+        *self == Self::Down
+    }
+
+    pub fn is_unknown(&self) -> bool {
+        *self == Self::Unknown
+    }
 }
 
 impl fmt::Display for TargetHealth {

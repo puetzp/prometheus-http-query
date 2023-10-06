@@ -23,6 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `AlertState::is_inactive()`
 - `AlertState::is_pending()`
 - `AlertState::is_firing()`
+- `impl Eq for TargetHealth`
+- `TargetHealth::is_up()`
+- `TargetHealth::is_down()`
+- `TargetHealth::is_unknown()`
 
 ### Changed
 - `Alert::value()` now returns f64.
