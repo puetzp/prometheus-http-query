@@ -429,7 +429,7 @@ impl Client {
     /// Find time series that match certain label sets ([`Selector`]s).
     ///
     /// # Arguments
-    /// * `selectors` - Collection of [`Selector`]s that tell Prometheus which series to return. Must not be empty!
+    /// * `selectors` - Iterable container of [`Selector`]s that tells Prometheus which series to return. Must not be empty!
     /// * `start` - Start timestamp as Unix timestamp (seconds). Optional.
     /// * `end` - End timestamp as Unix timestamp (seconds). Optional.
     ///
@@ -496,7 +496,7 @@ impl Client {
     /// Retrieve label names.
     ///
     /// # Arguments
-    /// * `selectors` - List of [`Selector`]s to restrict the set of time series to read the label names from. Optional.
+    /// * `selectors` - Iterable container of [`Selector`]s that tells Prometheus to read label names only from certain series. Pass an empty argument (e.g. `&[]`) in order to retrieve all label names.
     /// * `start` - Start timestamp as Unix timestamp (seconds). Optional.
     /// * `end` - End timestamp as Unix timestamp (seconds). Optional.
     ///
@@ -510,7 +510,7 @@ impl Client {
     ///     let client = Client::default();
     ///
     ///     // To retrieve a list of all labels:
-    ///     let response = client.label_names(None, None, None).await;
+    ///     let response = client.label_names(&[], None, None).await;
     ///
     ///     assert!(response.is_ok());
     ///
@@ -522,21 +522,24 @@ impl Client {
     ///         .eq("job", "node")
     ///         .regex_eq("mode", ".+");
     ///
-    ///     let set = Some(vec![s1, s2]);
-    ///
-    ///     let response = client.label_names(set, None, None).await;
+    ///     let response = client.label_names(&[s1, s2], None, None).await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn label_names(
+    pub async fn label_names<'a, T, I>(
         &self,
-        selectors: Option<Vec<Selector<'_>>>,
+        selectors: T,
         start: Option<i64>,
         end: Option<i64>,
-    ) -> Result<Vec<String>, Error> {
+    ) -> Result<Vec<String>, Error>
+    where
+        T: IntoIterator,
+        T::IntoIter: Iterator<Item = I>,
+        I: Borrow<Selector<'a>>,
+    {
         let mut params = vec![];
 
         if let Some(s) = &start {
@@ -547,12 +550,12 @@ impl Client {
             params.push(("end", e.to_string()));
         }
 
-        if let Some(items) = selectors {
-            let mut matchers: Vec<(&str, String)> =
-                items.iter().map(|s| ("match[]", s.to_string())).collect();
+        let mut matchers: Vec<(&str, String)> = selectors
+            .into_iter()
+            .map(|s| ("match[]", s.borrow().to_string()))
+            .collect();
 
-            params.append(&mut matchers);
-        }
+        params.append(&mut matchers);
 
         self.send("api/v1/labels", &params, HttpMethod::GET, None)
             .await

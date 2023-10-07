@@ -3,6 +3,7 @@ use crate::error::Error;
 use crate::response::*;
 use crate::selector::Selector;
 use crate::util::{RuleType, TargetState};
+use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::str::FromStr;
 
@@ -85,12 +86,17 @@ pub fn query_range(
 ///     Ok(())
 /// }
 /// ```
-pub async fn series(
+pub async fn series<'a, T, I>(
     host: &str,
-    selectors: &[Selector<'_>],
+    selectors: T,
     start: Option<i64>,
     end: Option<i64>,
-) -> Result<Vec<HashMap<String, String>>, Error> {
+) -> Result<Vec<HashMap<String, String>>, Error>
+where
+    T: IntoIterator,
+    T::IntoIter: Iterator<Item = I>,
+    I: Borrow<Selector<'a>>,
+{
     Client::from_str(host)?.series(selectors, start, end).await
 }
 
@@ -103,19 +109,24 @@ pub async fn series(
 ///
 /// #[tokio::main(flavor = "current_thread")]
 /// async fn main() -> Result<(), anyhow::Error> {
-///     let response = label_names("http://localhost:9090", None, None, None).await;
+///     let response = label_names("http://localhost:9090", &[], None, None).await;
 ///
 ///     assert!(response.is_ok());
 ///
 ///     Ok(())
 /// }
 /// ```
-pub async fn label_names(
+pub async fn label_names<'a, T, I>(
     host: &str,
-    selectors: Option<Vec<Selector<'_>>>,
+    selectors: T,
     start: Option<i64>,
     end: Option<i64>,
-) -> Result<Vec<String>, Error> {
+) -> Result<Vec<String>, Error>
+where
+    T: IntoIterator,
+    T::IntoIter: Iterator<Item = I>,
+    I: Borrow<Selector<'a>>,
+{
     Client::from_str(host)?
         .label_names(selectors, start, end)
         .await
