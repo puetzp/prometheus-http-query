@@ -133,11 +133,7 @@ impl RangeQueryBuilder {
 }
 
 /// This builder provides methods to build a query to the rules endpoint and
-/// then execute it. Note that Prometheus combines all filters that have been set
-/// in the final request and only return rules that match _all_ filters.<br>
-/// See the official documentation for a thorough explanation on the filters that
-/// can be set:
-/// [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#rules)
+/// then send it to Prometheus.
 #[derive(Clone)]
 pub struct RulesQueryBuilder {
     client: Client,
@@ -147,6 +143,10 @@ pub struct RulesQueryBuilder {
     files: Vec<String>,
 }
 
+/// Note that Prometheus combines all filters that have been set in the final request
+/// and only return rules that match all filters.<br>
+/// See the official documentation for a thorough explanation on the filters that can
+/// be set: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#rules).
 impl RulesQueryBuilder {
     /// Set this to instruct Prometheus to only return a specific type of rule
     /// (either recording or alerting rules). Calling this repeatedly will replace
