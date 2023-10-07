@@ -5,6 +5,7 @@ use crate::util::{self, build_final_url, RuleType, TargetState, ToBaseUrl};
 use reqwest::header::{HeaderMap, HeaderValue, IntoHeaderName, CONTENT_TYPE};
 use reqwest::Method as HttpMethod;
 use serde::{de::DeserializeOwned, Serialize};
+use std::borrow::Borrow;
 use std::collections::HashMap;
 use url::Url;
 
@@ -428,7 +429,7 @@ impl Client {
     /// Find time series that match certain label sets ([`Selector`]s).
     ///
     /// # Arguments
-    /// * `selectors` - List of [Selector]s that select the series to return. Must not be empty!
+    /// * `selectors` - Collection of [`Selector`]s that tell Prometheus which series to return. Must not be empty!
     /// * `start` - Start timestamp as Unix timestamp (seconds). Optional.
     /// * `end` - End timestamp as Unix timestamp (seconds). Optional.
     ///
@@ -455,16 +456,17 @@ impl Client {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn series(
+    pub async fn series<'a, T, I>(
         &self,
-        selectors: &[Selector<'_>],
+        selectors: T,
         start: Option<i64>,
         end: Option<i64>,
-    ) -> Result<Vec<HashMap<String, String>>, Error> {
-        if selectors.is_empty() {
-            return Err(Error::EmptySeriesSelector);
-        }
-
+    ) -> Result<Vec<HashMap<String, String>>, Error>
+    where
+        T: IntoIterator,
+        T::IntoIter: Iterator<Item = I>,
+        I: Borrow<Selector<'a>>,
+    {
         let mut params = vec![];
 
         if let Some(s) = start {
@@ -476,9 +478,13 @@ impl Client {
         }
 
         let mut matchers: Vec<(&str, String)> = selectors
-            .iter()
-            .map(|s| ("match[]", s.to_string()))
+            .into_iter()
+            .map(|s| ("match[]", s.borrow().to_string()))
             .collect();
+
+        if matchers.is_empty() {
+            return Err(Error::EmptySeriesSelector);
+        }
 
         params.append(&mut matchers);
 
