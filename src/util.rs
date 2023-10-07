@@ -138,8 +138,8 @@ pub enum RuleKind {
 impl fmt::Display for RuleKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Alerting => write!(f, "alerting"),
-            Self::Recording => write!(f, "recording"),
+            Self::Alerting => write!(f, "alert"),
+            Self::Recording => write!(f, "record"),
         }
     }
 }
