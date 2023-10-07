@@ -1148,7 +1148,7 @@ impl WalReplayStatistics {
     }
 }
 
-#[derive(Clone, Copy, Debug, Deserialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq)]
 pub enum WalReplayState {
     #[serde(alias = "waiting")]
     Waiting,
@@ -1156,6 +1156,20 @@ pub enum WalReplayState {
     InProgress,
     #[serde(alias = "done")]
     Done,
+}
+
+impl WalReplayState {
+    pub fn is_waiting(&self) -> bool {
+        *self == Self::Waiting
+    }
+
+    pub fn is_in_progress(&self) -> bool {
+        *self == Self::InProgress
+    }
+
+    pub fn is_done(&self) -> bool {
+        *self == Self::Done
+    }
 }
 
 #[cfg(test)]
