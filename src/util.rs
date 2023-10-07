@@ -16,9 +16,9 @@ pub enum TargetState {
 impl fmt::Display for TargetState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Active => write!(f, "active"),
-            Self::Dropped => write!(f, "dropped"),
-            Self::Any => write!(f, "any"),
+            Self::Active => f.write_str("active"),
+            Self::Dropped => f.write_str("dropped"),
+            Self::Any => f.write_str("any"),
         }
     }
 }
@@ -51,9 +51,9 @@ impl TargetHealth {
 impl fmt::Display for TargetHealth {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Up => write!(f, "up"),
-            Self::Down => write!(f, "down"),
-            Self::Unknown => write!(f, "unknown"),
+            Self::Up => f.write_str("up"),
+            Self::Down => f.write_str("down"),
+            Self::Unknown => f.write_str("unknown"),
         }
     }
 }
@@ -86,9 +86,9 @@ impl RuleHealth {
 impl fmt::Display for RuleHealth {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Good => write!(f, "ok"),
-            Self::Bad => write!(f, "err"),
-            Self::Unknown => write!(f, "unknown"),
+            Self::Good => f.write_str("ok"),
+            Self::Bad => f.write_str("err"),
+            Self::Unknown => f.write_str("unknown"),
         }
     }
 }
@@ -121,9 +121,9 @@ impl AlertState {
 impl fmt::Display for AlertState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Inactive => write!(f, "inactive"),
-            Self::Pending => write!(f, "pending"),
-            Self::Firing => write!(f, "firing"),
+            Self::Inactive => f.write_str("inactive"),
+            Self::Pending => f.write_str("pending"),
+            Self::Firing => f.write_str("firing"),
         }
     }
 }
@@ -138,8 +138,8 @@ pub enum RuleKind {
 impl fmt::Display for RuleKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Alerting => write!(f, "alert"),
-            Self::Recording => write!(f, "record"),
+            Self::Alerting => f.write_str("alert"),
+            Self::Recording => f.write_str("record"),
         }
     }
 }
