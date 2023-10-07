@@ -86,7 +86,7 @@ pub fn query_range(
 ///     Ok(())
 /// }
 /// ```
-pub async fn series<'a, T, I>(
+pub async fn series<'a, T>(
     host: &str,
     selectors: T,
     start: Option<i64>,
@@ -94,8 +94,7 @@ pub async fn series<'a, T, I>(
 ) -> Result<Vec<HashMap<String, String>>, Error>
 where
     T: IntoIterator,
-    T::IntoIter: Iterator<Item = I>,
-    I: Borrow<Selector<'a>>,
+    T::Item: Borrow<Selector<'a>>,
 {
     Client::from_str(host)?.series(selectors, start, end).await
 }
@@ -116,7 +115,7 @@ where
 ///     Ok(())
 /// }
 /// ```
-pub async fn label_names<'a, T, I>(
+pub async fn label_names<'a, T>(
     host: &str,
     selectors: T,
     start: Option<i64>,
@@ -124,8 +123,7 @@ pub async fn label_names<'a, T, I>(
 ) -> Result<Vec<String>, Error>
 where
     T: IntoIterator,
-    T::IntoIter: Iterator<Item = I>,
-    I: Borrow<Selector<'a>>,
+    T::Item: Borrow<Selector<'a>>,
 {
     Client::from_str(host)?
         .label_names(selectors, start, end)
@@ -148,7 +146,7 @@ where
 ///     Ok(())
 /// }
 /// ```
-pub async fn label_values<'a, T, I>(
+pub async fn label_values<'a, T>(
     host: &str,
     label: &str,
     selectors: T,
@@ -157,8 +155,7 @@ pub async fn label_values<'a, T, I>(
 ) -> Result<Vec<String>, Error>
 where
     T: IntoIterator,
-    T::IntoIter: Iterator<Item = I>,
-    I: Borrow<Selector<'a>>,
+    T::Item: Borrow<Selector<'a>>,
 {
     Client::from_str(host)?
         .label_values(label, selectors, start, end)

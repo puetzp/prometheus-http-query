@@ -456,7 +456,7 @@ impl Client {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn series<'a, T, I>(
+    pub async fn series<'a, T>(
         &self,
         selectors: T,
         start: Option<i64>,
@@ -464,8 +464,7 @@ impl Client {
     ) -> Result<Vec<HashMap<String, String>>, Error>
     where
         T: IntoIterator,
-        T::IntoIter: Iterator<Item = I>,
-        I: Borrow<Selector<'a>>,
+        T::Item: Borrow<Selector<'a>>,
     {
         let mut params = vec![];
 
@@ -529,7 +528,7 @@ impl Client {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn label_names<'a, T, I>(
+    pub async fn label_names<'a, T>(
         &self,
         selectors: T,
         start: Option<i64>,
@@ -537,8 +536,7 @@ impl Client {
     ) -> Result<Vec<String>, Error>
     where
         T: IntoIterator,
-        T::IntoIter: Iterator<Item = I>,
-        I: Borrow<Selector<'a>>,
+        T::Item: Borrow<Selector<'a>>,
     {
         let mut params = vec![];
 
@@ -595,7 +593,7 @@ impl Client {
     ///     Ok(())
     /// }
     /// ```
-    pub async fn label_values<'a, T, I>(
+    pub async fn label_values<'a, T>(
         &self,
         label: &str,
         selectors: T,
@@ -604,8 +602,7 @@ impl Client {
     ) -> Result<Vec<String>, Error>
     where
         T: IntoIterator,
-        T::IntoIter: Iterator<Item = I>,
-        I: Borrow<Selector<'a>>,
+        T::Item: Borrow<Selector<'a>>,
     {
         let mut params = vec![];
 
