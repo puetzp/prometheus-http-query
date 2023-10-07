@@ -132,6 +132,93 @@ impl RangeQueryBuilder {
     }
 }
 
+/// This builder provides methods to build a query to the rules endpoint and
+/// then execute it.
+#[derive(Clone)]
+pub struct RulesQueryBuilder {
+    client: Client,
+    kind: Option<RuleType>,
+    names: Vec<String>,
+    groups: Vec<String>,
+    files: Vec<String>,
+}
+
+impl RulesQueryBuilder {
+    pub fn kind(mut self, kind: RuleType) -> Self {
+        self.kind = Some(kind);
+        self
+    }
+
+    pub fn names<T, I>(mut self, names: T) -> Self
+    where
+        T: IntoIterator,
+        T::Item: std::fmt::Display,
+    {
+        self.names.extend(names.into_iter().map(|n| n.to_string()));
+        self
+    }
+
+    pub fn name(mut self, name: impl std::fmt::Display) -> Self {
+        self.names.push(name.to_string());
+        self
+    }
+
+    pub fn groups<T>(mut self, groups: T) -> Self
+    where
+        T: IntoIterator,
+        T::Item: std::fmt::Display,
+    {
+        self.groups
+            .extend(groups.into_iter().map(|g| g.to_string()));
+        self
+    }
+
+    pub fn group(mut self, group: impl std::fmt::Display) -> Self {
+        self.groups.push(group.to_string());
+        self
+    }
+
+    pub fn files<T>(mut self, files: T) -> Self
+    where
+        T: IntoIterator,
+        T::Item: std::fmt::Display,
+    {
+        self.files.extend(files.into_iter().map(|f| f.to_string()));
+        self
+    }
+
+    pub fn file(mut self, file: impl std::fmt::Display) -> Self {
+        self.files.push(file.to_string());
+        self
+    }
+
+    pub async fn get(self) -> Result<Vec<RuleGroup>, Error> {
+        let mut params = vec![];
+
+        if let Some(k) = self.kind {
+            params.push(("type", k.to_string()))
+        }
+
+        for name in self.names {
+            params.push(("rule_name", name))
+        }
+
+        for group in self.groups {
+            params.push(("rule_group", group))
+        }
+
+        for file in self.files {
+            params.push(("file", file))
+        }
+
+        self.client
+            .send("api/v1/rules", &params, HttpMethod::GET, None)
+            .await
+            .and_then(map_api_response)
+            .map(|r: RuleGroups| r.groups)
+    }
+}
+
 /// A client used to execute queries. It uses a [`reqwest::Client`] internally
 /// that manages connections for us.
 #[derive(Clone)]
@@ -673,29 +760,26 @@ impl Client {
     /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
-    ///     let response = client.rules(None).await;
+    ///     let response = client.rules().get().await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     // Filter rules by type:
-    ///     let response = client.rules(Some(RuleType::Alert)).await;
+    ///     let response = client.rules().kind(RuleType::Alert).get().await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn rules(&self, rule_type: Option<RuleType>) -> Result<Vec<RuleGroup>, Error> {
-        let mut params = vec![];
-
-        if let Some(s) = rule_type {
-            params.push(("type", s.to_string()))
+    pub fn rules(&self) -> RulesQueryBuilder {
+        RulesQueryBuilder {
+            client: self.clone(),
+            kind: None,
+            names: vec![],
+            groups: vec![],
+            files: vec![],
         }
-
-        self.send("api/v1/rules", &params, HttpMethod::GET, None)
-            .await
-            .and_then(map_api_response)
-            .map(|r: RuleGroups| r.groups)
     }
 
     /// Retrieve a list of active alerts.

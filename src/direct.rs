@@ -2,7 +2,7 @@ use crate::client::*;
 use crate::error::Error;
 use crate::response::*;
 use crate::selector::Selector;
-use crate::util::{RuleType, TargetState};
+use crate::util::TargetState;
 use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -191,15 +191,15 @@ pub async fn targets(host: &str, state: Option<TargetState>) -> Result<Targets, 
 ///
 /// #[tokio::main(flavor = "current_thread")]
 /// async fn main() -> Result<(), anyhow::Error> {
-///     let response = rules("http://localhost:9090", Some(RuleType::Alert)).await;
+///     let response = rules("http://localhost:9090")?.kind(RuleType::Record).get().await;
 ///
 ///     assert!(response.is_ok());
 ///
 ///     Ok(())
 /// }
 /// ```
-pub async fn rules(host: &str, rule_type: Option<RuleType>) -> Result<Vec<RuleGroup>, Error> {
-    Client::from_str(host)?.rules(rule_type).await
+pub fn rules(host: &str) -> Result<RulesQueryBuilder, Error> {
+    Client::from_str(host).map(|c| c.rules())
 }
 
 /// Retrieve a list of active alerts.

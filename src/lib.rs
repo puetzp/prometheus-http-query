@@ -100,12 +100,12 @@
 //! async fn main() -> Result<(), anyhow::Error> {
 //!     let client = Client::default();
 //!
-//!     let response = client.rules(None).await;
+//!     let response = client.rules().get().await;
 //!
 //!     assert!(response.is_ok());
 //!
 //!     // Only request alerting rules instead:
-//!     let response = client.rules(Some(RuleType::Alert)).await;
+//!     let response = client.rules().kind(RuleType::Alert).get().await;
 //!
 //!     assert!(response.is_ok());
 //!

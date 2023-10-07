@@ -129,7 +129,7 @@ impl fmt::Display for AlertState {
 }
 
 /// A helper type to filter rules by type.
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug)]
 pub enum RuleType {
     Alert,
     Record,
