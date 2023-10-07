@@ -223,7 +223,7 @@ impl RulesQueryBuilder {
         let mut params = vec![];
 
         if let Some(k) = self.kind {
-            params.push(("type", k.to_string()))
+            params.push(("type", k.to_query_param()))
         }
 
         for name in self.names {

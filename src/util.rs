@@ -135,11 +135,20 @@ pub enum RuleKind {
     Recording,
 }
 
+impl RuleKind {
+    pub(crate) fn to_query_param(&self) -> String {
+        match self {
+            Self::Alerting => String::from("alert"),
+            Self::Recording => String::from("record"),
+        }
+    }
+}
+
 impl fmt::Display for RuleKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Alerting => f.write_str("alert"),
-            Self::Recording => f.write_str("record"),
+            Self::Alerting => f.write_str("alerting"),
+            Self::Recording => f.write_str("recording"),
         }
     }
 }
