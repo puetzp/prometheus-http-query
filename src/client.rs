@@ -1,7 +1,7 @@
 use crate::error::{ClientError, Error};
 use crate::response::*;
 use crate::selector::Selector;
-use crate::util::{self, build_final_url, RuleType, TargetState, ToBaseUrl};
+use crate::util::{self, build_final_url, RuleKind, TargetState, ToBaseUrl};
 use reqwest::header::{HeaderMap, HeaderValue, IntoHeaderName, CONTENT_TYPE};
 use reqwest::Method as HttpMethod;
 use serde::{de::DeserializeOwned, Serialize};
@@ -137,7 +137,7 @@ impl RangeQueryBuilder {
 #[derive(Clone)]
 pub struct RulesQueryBuilder {
     client: Client,
-    kind: Option<RuleType>,
+    kind: Option<RuleKind>,
     names: Vec<String>,
     groups: Vec<String>,
     files: Vec<String>,
@@ -151,7 +151,7 @@ impl RulesQueryBuilder {
     /// Set this to instruct Prometheus to only return a specific type of rule
     /// (either recording or alerting rules). Calling this repeatedly will replace
     /// the current setting.
-    pub fn kind(mut self, kind: RuleType) -> Self {
+    pub fn kind(mut self, kind: RuleKind) -> Self {
         self.kind = Some(kind);
         self
     }
@@ -782,7 +782,7 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#rules)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, RuleType};
+    /// use prometheus_http_query::{Client, RuleKind};
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), anyhow::Error> {
@@ -793,7 +793,7 @@ impl Client {
     ///     assert!(response.is_ok());
     ///
     ///     // Filter rules by type:
-    ///     let response = client.rules().kind(RuleType::Alert).get().await;
+    ///     let response = client.rules().kind(RuleKind::Alerting).get().await;
     ///
     ///     assert!(response.is_ok());
     ///

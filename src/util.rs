@@ -5,7 +5,7 @@ use serde::Deserialize;
 use std::fmt;
 use url::Url;
 
-/// A helper type to filter targets by state.
+/// A helper enum to filter targets by state.
 #[derive(Debug)]
 pub enum TargetState {
     Active,
@@ -16,14 +16,14 @@ pub enum TargetState {
 impl fmt::Display for TargetState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            TargetState::Active => write!(f, "active"),
-            TargetState::Dropped => write!(f, "dropped"),
-            TargetState::Any => write!(f, "any"),
+            Self::Active => write!(f, "active"),
+            Self::Dropped => write!(f, "dropped"),
+            Self::Any => write!(f, "any"),
         }
     }
 }
 
-/// A helper type to represent possible target health states.
+/// A helper enum to represent possible target health states.
 #[derive(Debug, Copy, Clone, Deserialize, Eq, PartialEq)]
 pub enum TargetHealth {
     #[serde(alias = "up")]
@@ -51,14 +51,14 @@ impl TargetHealth {
 impl fmt::Display for TargetHealth {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            TargetHealth::Up => write!(f, "up"),
-            TargetHealth::Down => write!(f, "down"),
-            TargetHealth::Unknown => write!(f, "unknown"),
+            Self::Up => write!(f, "up"),
+            Self::Down => write!(f, "down"),
+            Self::Unknown => write!(f, "unknown"),
         }
     }
 }
 
-/// A helper type to represent possible rule health states.
+/// A helper enum to represent possible rule health states.
 #[derive(Debug, Copy, Clone, Deserialize, Eq, PartialEq)]
 pub enum RuleHealth {
     #[serde(alias = "ok")]
@@ -86,9 +86,9 @@ impl RuleHealth {
 impl fmt::Display for RuleHealth {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            RuleHealth::Good => write!(f, "ok"),
-            RuleHealth::Bad => write!(f, "err"),
-            RuleHealth::Unknown => write!(f, "unknown"),
+            Self::Good => write!(f, "ok"),
+            Self::Bad => write!(f, "err"),
+            Self::Unknown => write!(f, "unknown"),
         }
     }
 }
@@ -121,25 +121,25 @@ impl AlertState {
 impl fmt::Display for AlertState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            AlertState::Inactive => write!(f, "inactive"),
-            AlertState::Pending => write!(f, "pending"),
-            AlertState::Firing => write!(f, "firing"),
+            Self::Inactive => write!(f, "inactive"),
+            Self::Pending => write!(f, "pending"),
+            Self::Firing => write!(f, "firing"),
         }
     }
 }
 
-/// A helper type to filter rules by type.
+/// A helper enum to filter rules by type.
 #[derive(Copy, Clone, Debug)]
-pub enum RuleType {
-    Alert,
-    Record,
+pub enum RuleKind {
+    Alerting,
+    Recording,
 }
 
-impl fmt::Display for RuleType {
+impl fmt::Display for RuleKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            RuleType::Alert => write!(f, "alert"),
-            RuleType::Record => write!(f, "record"),
+            Self::Alerting => write!(f, "alerting"),
+            Self::Recording => write!(f, "recording"),
         }
     }
 }
@@ -156,10 +156,10 @@ pub(crate) enum Label<'a> {
 impl<'a> fmt::Display for Label<'a> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         match self {
-            Label::Equal((k, v)) => write!(f, "{}=\"{}\"", k, v),
-            Label::NotEqual((k, v)) => write!(f, "{}!=\"{}\"", k, v),
-            Label::RegexEqual((k, v)) => write!(f, "{}=~\"{}\"", k, v),
-            Label::RegexNotEqual((k, v)) => write!(f, "{}!~\"{}\"", k, v),
+            Self::Equal((k, v)) => write!(f, "{}=\"{}\"", k, v),
+            Self::NotEqual((k, v)) => write!(f, "{}!=\"{}\"", k, v),
+            Self::RegexEqual((k, v)) => write!(f, "{}=~\"{}\"", k, v),
+            Self::RegexNotEqual((k, v)) => write!(f, "{}!~\"{}\"", k, v),
         }
     }
 }

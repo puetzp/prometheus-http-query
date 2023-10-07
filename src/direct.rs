@@ -187,11 +187,11 @@ pub async fn targets(host: &str, state: Option<TargetState>) -> Result<Targets, 
 /// This is just a convenience function for one-off requests, see [Client::rules].
 ///
 /// ```rust
-/// use prometheus_http_query::{rules, RuleType};
+/// use prometheus_http_query::{rules, RuleKind};
 ///
 /// #[tokio::main(flavor = "current_thread")]
 /// async fn main() -> Result<(), anyhow::Error> {
-///     let response = rules("http://localhost:9090")?.kind(RuleType::Record).get().await;
+///     let response = rules("http://localhost:9090")?.kind(RuleKind::Recording).get().await;
 ///
 ///     assert!(response.is_ok());
 ///

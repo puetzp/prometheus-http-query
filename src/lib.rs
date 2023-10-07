@@ -94,7 +94,7 @@
 //! Retrieve recording/alerting rules and active alerts.
 //!
 //! ```rust
-//! use prometheus_http_query::{Client, RuleType};
+//! use prometheus_http_query::{Client, RuleKind};
 //!
 //! #[tokio::main(flavor = "current_thread")]
 //! async fn main() -> Result<(), anyhow::Error> {
@@ -105,7 +105,7 @@
 //!     assert!(response.is_ok());
 //!
 //!     // Only request alerting rules instead:
-//!     let response = client.rules().kind(RuleType::Alert).get().await;
+//!     let response = client.rules().kind(RuleKind::Alerting).get().await;
 //!
 //!     assert!(response.is_ok());
 //!
@@ -207,5 +207,5 @@ pub use self::client::{Client, InstantQueryBuilder, RangeQueryBuilder, RulesQuer
 pub use self::direct::*;
 pub use self::error::Error;
 pub use self::selector::Selector;
-pub use self::util::RuleType;
+pub use self::util::RuleKind;
 pub use self::util::TargetState;
