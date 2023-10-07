@@ -203,7 +203,7 @@ pub mod error;
 pub mod response;
 mod selector;
 mod util;
-pub use self::client::{Client, InstantQueryBuilder, RangeQueryBuilder};
+pub use self::client::{Client, InstantQueryBuilder, RangeQueryBuilder, RulesQueryBuilder};
 pub use self::direct::*;
 pub use self::error::Error;
 pub use self::selector::Selector;

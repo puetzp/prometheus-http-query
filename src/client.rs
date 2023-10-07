@@ -133,7 +133,11 @@ impl RangeQueryBuilder {
 }
 
 /// This builder provides methods to build a query to the rules endpoint and
-/// then execute it.
+/// then execute it. Note that Prometheus combines all filters that have been set
+/// in the final request and only return rules that match _all_ filters.<br>
+/// See the official documentation for a thorough explanation on the filters that
+/// can be set:
+/// [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#rules)
 #[derive(Clone)]
 pub struct RulesQueryBuilder {
     client: Client,
@@ -144,11 +148,17 @@ pub struct RulesQueryBuilder {
 }
 
 impl RulesQueryBuilder {
+    /// Set this to instruct Prometheus to only return a specific type of rule
+    /// (either recording or alerting rules). Calling this repeatedly will replace
+    /// the current setting.
     pub fn kind(mut self, kind: RuleType) -> Self {
         self.kind = Some(kind);
         self
     }
 
+    /// Pass rule names to instruct Prometheus to only return those rules whose
+    /// names match one of them. This method can be called repeatedly and merge
+    /// the names with those that have been set before.
     pub fn names<T>(mut self, names: T) -> Self
     where
         T: IntoIterator,
@@ -158,11 +168,17 @@ impl RulesQueryBuilder {
         self
     }
 
+    /// Pass a rule name to instruct Prometheus to return rules that match this name.
+    /// This method can be called repeatedly to extend the set of rule names that
+    /// will be sent to Prometheus.
     pub fn name(mut self, name: impl std::fmt::Display) -> Self {
         self.names.push(name.to_string());
         self
     }
 
+    /// Pass group names to instruct Prometheus to only return those rules that are
+    /// part of one of these groups. This method can be called repeatedly and merge
+    /// the group names with those that have been set before.
     pub fn groups<T>(mut self, groups: T) -> Self
     where
         T: IntoIterator,
@@ -173,11 +189,17 @@ impl RulesQueryBuilder {
         self
     }
 
+    /// Pass a group name to instruct Prometheus to return rules that are part of this
+    /// group. This method can be called repeatedly to extend the set of group names
+    /// that will be sent to Prometheus.
     pub fn group(mut self, group: impl std::fmt::Display) -> Self {
         self.groups.push(group.to_string());
         self
     }
 
+    /// Pass file names to instruct Prometheus to only return those rules that are
+    /// defined in one of those files. This method can be called repeatedly and merge
+    /// the file names with those that have been set before.
     pub fn files<T>(mut self, files: T) -> Self
     where
         T: IntoIterator,
@@ -187,11 +209,16 @@ impl RulesQueryBuilder {
         self
     }
 
+    /// Pass a file name to instruct Prometheus to return rules that are defined in
+    /// this file. This method can be called repeatedly to extend the set of file names
+    /// that will be sent to Prometheus.
     pub fn file(mut self, file: impl std::fmt::Display) -> Self {
         self.files.push(file.to_string());
         self
     }
 
+    /// Execute the rules query (using HTTP GET) and return the [`RuleGroup`]s sent
+    /// by Prometheus.
     pub async fn get(self) -> Result<Vec<RuleGroup>, Error> {
         let mut params = vec![];
 
@@ -749,7 +776,8 @@ impl Client {
             .and_then(map_api_response)
     }
 
-    /// Retrieve a list of rule groups of recording and alerting rules.
+    /// Create a [`RulesQueryBuilder`] to apply filters to the rules query before
+    /// sending it to Prometheus.
     ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#rules)
     ///
