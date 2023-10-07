@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - `Alert::value()` now returns f64.
+- `Client::query`, `Client::query_range` `direct::query` and `direct::query_range` now require the PromQl query string to implement `std::fmt::Display` instead of `std::string::ToString`.
 - `Client::series()` and `direct::series()` now accept any iterable container of `Selector`s as the first argument.
 - `Client::label_names()` and `direct::label_names()` now accept any iterable container of `Selector`s as the first argument. Also the first argument is not longer optional. Just pass an empty slice instead of `None` if you do not want to filter by series.
 - `Client::label_values()` and `direct::label_values()` now accept any iterable container of `Selector`s as the second argument. Also the second argument is not longer optional. Just pass an empty slice instead of `None` if you do not want to filter by series.

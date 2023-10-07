@@ -367,7 +367,7 @@ impl Client {
     ///     Ok(())
     /// }
     /// ```
-    pub fn query(&self, query: impl std::string::ToString) -> InstantQueryBuilder {
+    pub fn query(&self, query: impl std::fmt::Display) -> InstantQueryBuilder {
         InstantQueryBuilder {
             client: self.clone(),
             params: vec![("query", query.to_string())],
@@ -409,7 +409,7 @@ impl Client {
     /// ```
     pub fn query_range(
         &self,
-        query: impl std::string::ToString,
+        query: impl std::fmt::Display,
         start: i64,
         end: i64,
         step: f64,

@@ -30,7 +30,7 @@ use std::str::FromStr;
 ///     Ok(())
 /// }
 /// ```
-pub fn query(host: &str, query: impl std::string::ToString) -> Result<InstantQueryBuilder, Error> {
+pub fn query(host: &str, query: impl std::fmt::Display) -> Result<InstantQueryBuilder, Error> {
     Client::from_str(host).map(|c| c.query(query))
 }
 
@@ -59,7 +59,7 @@ pub fn query(host: &str, query: impl std::string::ToString) -> Result<InstantQue
 /// ```
 pub fn query_range(
     host: &str,
-    query: impl std::string::ToString,
+    query: impl std::fmt::Display,
     start: i64,
     end: i64,
     step: f64,
