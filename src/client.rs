@@ -149,7 +149,7 @@ impl RulesQueryBuilder {
         self
     }
 
-    pub fn names<T, I>(mut self, names: T) -> Self
+    pub fn names<T>(mut self, names: T) -> Self
     where
         T: IntoIterator,
         T::Item: std::fmt::Display,
@@ -200,15 +200,15 @@ impl RulesQueryBuilder {
         }
 
         for name in self.names {
-            params.push(("rule_name", name))
+            params.push(("rule_name[]", name))
         }
 
         for group in self.groups {
-            params.push(("rule_group", group))
+            params.push(("rule_group[]", group))
         }
 
         for file in self.files {
-            params.push(("file", file))
+            params.push(("file[]", file))
         }
 
         self.client
