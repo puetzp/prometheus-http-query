@@ -141,20 +141,25 @@ where
 ///
 /// #[tokio::main(flavor = "current_thread")]
 /// async fn main() -> Result<(), anyhow::Error> {
-///     let response = label_values("http://localhost:9090", "job", None, None, None).await;
+///     let response = label_values("http://localhost:9090", "job", &[], None, None).await;
 ///
 ///     assert!(response.is_ok());
 ///
 ///     Ok(())
 /// }
 /// ```
-pub async fn label_values(
+pub async fn label_values<'a, T, I>(
     host: &str,
     label: &str,
-    selectors: Option<Vec<Selector<'_>>>,
+    selectors: T,
     start: Option<i64>,
     end: Option<i64>,
-) -> Result<Vec<String>, Error> {
+) -> Result<Vec<String>, Error>
+where
+    T: IntoIterator,
+    T::IntoIter: Iterator<Item = I>,
+    I: Borrow<Selector<'a>>,
+{
     Client::from_str(host)?
         .label_values(label, selectors, start, end)
         .await
