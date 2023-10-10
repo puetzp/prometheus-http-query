@@ -262,7 +262,7 @@ pub struct TargetMetadataQueryBuilder<'a> {
 /// be set: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-target-metadata).
 impl<'a> TargetMetadataQueryBuilder<'a> {
     /// Pass a label selector to instruct Prometheus to filter targets by their label
-    /// sets.<br>
+    /// sets.
     /// Calling this repeatedly will replace the current label selector.
     pub fn match_target(mut self, selector: &'a Selector<'a>) -> Self {
         self.match_target = Some(selector.clone());
@@ -270,12 +270,14 @@ impl<'a> TargetMetadataQueryBuilder<'a> {
     }
 
     /// Set this to only retrieve target metadata for this metric.
+    /// Calling this repeatedly will replace the current metric name.
     pub fn metric(mut self, metric: impl std::fmt::Display) -> Self {
         self.metric = Some(metric.to_string());
         self
     }
 
     /// Limit the maximum number of targets to match.
+    /// Calling this repeatedly will replace the current limit.
     pub fn limit(mut self, limit: i32) -> Self {
         self.limit = Some(limit);
         self
