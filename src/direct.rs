@@ -182,7 +182,8 @@ pub async fn targets(host: &str, state: Option<TargetState>) -> Result<Targets, 
     Client::from_str(host)?.targets(state).await
 }
 
-/// Retrieve a list of rule groups of recording and alerting rules.
+/// Create a [`RulesQueryBuilder`] to apply filters to the rules query before
+/// sending it to Prometheus.
 ///
 /// This is just a convenience function for one-off requests, see [Client::rules].
 ///
@@ -302,7 +303,8 @@ pub async fn alertmanagers(host: &str) -> Result<Alertmanagers, Error> {
     Client::from_str(host)?.alertmanagers().await
 }
 
-/// Retrieve metadata about metrics that are currently scraped from targets, along with target information.
+/// Create a [`TargetMetadataQueryBuilder`] to apply filters to a target metadata
+/// query before sending it to Prometheus.
 ///
 /// This is just a convenience function for one-off requests, see [`Client::target_metadata`].
 ///

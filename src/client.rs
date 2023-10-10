@@ -1040,7 +1040,8 @@ impl Client {
             .and_then(map_api_response)
     }
 
-    /// Retrieve metadata about metrics that are currently scraped from targets, along with target information.
+    /// Create a [`TargetMetadataQueryBuilder`] to apply filters to a target metadata
+    /// query before sending it to Prometheus.
     ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-target-metadata)
     ///
