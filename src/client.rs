@@ -144,7 +144,7 @@ pub struct RulesQueryBuilder {
 }
 
 /// Note that Prometheus combines all filters that have been set in the final request
-/// and only return rules that match all filters.<br>
+/// and only returns rules that match all filters.<br>
 /// See the official documentation for a thorough explanation on the filters that can
 /// be set: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#rules).
 impl RulesQueryBuilder {
@@ -243,6 +243,65 @@ impl RulesQueryBuilder {
             .await
             .and_then(map_api_response)
             .map(|r: RuleGroups| r.groups)
+    }
+}
+
+/// This builder provides methods to build a query to the target metadata endpoint
+/// and then send it to Prometheus.
+#[derive(Clone)]
+pub struct TargetMetadataQueryBuilder<'a> {
+    client: Client,
+    match_target: Option<Selector<'a>>,
+    metric: Option<String>,
+    limit: Option<i32>,
+}
+
+/// Note that Prometheus combines all filters that have been set in the final request
+/// and only returns target metadata that matches all filters.<br>
+/// See the official documentation for a thorough explanation on the filters that can
+/// be set: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-target-metadata).
+impl<'a> TargetMetadataQueryBuilder<'a> {
+    /// Pass a label selector to instruct Prometheus to filter targets by their label
+    /// sets.<br>
+    /// Calling this repeatedly will replace the current label selector.
+    pub fn match_target(mut self, selector: &'a Selector<'a>) -> Self {
+        self.match_target = Some(selector.clone());
+        self
+    }
+
+    /// Set this to only retrieve target metadata for this metric.
+    pub fn metric(mut self, metric: impl std::fmt::Display) -> Self {
+        self.metric = Some(metric.to_string());
+        self
+    }
+
+    /// Limit the maximum number of targets to match.
+    pub fn limit(mut self, limit: i32) -> Self {
+        self.limit = Some(limit);
+        self
+    }
+
+    /// Execute the target metadata query (using HTTP GET) and return the collection of
+    /// [`TargetMetadata`] sent by Prometheus.
+    pub async fn get(self) -> Result<Vec<TargetMetadata>, Error> {
+        let mut params = vec![];
+
+        if let Some(metric) = self.metric {
+            params.push(("metric", metric.to_string()))
+        }
+
+        if let Some(match_target) = self.match_target {
+            params.push(("match_target", match_target.to_string()))
+        }
+
+        if let Some(limit) = self.limit {
+            params.push(("limit", limit.to_string()))
+        }
+
+        self.client
+            .send("api/v1/targets/metadata", &params, HttpMethod::GET, None)
+            .await
+            .and_then(map_api_response)
     }
 }
 
@@ -991,50 +1050,38 @@ impl Client {
     ///     let client = Client::default();
     ///
     ///     // Retrieve metadata for a specific metric from all targets.
-    ///     let response = client.target_metadata(Some("go_routines"), None, None).await;
+    ///     let response = client.target_metadata().metric("go_goroutines").get().await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     // Retrieve metric metadata from specific targets.
     ///     let s = Selector::new().eq("job", "prometheus");
     ///
-    ///     let response = client.target_metadata(None, Some(&s), None).await;
+    ///     let response = client.target_metadata().match_target(&s).get().await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     // Retrieve metadata for a specific metric from targets that match a specific label set.
     ///     let s = Selector::new().eq("job", "node");
     ///
-    ///     let response = client.target_metadata(Some("node_cpu_seconds_total"), Some(&s), None).await;
+    ///     let response = client.target_metadata()
+    ///         .metric("node_cpu_seconds_total")
+    ///         .match_target(&s)
+    ///         .get()
+    ///         .await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn target_metadata(
-        &self,
-        metric: Option<&str>,
-        match_target: Option<&Selector<'_>>,
-        limit: Option<usize>,
-    ) -> Result<Vec<TargetMetadata>, Error> {
-        let mut params = vec![];
-
-        if let Some(m) = metric {
-            params.push(("metric", m.to_string()))
+    pub fn target_metadata<'a>(&self) -> TargetMetadataQueryBuilder<'a> {
+        TargetMetadataQueryBuilder {
+            client: self.clone(),
+            match_target: None,
+            metric: None,
+            limit: None,
         }
-
-        if let Some(m) = match_target {
-            params.push(("match_target", m.to_string()))
-        }
-
-        if let Some(l) = &limit {
-            params.push(("limit", l.to_string()))
-        }
-
-        self.send("api/v1/targets/metadata", &params, HttpMethod::GET, None)
-            .await
-            .and_then(map_api_response)
     }
 
     /// Retrieve metadata about metrics that are currently scraped from targets.

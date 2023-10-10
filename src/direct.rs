@@ -311,25 +311,24 @@ pub async fn alertmanagers(host: &str) -> Result<Alertmanagers, Error> {
 ///
 /// #[tokio::main(flavor = "current_thread")]
 /// async fn main() -> Result<(), anyhow::Error> {
-///     let response = target_metadata("http://localhost:9090", Some("go_routines"), None, None).await;
+///     let response = target_metadata("http://localhost:9090")?
+///         .metric("go_goroutines")
+///         .get()
+///         .await;
 ///     assert!(response.is_ok());
 ///
 ///     let select = Selector::new().eq("job", "prometheus");
-///     let response = target_metadata("http://localhost:9090", None, Some(&select), None).await;
+///     let response = target_metadata("http://localhost:9090")?
+///         .match_target(&select)
+///         .get()
+///         .await;
 ///     assert!(response.is_ok());
 ///
 ///     Ok(())
 /// }
 /// ```
-pub async fn target_metadata(
-    host: &str,
-    metric: Option<&str>,
-    match_target: Option<&Selector<'_>>,
-    limit: Option<usize>,
-) -> Result<Vec<TargetMetadata>, Error> {
-    Client::from_str(host)?
-        .target_metadata(metric, match_target, limit)
-        .await
+pub fn target_metadata(host: &str) -> Result<TargetMetadataQueryBuilder, Error> {
+    Client::from_str(host).map(|c| c.target_metadata())
 }
 
 /// Retrieve metadata about metrics that are currently scraped from targets.

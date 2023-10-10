@@ -44,7 +44,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Renamed `RuleType` to `RuleKind` and its variants from `Alert` and `Record` to `Alerting` and `Recording`.
-- `Client::rules()` now returns a builder object (similar to `Client::query` and `Client::query_range`). This object is then used to build a query to the rules endpoint gradually before sending it with `RulesQueryBuilder::get()`. This is to avoid having huge function signatures due to the increased number of parameters since Prometheus v2.44 (see also: [the latest documentation on the rules endpoint](https://prometheus.io/docs/prometheus/latest/querying/api/#rules)).
+- `Client::rules()` now returns a builder object (similar to `Client::query` and `Client::query_range`). This object is then used to build a query to the rules endpoint gradually before sending it with `RulesQueryBuilder::get()`. This is to avoid having large function signatures due to the increased number of parameters since Prometheus v2.44 (see also: [the latest documentation on the rules endpoint](https://prometheus.io/docs/prometheus/latest/querying/api/#rules)).
+- `Client::target_metadata()` now returns a builder object (similar to `Client::query` and `Client::query_range`). This object is then used to optionally set filters to a query to the target metadata endpoint before sending it with `TargetMetadataQueryBuilder::get()`. This "builder scheme" avoids large (and potentially growing) function signatures on `Client::target_metadata()`.
 - `Alert::value()` now returns f64.
 - `Client::query`, `Client::query_range` `direct::query` and `direct::query_range` now require the PromQl query string to implement `std::fmt::Display` instead of `std::string::ToString`.
 - `Client::series()` and `direct::series()` now accept any iterable container of `Selector`s as the first argument.
