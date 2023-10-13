@@ -333,7 +333,8 @@ pub fn target_metadata(host: &str) -> Result<TargetMetadataQueryBuilder, Error> 
     Client::from_str(host).map(|c| c.target_metadata())
 }
 
-/// Retrieve metadata about metrics that are currently scraped from targets.
+/// Create a [`MetricMetadataQueryBuilder`] to apply filters to a metric metadata
+/// query before sending it to Prometheus.
 ///
 /// This is just a convenience function for one-off requests, see [`Client::metric_metadata`].
 ///
@@ -342,19 +343,18 @@ pub fn target_metadata(host: &str) -> Result<TargetMetadataQueryBuilder, Error> 
 ///
 /// #[tokio::main(flavor = "current_thread")]
 /// async fn main() -> Result<(), anyhow::Error> {
-///     let response = metric_metadata("http://localhost:9090", None, None).await;
+///     let response = metric_metadata("http://localhost:9090")?.get().await;
 ///     assert!(response.is_ok());
 ///
-///     let response = metric_metadata("http://localhost:9090", Some("go_routines"), None).await;
+///     let response = metric_metadata("http://localhost:9090")?
+///         .metric("go_goroutines")
+///         .get()
+///         .await;
 ///     assert!(response.is_ok());
 ///
 ///     Ok(())
 /// }
 /// ```
-pub async fn metric_metadata(
-    host: &str,
-    metric: Option<&str>,
-    limit: Option<usize>,
-) -> Result<HashMap<String, Vec<MetricMetadata>>, Error> {
-    Client::from_str(host)?.metric_metadata(metric, limit).await
+pub fn metric_metadata(host: &str) -> Result<MetricMetadataQueryBuilder, Error> {
+    Client::from_str(host).map(|c| c.metric_metadata())
 }

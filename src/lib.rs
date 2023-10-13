@@ -204,7 +204,8 @@ pub mod response;
 mod selector;
 mod util;
 pub use self::client::{
-    Client, InstantQueryBuilder, RangeQueryBuilder, RulesQueryBuilder, TargetMetadataQueryBuilder,
+    Client, InstantQueryBuilder, MetricMetadataQueryBuilder, RangeQueryBuilder, RulesQueryBuilder,
+    TargetMetadataQueryBuilder,
 };
 pub use self::direct::*;
 pub use self::error::Error;

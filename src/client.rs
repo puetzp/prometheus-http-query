@@ -307,6 +307,66 @@ impl<'a> TargetMetadataQueryBuilder<'a> {
     }
 }
 
+/// This builder provides methods to build a query to the metric metadata endpoint
+/// and then send it to Prometheus.
+#[derive(Clone)]
+pub struct MetricMetadataQueryBuilder {
+    client: Client,
+    metric: Option<String>,
+    limit: Option<i32>,
+    limit_per_metric: Option<i32>,
+}
+
+/// Note that Prometheus combines all filters that have been set in the final request
+/// and only returns metric metadata that matches all filters.<br>
+/// See the official documentation for a thorough explanation on the filters that can
+/// be set: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-metric-metadata).
+impl MetricMetadataQueryBuilder {
+    /// Instruct Prometheus to filter metadata by this metric name.
+    /// Calling this repeatedly will replace the current setting.
+    pub fn metric(mut self, metric: impl std::fmt::Display) -> Self {
+        self.metric = Some(metric.to_string());
+        self
+    }
+
+    /// Limit the maximum number of metrics to return.
+    /// Calling this repeatedly will replace the current limit.
+    pub fn limit(mut self, limit: i32) -> Self {
+        self.limit = Some(limit);
+        self
+    }
+
+    /// Limit the maximum number of metadata to return per metric.
+    /// Calling this repeatedly will replace the current limit.
+    pub fn limit_per_metric(mut self, limit_per_metric: i32) -> Self {
+        self.limit_per_metric = Some(limit_per_metric);
+        self
+    }
+
+    /// Execute the metric metadata query (using HTTP GET) and return the collection of
+    /// [`MetricMetadata`] sent by Prometheus.
+    pub async fn get(self) -> Result<HashMap<String, Vec<MetricMetadata>>, Error> {
+        let mut params = vec![];
+
+        if let Some(metric) = self.metric {
+            params.push(("metric", metric.to_string()))
+        }
+
+        if let Some(limit) = self.limit {
+            params.push(("limit", limit.to_string()))
+        }
+
+        if let Some(limit_per_metric) = self.limit_per_metric {
+            params.push(("limit_per_metric", limit_per_metric.to_string()))
+        }
+
+        self.client
+            .send("api/v1/metadata", &params, HttpMethod::GET, None)
+            .await
+            .and_then(map_api_response)
+    }
+}
+
 /// A client used to execute queries. It uses a [`reqwest::Client`] internally
 /// that manages connections for us.
 #[derive(Clone)]
@@ -1087,7 +1147,8 @@ impl Client {
         }
     }
 
-    /// Retrieve metadata about metrics that are currently scraped from targets.
+    /// Create a [`MetricMetadataQueryBuilder`] to apply filters to a metric metadata
+    /// query before sending it to Prometheus.
     ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-metric-metadata)
     ///
@@ -1099,41 +1160,35 @@ impl Client {
     ///     let client = Client::default();
     ///
     ///     // Retrieve metadata for a all metrics.
-    ///     let response = client.metric_metadata(None, None).await;
+    ///     let response = client.metric_metadata().get().await;
     ///
     ///     assert!(response.is_ok());
     ///
-    ///     // Limit the number of returned metrics
-    ///     let response = client.metric_metadata(None, Some(10)).await;
+    ///     // Limit the number of returned metrics.
+    ///     let response = client.metric_metadata().limit(100).get().await;
     ///
     ///     assert!(response.is_ok());
     ///
-    ///     // Retrieve metadata of a specific metric.
-    ///     let response = client.metric_metadata(Some("go_routines"), None).await;
+    ///     // Retrieve metadata for a specific metric but with a per-metric
+    ///     // metadata limit.
+    ///     let response = client.metric_metadata()
+    ///         .metric("go_goroutines")
+    ///         .limit_per_metric(5)
+    ///         .get()
+    ///         .await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn metric_metadata(
-        &self,
-        metric: Option<&str>,
-        limit: Option<usize>,
-    ) -> Result<HashMap<String, Vec<MetricMetadata>>, Error> {
-        let mut params = vec![];
-
-        if let Some(m) = &metric {
-            params.push(("metric", m.to_string()))
+    pub fn metric_metadata(&self) -> MetricMetadataQueryBuilder {
+        MetricMetadataQueryBuilder {
+            client: self.clone(),
+            metric: None,
+            limit: None,
+            limit_per_metric: None,
         }
-
-        if let Some(l) = &limit {
-            params.push(("limit", l.to_string()))
-        }
-
-        self.send("api/v1/metadata", &params, HttpMethod::GET, None)
-            .await
-            .and_then(map_api_response)
     }
 
     /// Check Prometheus server health.
