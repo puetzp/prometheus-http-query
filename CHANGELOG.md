@@ -50,15 +50,13 @@ The following `Client` methods were refactored in that fashion:
 - `Client::target_metadata()`
 - `Client::metric_metadata()`
 - `Client::series()`
+- `Client::label_names()`.
 
 Other changes include:
 
 - Renamed `RuleType` to `RuleKind` and its variants from `Alert` and `Record` to `Alerting` and `Recording`.
 - `Alert::value()` now returns f64.
 - `Client::query`, `Client::query_range` `direct::query` and `direct::query_range` now require the PromQl query string to implement `std::fmt::Display` instead of `std::string::ToString`.
-- `Client::series()` and `direct::series()` now accept any iterable container of `Selector`s as the first argument.
-- `Client::label_names()` and `direct::label_names()` now accept any iterable container of `Selector`s as the first argument. Also the first argument is not longer optional. Just pass an empty slice instead of `None` if you do not want to filter by series.
-- `Client::label_values()` and `direct::label_values()` now accept any iterable container of `Selector`s as the second argument. Also the second argument is not longer optional. Just pass an empty slice instead of `None` if you do not want to filter by series.
 - Refactored deserialization of Prometheus server responses so the explicit dependency on `serde_json` could be removed.
 - Refactored the `error` module and some custom errors related to deserialization using `serde::de::Error`. The `Error` enum inside the `error` module now contains one variant less and existing error variants were improved by _properly_ implementing `std::error::Error::source()`. Libraries like `anyhow` are now able to display more detailed error messages. This change is not breaking if you did not match on specific error enum variants before.
 - `Client` methods now return a more concise error if the server response (from Prometheus or an intermediate proxy) does not contain a `Content-Type` header identifying the payload as JSON, that is the media type from the response is not as expected.

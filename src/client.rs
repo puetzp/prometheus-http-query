@@ -9,8 +9,8 @@ use std::borrow::Borrow;
 use std::collections::HashMap;
 use url::Url;
 
-/// A builder object used to set some query parameters in the context
-/// of an instant query before sending the query on its way.
+/// Provides a builder to set some query parameters in the context
+/// of an instant query before sending it to Prometheus.
 #[derive(Clone)]
 pub struct InstantQueryBuilder {
     client: Client,
@@ -70,8 +70,8 @@ impl InstantQueryBuilder {
     }
 }
 
-/// A builder object used to set some query parameters in the context
-/// of a range query before sending the query on its way.
+/// Provides a builder to set some query parameters in the context
+/// of a range query before sending it to Prometheus.
 #[derive(Clone)]
 pub struct RangeQueryBuilder {
     client: Client,
@@ -132,8 +132,7 @@ impl RangeQueryBuilder {
     }
 }
 
-/// This builder provides methods to build a query to the rules endpoint and
-/// then send it to Prometheus.
+/// Provides methods to build a query to the rules endpoint and send it to Prometheus.
 #[derive(Clone)]
 pub struct RulesQueryBuilder {
     client: Client,
@@ -246,8 +245,7 @@ impl RulesQueryBuilder {
     }
 }
 
-/// This builder provides methods to build a query to the target metadata endpoint
-/// and then send it to Prometheus.
+/// Provides methods to build a query to the target metadata endpoint and send it to Prometheus.
 #[derive(Clone)]
 pub struct TargetMetadataQueryBuilder<'a> {
     client: Client,
@@ -307,8 +305,7 @@ impl<'a> TargetMetadataQueryBuilder<'a> {
     }
 }
 
-/// This builder provides methods to build a query to the metric metadata endpoint
-/// and then send it to Prometheus.
+/// Provides methods to build a query to the metric metadata endpoint and send it to Prometheus.
 #[derive(Clone)]
 pub struct MetricMetadataQueryBuilder {
     client: Client,
@@ -367,8 +364,7 @@ impl MetricMetadataQueryBuilder {
     }
 }
 
-/// This builder provides methods to build a query to the series endpoint and
-/// then send it to Prometheus.
+/// Provides methods to build a query to the series endpoint and send it to Prometheus.
 #[derive(Clone)]
 pub struct SeriesQueryBuilder {
     client: Client,
@@ -416,10 +412,71 @@ impl SeriesQueryBuilder {
     }
 }
 
-/// Note that Prometheus combines all filters that have been set in the final request
-/// and only returns rules that match all filters.<br>
-/// See the official documentation for a thorough explanation on the filters that can
-/// be set: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#rules).
+/// Provides methods to build a query to retrieve label names from Prometheus.
+#[derive(Clone)]
+pub struct LabelNamesQueryBuilder {
+    client: Client,
+    selectors: Vec<(&'static str, String)>,
+    start: Option<i64>,
+    end: Option<i64>,
+}
+
+impl LabelNamesQueryBuilder {
+    /// Set series selectors to filter the time series from wich Prometheus
+    /// reads labels from.
+    /// This can be called multiple times to merge the series selectors with
+    /// those that have been set before.
+    pub fn selectors<'a, T>(mut self, selectors: T) -> Self
+    where
+        T: IntoIterator,
+        T::Item: Borrow<Selector<'a>>,
+    {
+        self.selectors.extend(
+            selectors
+                .into_iter()
+                .map(|s| ("match[]", s.borrow().to_string())),
+        );
+        self
+    }
+
+    /// Limit the amount of metadata returned by setting a start time
+    /// (UNIX timestamp in seconds).
+    /// Calling this repeatedly will replace the current setting.
+    pub fn start(mut self, start: i64) -> Self {
+        self.start = Some(start);
+        self
+    }
+
+    /// Limit the amount of metadata returned by setting an end time
+    /// (UNIX timestamp in seconds).
+    /// Calling this repeatedly will replace the current setting.
+    pub fn end(mut self, end: i64) -> Self {
+        self.end = Some(end);
+        self
+    }
+
+    /// Execute the query (using HTTP GET) and retrieve a collection of
+    /// label names.
+    pub async fn get(self) -> Result<Vec<String>, Error> {
+        let mut params = vec![];
+
+        if let Some(start) = self.start {
+            params.push(("start", start.to_string()));
+        }
+
+        if let Some(end) = self.end {
+            params.push(("end", end.to_string()));
+        }
+
+        params.extend(self.selectors);
+
+        self.client
+            .send("api/v1/labels", &params, HttpMethod::GET, None)
+            .await
+            .and_then(map_api_response)
+    }
+}
+
 /// A client used to execute queries. It uses a [`reqwest::Client`] internally
 /// that manages connections for us.
 #[derive(Clone)]
@@ -765,12 +822,8 @@ impl Client {
         }
     }
 
-    /// Retrieve label names.
-    ///
-    /// # Arguments
-    /// * `selectors` - Iterable container of [`Selector`]s that tells Prometheus to read label names only from certain time series that match one of these `Selector`s. Pass an empty argument (e.g. `&[]`) in order to retrieve all label names.
-    /// * `start` - Start timestamp as Unix timestamp (seconds). Optional.
-    /// * `end` - End timestamp as Unix timestamp (seconds). Optional.
+    /// Create a [`LabelNamesQueryBuilder`] to apply filters to a query for the label
+    /// names endpoint before sending it to Prometheus.
     ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#getting-label-names)
     ///
@@ -782,7 +835,7 @@ impl Client {
     ///     let client = Client::default();
     ///
     ///     // To retrieve a list of all labels:
-    ///     let response = client.label_names(&[], None, None).await;
+    ///     let response = client.label_names().get().await;
     ///
     ///     assert!(response.is_ok());
     ///
@@ -794,43 +847,20 @@ impl Client {
     ///         .eq("job", "node")
     ///         .regex_eq("mode", ".+");
     ///
-    ///     let response = client.label_names(&[s1, s2], None, None).await;
+    ///     let response = client.label_names().selectors(&[s1, s2]).get().await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn label_names<'a, T>(
-        &self,
-        selectors: T,
-        start: Option<i64>,
-        end: Option<i64>,
-    ) -> Result<Vec<String>, Error>
-    where
-        T: IntoIterator,
-        T::Item: Borrow<Selector<'a>>,
-    {
-        let mut params = vec![];
-
-        if let Some(s) = &start {
-            params.push(("start", s.to_string()));
+    pub fn label_names(&self) -> LabelNamesQueryBuilder {
+        LabelNamesQueryBuilder {
+            client: self.clone(),
+            selectors: vec![],
+            start: None,
+            end: None,
         }
-
-        if let Some(e) = &end {
-            params.push(("end", e.to_string()));
-        }
-
-        let mut matchers: Vec<(&str, String)> = selectors
-            .into_iter()
-            .map(|s| ("match[]", s.borrow().to_string()))
-            .collect();
-
-        params.append(&mut matchers);
-
-        self.send("api/v1/labels", &params, HttpMethod::GET, None)
-            .await
-            .and_then(map_api_response)
     }
 
     /// Retrieve all label values for a specific label name.
