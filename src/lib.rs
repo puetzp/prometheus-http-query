@@ -66,6 +66,7 @@
 //! ## Metadata queries
 //!
 //! Retrieve a list of time series that match a certain label set by providing one or more series [`Selector`]s.
+//! More metadata queries are available, e.g. methods to retrieve label names and values.
 //!
 //! ```rust
 //! use prometheus_http_query::{Client, Selector};
@@ -147,13 +148,14 @@
 //! Also make sure that default features of `prometheus-http-query` are disabled if you choose a TLS library other than
 //! the default:
 //!
-//! `prometheus-http-query = { version = "0.6", default-features = false, features = ["rustls-tls"] }`
+//! `prometheus-http-query = { version = "0.7", default-features = false, features = ["rustls-tls"] }`
 //!
 //! # Compatibility
 //!
 //! The crate is generally compatible with Prometheus server >=2.30. However individual [`Client`] methods might
 //! only work with the latest Prometheus server version when the corresponding API endpoint has only recently
 //! been introduced.<br>
+//! The minimum recommended Prometheus server version is v2.46.<br>
 //! Also some features may only work when the Prometheus server is started with certain flags. An example
 //! are query statistics that can be enabled via [`RangeQueryBuilder::stats`]. The response
 //! will not contain per-step stats unless Prometheus is started with `--enable-feature=promql-per-step-stats`.
