@@ -148,8 +148,8 @@ pub struct RulesQueryBuilder {
 /// be set: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#rules).
 impl RulesQueryBuilder {
     /// Set this to instruct Prometheus to only return a specific type of rule
-    /// (either recording or alerting rules). Calling this repeatedly will replace
-    /// the current setting.
+    /// (either recording or alerting rules) instead of both. Calling this repeatedly
+    /// will replace the current setting.
     pub fn kind(mut self, kind: RuleKind) -> Self {
         self.kind = Some(kind);
         self

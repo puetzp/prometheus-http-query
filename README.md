@@ -5,7 +5,7 @@ This crate provides an interface to the [Prometheus HTTP API](https://prometheus
 ## Example
 
 ```rust
-use prometheus_http_query::{Client, Error, Selector, RuleType};
+use prometheus_http_query::{Client, Error, Selector, RuleKind};
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<(), Error> {
@@ -21,7 +21,7 @@ async fn main() -> Result<(), Error> {
     assert!(alerts.is_ok());
 
     // Retrieve recording rules.
-    let recording_rules = client.rules(Some(RuleType::Record)).await;
+    let recording_rules = client.rules().kind(RuleKind::Recording).get().await;
     assert!(recording_rules.is_ok());
 
     // Retrieve a list of time series that match certain labels sets ("series selectors").
@@ -32,7 +32,7 @@ async fn main() -> Result<(), Error> {
         .eq("job", "node")
         .regex_eq("mode", ".+");
 
-    let time_series = client.series(&[select1, select2], None, None).await;
+    let time_series = client.series(&[select1, select2]).get().await;
     assert!(time_series.is_ok());
 
     Ok(())
@@ -41,7 +41,7 @@ async fn main() -> Result<(), Error> {
 
 ## Compatibility
 
-This library is generally compatible with Prometheus versions starting from v2.30. Individual client methods might fail with older versions.
+This library is generally compatible with Prometheus versions starting from v2.30. Individual client methods might fail with older versions as newer versions of Prometheus server support additional methods and query parameters. Run Prometheus server version >= 2.46 to ensure maximum compatibility.
 
 ## Tests
 
