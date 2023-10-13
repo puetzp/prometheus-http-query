@@ -477,6 +477,74 @@ impl LabelNamesQueryBuilder {
     }
 }
 
+/// Provides methods to build a query to retrieve label values for a specific
+/// label from Prometheus.
+#[derive(Clone)]
+pub struct LabelValuesQueryBuilder {
+    client: Client,
+    label: String,
+    selectors: Vec<(&'static str, String)>,
+    start: Option<i64>,
+    end: Option<i64>,
+}
+
+impl LabelValuesQueryBuilder {
+    /// Set series selectors to filter the time series from wich Prometheus
+    /// reads label values from.
+    /// This can be called multiple times to merge the series selectors with
+    /// those that have been set before.
+    pub fn selectors<'a, T>(mut self, selectors: T) -> Self
+    where
+        T: IntoIterator,
+        T::Item: Borrow<Selector<'a>>,
+    {
+        self.selectors.extend(
+            selectors
+                .into_iter()
+                .map(|s| ("match[]", s.borrow().to_string())),
+        );
+        self
+    }
+
+    /// Limit the amount of metadata returned by setting a start time
+    /// (UNIX timestamp in seconds).
+    /// Calling this repeatedly will replace the current setting.
+    pub fn start(mut self, start: i64) -> Self {
+        self.start = Some(start);
+        self
+    }
+
+    /// Limit the amount of metadata returned by setting an end time
+    /// (UNIX timestamp in seconds).
+    /// Calling this repeatedly will replace the current setting.
+    pub fn end(mut self, end: i64) -> Self {
+        self.end = Some(end);
+        self
+    }
+
+    /// Execute the query (using HTTP GET) and retrieve a collection of
+    /// label values for the given label name.
+    pub async fn get(self) -> Result<Vec<String>, Error> {
+        let mut params = vec![];
+
+        if let Some(start) = self.start {
+            params.push(("start", start.to_string()));
+        }
+
+        if let Some(end) = self.end {
+            params.push(("end", end.to_string()));
+        }
+
+        params.extend(self.selectors);
+
+        let path = format!("api/v1/label/{}/values", self.label);
+        self.client
+            .send(&path, &params, HttpMethod::GET, None)
+            .await
+            .and_then(map_api_response)
+    }
+}
+
 /// A client used to execute queries. It uses a [`reqwest::Client`] internally
 /// that manages connections for us.
 #[derive(Clone)]
@@ -863,13 +931,11 @@ impl Client {
         }
     }
 
-    /// Retrieve all label values for a specific label name.
+    /// Create a [`LabelValuesQueryBuilder`] to apply filters to a query for the label
+    /// values endpoint before sending it to Prometheus.
     ///
     /// # Arguments
     /// * `label` - Name of the label to return all occuring label values for.
-    /// * `selectors` - Iterable collection of [`Selector`]s that tells Prometheus to read the label values only from certain time series that match one of these `Selector`s. Pass an empty collection (e.g `&[]`) in order to retrieve all label values for the specified label name.
-    /// * `start` - Start timestamp as Unix timestamp (seconds). Optional.
-    /// * `end` - End timestamp as Unix timestamp (seconds). Optional.
     ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-label-values)
     ///
@@ -881,7 +947,7 @@ impl Client {
     ///     let client = Client::default();
     ///
     ///     // To retrieve a list of all label values for a specific label name:
-    ///     let response = client.label_values("job", &[], None, None).await;
+    ///     let response = client.label_values("job").get().await;
     ///
     ///     assert!(response.is_ok());
     ///
@@ -889,45 +955,21 @@ impl Client {
     ///     let s1 = Selector::new()
     ///         .regex_eq("instance", ".+");
     ///
-    ///     let response = client.label_values("job", &[s1], None, None).await;
+    ///     let response = client.label_values("job").selectors(&[s1]).get().await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn label_values<'a, T>(
-        &self,
-        label: &str,
-        selectors: T,
-        start: Option<i64>,
-        end: Option<i64>,
-    ) -> Result<Vec<String>, Error>
-    where
-        T: IntoIterator,
-        T::Item: Borrow<Selector<'a>>,
-    {
-        let mut params = vec![];
-
-        if let Some(s) = &start {
-            params.push(("start", s.to_string()));
+    pub fn label_values(&self, label: impl std::fmt::Display) -> LabelValuesQueryBuilder {
+        LabelValuesQueryBuilder {
+            client: self.clone(),
+            label: label.to_string(),
+            selectors: vec![],
+            start: None,
+            end: None,
         }
-
-        if let Some(e) = &end {
-            params.push(("end", e.to_string()));
-        }
-
-        let mut matchers: Vec<(&str, String)> = selectors
-            .into_iter()
-            .map(|s| ("match[]", s.borrow().to_string()))
-            .collect();
-
-        params.append(&mut matchers);
-
-        let path = format!("api/v1/label/{}/values", label);
-        self.send(&path, &params, HttpMethod::GET, None)
-            .await
-            .and_then(map_api_response)
     }
 
     /// Query the current state of target discovery.

@@ -50,7 +50,8 @@ The following `Client` methods were refactored in that fashion:
 - `Client::target_metadata()`
 - `Client::metric_metadata()`
 - `Client::series()`
-- `Client::label_names()`.
+- `Client::label_names()`
+- `Client::label_values()`
 
 Other changes include:
 

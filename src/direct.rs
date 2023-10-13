@@ -116,7 +116,8 @@ pub fn label_names(host: &str) -> Result<LabelNamesQueryBuilder, Error> {
     Client::from_str(host).map(|c| c.label_names())
 }
 
-/// Retrieve all label values for a label name (or use [`Selector`]s to select the time series to read label values from)
+/// Create a [`LabelValuesQueryBuilder`] to apply filters to a query for the label
+/// values endpoint before sending it to Prometheus.
 ///
 /// This is just a convenience function for one-off requests, see [`Client::label_values`].
 ///
@@ -125,27 +126,15 @@ pub fn label_names(host: &str) -> Result<LabelNamesQueryBuilder, Error> {
 ///
 /// #[tokio::main(flavor = "current_thread")]
 /// async fn main() -> Result<(), anyhow::Error> {
-///     let response = label_values("http://localhost:9090", "job", &[], None, None).await;
+///     let response = label_values("http://localhost:9090", "job")?.get().await;
 ///
 ///     assert!(response.is_ok());
 ///
 ///     Ok(())
 /// }
 /// ```
-pub async fn label_values<'a, T>(
-    host: &str,
-    label: &str,
-    selectors: T,
-    start: Option<i64>,
-    end: Option<i64>,
-) -> Result<Vec<String>, Error>
-where
-    T: IntoIterator,
-    T::Item: Borrow<Selector<'a>>,
-{
-    Client::from_str(host)?
-        .label_values(label, selectors, start, end)
-        .await
+pub fn label_values(host: &str, label: &str) -> Result<LabelValuesQueryBuilder, Error> {
+    Client::from_str(host).map(|c| c.label_values(label))
 }
 
 /// Query the current state of target discovery.
