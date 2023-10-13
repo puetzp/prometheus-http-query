@@ -81,7 +81,7 @@
 //!         .eq("job", "node")
 //!         .regex_eq("mode", ".+");
 //!
-//!     let response = client.series(&[s1, s2], None, None).await;
+//!     let response = client.series(&[s1, s2])?.get().await;
 //!
 //!     assert!(response.is_ok());
 //!
@@ -205,7 +205,7 @@ mod selector;
 mod util;
 pub use self::client::{
     Client, InstantQueryBuilder, MetricMetadataQueryBuilder, RangeQueryBuilder, RulesQueryBuilder,
-    TargetMetadataQueryBuilder,
+    SeriesQueryBuilder, TargetMetadataQueryBuilder,
 };
 pub use self::direct::*;
 pub use self::error::Error;

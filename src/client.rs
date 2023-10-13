@@ -367,6 +367,59 @@ impl MetricMetadataQueryBuilder {
     }
 }
 
+/// This builder provides methods to build a query to the series endpoint and
+/// then send it to Prometheus.
+#[derive(Clone)]
+pub struct SeriesQueryBuilder {
+    client: Client,
+    selectors: Vec<(&'static str, String)>,
+    start: Option<i64>,
+    end: Option<i64>,
+}
+
+impl SeriesQueryBuilder {
+    /// Limit the amount of metadata returned by setting a start time
+    /// (UNIX timestamp in seconds).
+    /// Calling this repeatedly will replace the current setting.
+    pub fn start(mut self, start: i64) -> Self {
+        self.start = Some(start);
+        self
+    }
+
+    /// Limit the amount of metadata returned by setting an end time
+    /// (UNIX timestamp in seconds).
+    /// Calling this repeatedly will replace the current setting.
+    pub fn end(mut self, end: i64) -> Self {
+        self.end = Some(end);
+        self
+    }
+
+    /// Execute the series metadata query (using HTTP GET) and return a collection of
+    /// matching time series sent by Prometheus.
+    pub async fn get(self) -> Result<Vec<HashMap<String, String>>, Error> {
+        let mut params = vec![];
+
+        if let Some(start) = self.start {
+            params.push(("start", start.to_string()));
+        }
+
+        if let Some(end) = self.end {
+            params.push(("end", end.to_string()));
+        }
+
+        params.extend(self.selectors);
+
+        self.client
+            .send("api/v1/series", &params, HttpMethod::GET, None)
+            .await
+            .and_then(map_api_response)
+    }
+}
+
+/// Note that Prometheus combines all filters that have been set in the final request
+/// and only returns rules that match all filters.<br>
+/// See the official documentation for a thorough explanation on the filters that can
+/// be set: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#rules).
 /// A client used to execute queries. It uses a [`reqwest::Client`] internally
 /// that manages connections for us.
 #[derive(Clone)]
@@ -661,12 +714,11 @@ impl Client {
         }
     }
 
-    /// Find time series that match certain label sets ([`Selector`]s).
+    /// Create a [`SeriesQueryBuilder`] to apply filters to a series metadata
+    /// query before sending it to Prometheus.
     ///
     /// # Arguments
     /// * `selectors` - Iterable container of [`Selector`]s that tells Prometheus which series to return. Must not be empty!
-    /// * `start` - Start timestamp as Unix timestamp (seconds). Optional.
-    /// * `end` - End timestamp as Unix timestamp (seconds). Optional.
     ///
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers)
     ///
@@ -684,47 +736,33 @@ impl Client {
     ///         .eq("job", "node")
     ///         .regex_eq("mode", ".+");
     ///
-    ///     let response = client.series(&[s1, s2], None, None).await;
+    ///     let response = client.series(&[s1, s2])?.get().await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn series<'a, T>(
-        &self,
-        selectors: T,
-        start: Option<i64>,
-        end: Option<i64>,
-    ) -> Result<Vec<HashMap<String, String>>, Error>
+    pub fn series<'a, T>(&self, selectors: T) -> Result<SeriesQueryBuilder, Error>
     where
         T: IntoIterator,
         T::Item: Borrow<Selector<'a>>,
     {
-        let mut params = vec![];
-
-        if let Some(s) = start {
-            params.push(("start", s.to_string()));
-        }
-
-        if let Some(e) = end {
-            params.push(("end", e.to_string()));
-        }
-
-        let mut matchers: Vec<(&str, String)> = selectors
+        let selectors: Vec<(&str, String)> = selectors
             .into_iter()
             .map(|s| ("match[]", s.borrow().to_string()))
             .collect();
 
-        if matchers.is_empty() {
-            return Err(Error::EmptySeriesSelector);
+        if selectors.is_empty() {
+            Err(Error::EmptySeriesSelector)
+        } else {
+            Ok(SeriesQueryBuilder {
+                client: self.clone(),
+                selectors,
+                start: None,
+                end: None,
+            })
         }
-
-        params.append(&mut matchers);
-
-        self.send("api/v1/series", &params, HttpMethod::GET, None)
-            .await
-            .and_then(map_api_response)
     }
 
     /// Retrieve label names.

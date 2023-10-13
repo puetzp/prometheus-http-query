@@ -67,7 +67,8 @@ pub fn query_range(
     Client::from_str(host).map(|c| c.query_range(query, start, end, step))
 }
 
-/// Find time series that match certain label sets ([`Selector`]s).
+/// Create a [`SeriesQueryBuilder`] to apply filters to a series metadata
+/// query before sending it to Prometheus.
 ///
 /// This is just a convenience function for one-off requests, see [`Client::series`].
 ///
@@ -79,24 +80,19 @@ pub fn query_range(
 ///     let select = Selector::new()
 ///         .eq("handler", "/api/v1/query");
 ///
-///     let response = series("http://localhost:9090", &[select], None, None).await;
+///     let response = series("http://localhost:9090", &[select])?.get().await;
 ///
 ///     assert!(response.is_ok());
 ///
 ///     Ok(())
 /// }
 /// ```
-pub async fn series<'a, T>(
-    host: &str,
-    selectors: T,
-    start: Option<i64>,
-    end: Option<i64>,
-) -> Result<Vec<HashMap<String, String>>, Error>
+pub fn series<'a, T>(host: &str, selectors: T) -> Result<SeriesQueryBuilder, Error>
 where
     T: IntoIterator,
     T::Item: Borrow<Selector<'a>>,
 {
-    Client::from_str(host)?.series(selectors, start, end).await
+    Client::from_str(host).and_then(|c| c.series(selectors))
 }
 
 /// Retrieve all label names (or use [Selector]s to select time series to read label names from).

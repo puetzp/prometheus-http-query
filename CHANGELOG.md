@@ -46,9 +46,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Among other changes some `Client` methods have been refactored and return "builders" (like `Client::query` and `Client::query_range` already did) to gradually build a query to the respective endpoint instead of having to pass a lot of arguments to a single function and also having to pass `None` a lot to use the "default" functionality of the given Prometheus API endpoint.
 The following `Client` methods were refactored in that fashion:
-- `Client::rules()` now returns a builder object used to build a query to the rules endpoint gradually before sending it with `RulesQueryBuilder::get()`.
-- `Client::target_metadata()` now returns a builder object to optionally set filters to a query to the target metadata endpoint before sending it with `TargetMetadataQueryBuilder::get()`.
-- `Client::metric_metadata()` now returns a builder object to optionally set filters to a query to the metric metadata endpoint before sending it with `MetricMetadataQueryBuilder::get()`.
+- `Client::rules()`
+- `Client::target_metadata()`
+- `Client::metric_metadata()`
+- `Client::series()`
 
 Other changes include:
 
