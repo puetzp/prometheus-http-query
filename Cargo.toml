@@ -1,6 +1,6 @@
 [package]
 name = "prometheus-http-query"
-version = "0.7.0"
+version = "0.7.1"
 authors = ["Peter Sebastian Puetz <ppuetz@protonmail.com>"]
 edition = "2021"
 repository = "https://github.com/puetzp/prometheus-http-query"
