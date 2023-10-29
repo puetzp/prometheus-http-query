@@ -3,9 +3,9 @@ use serde::Deserialize;
 use std::error::Error as StdError;
 use std::fmt;
 
-/// A global error enum that encapsulates other more specific types of errors.
-/// Some variants contain errors that in turn wrap errors from underlying libraries
-/// like [`reqwest`]. These errors can be obtained from [`Error::source()`](StdError::source()).
+/// A global error enum that contains all errors that are returned by this
+/// library. Some errors are wrappers for errors from underlying libraries.
+/// All errors (this enum as well as all contained structs) implement [`std::error::Error`].
 #[non_exhaustive]
 #[derive(Debug)]
 pub enum Error {
@@ -138,6 +138,8 @@ impl fmt::Display for PrometheusErrorType {
     }
 }
 
+/// Is thrown when the [`Client`](crate::Client) or the underlying
+/// [`reqwest::Error`] fail to build or execute a request.
 #[derive(Debug)]
 pub struct ClientError {
     pub(crate) message: &'static str,
@@ -156,6 +158,17 @@ impl StdError for ClientError {
     }
 }
 
+impl ClientError {
+    /// Obtain the [`reqwest::Error`] that is the actual cause of this
+    /// error or `None` if the error originated in [`Client`](crate::Client)
+    /// itself.<br>
+    pub fn inner(&self) -> Option<&reqwest::Error> {
+        self.source.as_ref()
+    }
+}
+
+/// Is thrown when the URL that is used to instantiate the [`Client`](crate::Client)
+/// is invalid.
 #[derive(Debug)]
 pub struct ParseUrlError {
     pub(crate) message: &'static str,
@@ -171,5 +184,12 @@ impl fmt::Display for ParseUrlError {
 impl StdError for ParseUrlError {
     fn source(&self) -> Option<&(dyn StdError + 'static)> {
         Some(&self.source)
+    }
+}
+
+impl ParseUrlError {
+    /// Obtain the [`url::ParseError`] that is the actual cause of this error.
+    pub fn inner(&self) -> &url::ParseError {
+        &self.source
     }
 }
