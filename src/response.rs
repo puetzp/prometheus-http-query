@@ -1,5 +1,6 @@
 //! All types that are returned when querying the Prometheus API.
 use crate::util::{AlertState, RuleHealth, TargetHealth};
+use enum_as_inner::EnumAsInner;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt;
@@ -235,7 +236,7 @@ impl PromqlResult {
 }
 
 /// A wrapper for possible result types of expression queries ([`Client::query`](crate::Client::query) and [`Client::query_range`](crate::Client::query_range)).
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize, EnumAsInner)]
 #[serde(tag = "resultType", content = "result")]
 pub enum Data {
     #[serde(alias = "vector")]
@@ -247,54 +248,6 @@ pub enum Data {
 }
 
 impl Data {
-    /// If the result type of the query is `vector`, returns an array of [`InstantVector`]s. Returns `None` otherwise.
-    pub fn as_vector(&self) -> Option<&[InstantVector]> {
-        match self {
-            Data::Vector(v) => Some(v.as_ref()),
-            _ => None,
-        }
-    }
-
-    /// If the result type of the query is `matrix` returns an array of [`RangeVector`]s. Returns `None` otherwise.
-    pub fn as_matrix(&self) -> Option<&[RangeVector]> {
-        match self {
-            Data::Matrix(v) => Some(v.as_ref()),
-            _ => None,
-        }
-    }
-
-    /// If the result type of the query is `scalar`, returns a single [`Sample`]. Returns `None` otherwise.
-    pub fn as_scalar(&self) -> Option<&Sample> {
-        match self {
-            Data::Scalar(v) => Some(v),
-            _ => None,
-        }
-    }
-
-    /// Check if this [`PromqlResult`] contains a list of [`InstantVector`]s (i.e. result type `vector`).
-    pub fn is_vector(&self) -> bool {
-        match self {
-            Data::Vector(_) => true,
-            _ => false,
-        }
-    }
-
-    /// Check if this [`PromqlResult`] contains a list of [`RangeVector`]s (i.e. result type `matrix`).
-    pub fn is_matrix(&self) -> bool {
-        match self {
-            Data::Matrix(_) => true,
-            _ => false,
-        }
-    }
-
-    /// Check if this [`PromqlResult`] contains a scalar value (i.e. result type `scalar`, a single [`Sample`]).
-    pub fn is_scalar(&self) -> bool {
-        match self {
-            Data::Scalar(_) => true,
-            _ => false,
-        }
-    }
-
     /// This is a shortcut to check if the query returned any data at all regardless of the exact type.
     pub fn is_empty(&self) -> bool {
         match self {
