@@ -316,7 +316,7 @@ impl RangeVector {
 }
 
 /// A single data point.
-#[derive(Clone, Debug, PartialEq, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize)]
 pub struct Sample {
     pub(crate) timestamp: f64,
     #[serde(deserialize_with = "de::deserialize_f64")]
