@@ -233,6 +233,11 @@ impl PromqlResult {
     pub fn stats(&self) -> Option<&Stats> {
         self.stats.as_ref()
     }
+
+    /// Returns the inner types when ownership is required
+    pub fn into_inner(self) -> (Data, Option<Stats>) {
+        (self.data, self.stats)
+    }
 }
 
 /// A wrapper for possible result types of expression queries ([`Client::query`](crate::Client::query) and [`Client::query_range`](crate::Client::query_range)).
@@ -277,6 +282,11 @@ impl InstantVector {
     pub fn sample(&self) -> &Sample {
         &self.sample
     }
+
+    /// Returns the inner types when ownership is required
+    pub fn into_inner(self) -> (HashMap<String, String>, Sample) {
+        (self.metric, self.sample)
+    }
 }
 
 /// A single time series containing a range of data points/samples.
@@ -297,6 +307,11 @@ impl RangeVector {
     /// Returns a reference to the set of samples of this time series.
     pub fn samples(&self) -> &[Sample] {
         &self.samples
+    }
+
+    /// Returns the inner types when ownership is required
+    pub fn into_inner(self) -> (HashMap<String, String>, Vec<Sample>) {
+        (self.metric, self.samples)
     }
 }
 
