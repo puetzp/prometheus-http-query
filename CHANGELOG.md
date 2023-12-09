@@ -5,8 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [0.7.2] - unreleased
-
+## [0.8.0] - 2023-12-09
 ### Added
 - Derive `Copy` on `Sample`
 - `Data::as_vector_mut`
@@ -15,10 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Data::into_vector`
 - `Data::into_matrix`
 - `Data::into_sample`
+- `PromqlResult::into_inner`
 
 ### Changed
 - `Data::as_vector` returns `Option<&Vec<InstantVector>>` now
 - `Data::as_matrix` returns `Option<&Vec<RangeVector>>` now
+
+Note that this is technically a breaking release due to the altered function signatures of the two functions above. These functions formerly returned `Option<&[InstantVector]>`. However thanks to Rust's type coercions rules the changes are actually not expected to break any code, since the returned vector is yet again coerced to a slice when accessed immutably.
 
 All changes by courtesy of @VoltaireNoir via [pull request](https://github.com/puetzp/prometheus-http-query/pull/9).
 
