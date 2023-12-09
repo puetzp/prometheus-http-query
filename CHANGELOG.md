@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [0.7.2] - unreleased
+
+### Added
+- Derive `Copy` on `Sample`
+- `Data::as_vector_mut`
+- `Data::as_matrix_mut`
+- `Data::as_scalar_mut`
+- `Data::into_vector`
+- `Data::into_matrix`
+- `Data::into_sample`
+
+### Changed
+- `Data::as_vector` returns `Option<&Vec<InstantVector>>` now
+- `Data::as_matrix` returns `Option<&Vec<RangeVector>>` now
+
+All changes by courtesy of @VoltaireNoir via (pull request)[https://github.com/puetzp/prometheus-http-query/pull/9].
+
 ## [0.7.1] - 2023-10-29
 ### Added
 - `ClientError::inner()`
