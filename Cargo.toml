@@ -16,6 +16,7 @@ reqwest = { version = "0.11", default-features = false, features = ["json"] }
 serde = { version = "1", features = ["derive"] }
 url = { version = "2.3", features = ["serde"] }
 time = { version = "0.3", features = ["parsing", "macros", "serde"] }
+enum-as-inner = "0.6.0"
 
 [dev-dependencies]
 anyhow = "1"
