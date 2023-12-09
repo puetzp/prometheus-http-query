@@ -20,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Data::as_vector` returns `Option<&Vec<InstantVector>>` now
 - `Data::as_matrix` returns `Option<&Vec<RangeVector>>` now
 
-All changes by courtesy of @VoltaireNoir via #9
+All changes by courtesy of @VoltaireNoir via [pull request](https://github.com/puetzp/prometheus-http-query/pull/9).
 
 ## [0.7.1] - 2023-10-29
 ### Added
