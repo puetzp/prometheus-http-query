@@ -52,10 +52,11 @@ impl InstantQueryBuilder {
 
     /// Execute the instant query (using HTTP GET) and return the parsed API response.
     pub async fn get(self) -> Result<PromqlResult, Error> {
-        self.client
+        let response = self
+            .client
             .send("api/v1/query", &self.params, HttpMethod::GET, self.headers)
-            .await
-            .and_then(map_api_response)
+            .await?;
+        Client::deserialize(response).await
     }
 
     /// Execute the instant query (using HTTP POST) and return the parsed API response.
@@ -63,10 +64,11 @@ impl InstantQueryBuilder {
     /// the size of the final URL may break Prometheus' or an intermediate proxies' URL
     /// character limits.
     pub async fn post(self) -> Result<PromqlResult, Error> {
-        self.client
+        let response = self
+            .client
             .send("api/v1/query", &self.params, HttpMethod::POST, self.headers)
-            .await
-            .and_then(map_api_response)
+            .await?;
+        Client::deserialize(response).await
     }
 }
 
@@ -104,15 +106,16 @@ impl RangeQueryBuilder {
 
     /// Execute the range query (using HTTP GET) and return the parsed API response.
     pub async fn get(self) -> Result<PromqlResult, Error> {
-        self.client
+        let response = self
+            .client
             .send(
                 "api/v1/query_range",
                 &self.params,
                 HttpMethod::GET,
                 self.headers,
             )
-            .await
-            .and_then(map_api_response)
+            .await?;
+        Client::deserialize(response).await
     }
 
     /// Execute the instant query (using HTTP POST) and return the parsed API response.
@@ -120,15 +123,16 @@ impl RangeQueryBuilder {
     /// the size of the final URL may break Prometheus' or an intermediate proxies' URL
     /// character limits.
     pub async fn post(self) -> Result<PromqlResult, Error> {
-        self.client
+        let response = self
+            .client
             .send(
                 "api/v1/query_range",
                 &self.params,
                 HttpMethod::POST,
                 self.headers,
             )
-            .await
-            .and_then(map_api_response)
+            .await?;
+        Client::deserialize(response).await
     }
 }
 
@@ -237,10 +241,13 @@ impl RulesQueryBuilder {
             params.push(("file[]", file))
         }
 
-        self.client
+        let response = self
+            .client
             .send("api/v1/rules", &params, HttpMethod::GET, None)
+            .await?;
+
+        Client::deserialize(response)
             .await
-            .and_then(map_api_response)
             .map(|r: RuleGroups| r.groups)
     }
 }
@@ -298,10 +305,12 @@ impl<'a> TargetMetadataQueryBuilder<'a> {
             params.push(("limit", limit.to_string()))
         }
 
-        self.client
+        let response = self
+            .client
             .send("api/v1/targets/metadata", &params, HttpMethod::GET, None)
-            .await
-            .and_then(map_api_response)
+            .await?;
+
+        Client::deserialize(response).await
     }
 }
 
@@ -357,10 +366,12 @@ impl MetricMetadataQueryBuilder {
             params.push(("limit_per_metric", limit_per_metric.to_string()))
         }
 
-        self.client
+        let response = self
+            .client
             .send("api/v1/metadata", &params, HttpMethod::GET, None)
-            .await
-            .and_then(map_api_response)
+            .await?;
+
+        Client::deserialize(response).await
     }
 }
 
@@ -405,10 +416,12 @@ impl SeriesQueryBuilder {
 
         params.extend(self.selectors);
 
-        self.client
+        let response = self
+            .client
             .send("api/v1/series", &params, HttpMethod::GET, None)
-            .await
-            .and_then(map_api_response)
+            .await?;
+
+        Client::deserialize(response).await
     }
 }
 
@@ -470,10 +483,12 @@ impl LabelNamesQueryBuilder {
 
         params.extend(self.selectors);
 
-        self.client
+        let response = self
+            .client
             .send("api/v1/labels", &params, HttpMethod::GET, None)
-            .await
-            .and_then(map_api_response)
+            .await?;
+
+        Client::deserialize(response).await
     }
 }
 
@@ -538,10 +553,11 @@ impl LabelValuesQueryBuilder {
         params.extend(self.selectors);
 
         let path = format!("api/v1/label/{}/values", self.label);
-        self.client
+        let response = self
+            .client
             .send(&path, &params, HttpMethod::GET, None)
-            .await
-            .and_then(map_api_response)
+            .await?;
+        Client::deserialize(response).await
     }
 }
 
@@ -710,13 +726,13 @@ impl Client {
     /// Build and send the final HTTP request. Parse the result as JSON if the
     /// `Content-Type` header indicates that the payload is JSON. Otherwise it is
     /// assumed that an intermediate proxy sends a plain text error.
-    async fn send<S: Serialize, D: DeserializeOwned>(
+    async fn send<S: Serialize>(
         &self,
         path: &str,
         params: &S,
         method: HttpMethod,
         headers: Option<HeaderMap<HeaderValue>>,
-    ) -> Result<ApiResponse<D>, Error> {
+    ) -> Result<reqwest::Response, Error> {
         let url = build_final_url(self.base_url.clone(), path);
 
         let mut request = match method {
@@ -735,22 +751,7 @@ impl Client {
                 source: Some(source),
             })
         })?;
-
-        let header = CONTENT_TYPE;
-
-        if util::is_json(response.headers().get(header)) {
-            response.json::<ApiResponse<D>>().await.map_err(|source| {
-                Error::Client(ClientError {
-                    message: "failed to parse JSON response from server",
-                    source: Some(source),
-                })
-            })
-        } else {
-            Err(Error::Client(ClientError {
-                message: "failed to parse response from server due to invalid media type",
-                source: response.error_for_status().err(),
-            }))
-        }
+        Ok(response)
     }
 
     /// Create an [`InstantQueryBuilder`] from a PromQL query allowing you to set some query parameters
@@ -1002,9 +1003,10 @@ impl Client {
             params.push(("state", s.to_string()))
         }
 
-        self.send("api/v1/targets", &params, HttpMethod::GET, None)
-            .await
-            .and_then(map_api_response)
+        let response = self
+            .send("api/v1/targets", &params, HttpMethod::GET, None)
+            .await?;
+        Client::deserialize(response).await
     }
 
     /// Create a [`RulesQueryBuilder`] to apply filters to the rules query before
@@ -1060,9 +1062,11 @@ impl Client {
     /// }
     /// ```
     pub async fn alerts(&self) -> Result<Vec<Alert>, Error> {
-        self.send("api/v1/alerts", &(), HttpMethod::GET, None)
+        let response = self
+            .send("api/v1/alerts", &(), HttpMethod::GET, None)
+            .await?;
+        Client::deserialize(response)
             .await
-            .and_then(map_api_response)
             .map(|r: Alerts| r.alerts)
     }
 
@@ -1085,9 +1089,10 @@ impl Client {
     /// }
     /// ```
     pub async fn flags(&self) -> Result<HashMap<String, String>, Error> {
-        self.send("api/v1/status/flags", &(), HttpMethod::GET, None)
-            .await
-            .and_then(map_api_response)
+        let response = self
+            .send("api/v1/status/flags", &(), HttpMethod::GET, None)
+            .await?;
+        Client::deserialize(response).await
     }
 
     /// Retrieve Prometheus server build information.
@@ -1109,9 +1114,10 @@ impl Client {
     /// }
     /// ```
     pub async fn build_information(&self) -> Result<BuildInformation, Error> {
-        self.send("api/v1/status/buildinfo", &(), HttpMethod::GET, None)
-            .await
-            .and_then(map_api_response)
+        let response = self
+            .send("api/v1/status/buildinfo", &(), HttpMethod::GET, None)
+            .await?;
+        Client::deserialize(response).await
     }
 
     /// Retrieve Prometheus server runtime information.
@@ -1133,9 +1139,10 @@ impl Client {
     /// }
     /// ```
     pub async fn runtime_information(&self) -> Result<RuntimeInformation, Error> {
-        self.send("api/v1/status/runtimeinfo", &(), HttpMethod::GET, None)
-            .await
-            .and_then(map_api_response)
+        let response = self
+            .send("api/v1/status/runtimeinfo", &(), HttpMethod::GET, None)
+            .await?;
+        Client::deserialize(response).await
     }
 
     /// Retrieve Prometheus TSDB statistics.
@@ -1157,9 +1164,10 @@ impl Client {
     /// }
     /// ```
     pub async fn tsdb_statistics(&self) -> Result<TsdbStatistics, Error> {
-        self.send("api/v1/status/tsdb", &(), HttpMethod::GET, None)
-            .await
-            .and_then(map_api_response)
+        let response = self
+            .send("api/v1/status/tsdb", &(), HttpMethod::GET, None)
+            .await?;
+        Client::deserialize(response).await
     }
 
     /// Retrieve WAL replay statistics.
@@ -1181,9 +1189,10 @@ impl Client {
     /// }
     /// ```
     pub async fn wal_replay_statistics(&self) -> Result<WalReplayStatistics, Error> {
-        self.send("api/v1/status/walreplay", &(), HttpMethod::GET, None)
-            .await
-            .and_then(map_api_response)
+        let response = self
+            .send("api/v1/status/walreplay", &(), HttpMethod::GET, None)
+            .await?;
+        Client::deserialize(response).await
     }
 
     /// Query the current state of alertmanager discovery.
@@ -1205,9 +1214,10 @@ impl Client {
     /// }
     /// ```
     pub async fn alertmanagers(&self) -> Result<Alertmanagers, Error> {
-        self.send("api/v1/alertmanagers", &(), HttpMethod::GET, None)
-            .await
-            .and_then(map_api_response)
+        let response = self
+            .send("api/v1/alertmanagers", &(), HttpMethod::GET, None)
+            .await?;
+        Client::deserialize(response).await
     }
 
     /// Create a [`TargetMetadataQueryBuilder`] to apply filters to a target metadata
@@ -1372,15 +1382,28 @@ impl Client {
             })
             .map(|_| true)
     }
-}
 
-// Map the API response object to a Result:
-// Data is returned as is, errors within the response body are converted to
-// this crate's error type.
-#[inline]
-fn map_api_response<D: DeserializeOwned>(response: ApiResponse<D>) -> Result<D, Error> {
-    match response {
-        ApiResponse::Success { data } => Ok(data),
-        ApiResponse::Error(e) => Err(Error::Prometheus(e)),
+    // Deserialize the raw reqwest response returned from the Prometheus server into a type `D` that implements serde's `Deserialize` trait.
+    //
+    // Internally, the response is deserialized into the [`ApiResponse`] type first.
+    // On success, the data is returned as is. On failure, the error is mapped to the appropriate [`Error`] type.
+    async fn deserialize<D: DeserializeOwned>(response: reqwest::Response) -> Result<D, Error> {
+        let header = CONTENT_TYPE;
+        if !util::is_json(response.headers().get(header)) {
+            return Err(Error::Client(ClientError {
+                message: "failed to parse response from server due to invalid media type",
+                source: response.error_for_status().err(),
+            }));
+        }
+        let response = response.json::<ApiResponse<D>>().await.map_err(|source| {
+            Error::Client(ClientError {
+                message: "failed to parse JSON response from server",
+                source: Some(source),
+            })
+        })?;
+        match response {
+            ApiResponse::Success { data } => Ok(data),
+            ApiResponse::Error(e) => Err(Error::Prometheus(e)),
+        }
     }
 }
