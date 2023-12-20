@@ -52,10 +52,7 @@ impl InstantQueryBuilder {
 
     /// Execute the instant query (using HTTP GET) and return the parsed API response.
     pub async fn get(self) -> Result<PromqlResult, Error> {
-        let response = self
-            .client
-            .send("api/v1/query", &self.params, HttpMethod::GET, self.headers)
-            .await?;
+        let response = self.get_raw().await?;
         Client::deserialize(response).await
     }
 
@@ -64,11 +61,25 @@ impl InstantQueryBuilder {
     /// the size of the final URL may break Prometheus' or an intermediate proxies' URL
     /// character limits.
     pub async fn post(self) -> Result<PromqlResult, Error> {
-        let response = self
-            .client
-            .send("api/v1/query", &self.params, HttpMethod::POST, self.headers)
-            .await?;
+        let response = self.post_raw().await?;
         Client::deserialize(response).await
+    }
+
+    /// Execute the instant query (using HTTP GET) and return the raw API response.
+    pub async fn get_raw(self) -> Result<reqwest::Response, Error> {
+        self.client
+            .send("api/v1/query", &self.params, HttpMethod::GET, self.headers)
+            .await
+    }
+
+    /// Execute the instant query (using HTTP POST) and return the raw API response.
+    /// Using a POST request is useful in the context of larger PromQL queries when
+    /// the size of the final URL may break Prometheus' or an intermediate proxies' URL
+    /// character limits.
+    pub async fn post_raw(self) -> Result<reqwest::Response, Error> {
+        self.client
+            .send("api/v1/query", &self.params, HttpMethod::POST, self.headers)
+            .await
     }
 }
 
@@ -106,15 +117,7 @@ impl RangeQueryBuilder {
 
     /// Execute the range query (using HTTP GET) and return the parsed API response.
     pub async fn get(self) -> Result<PromqlResult, Error> {
-        let response = self
-            .client
-            .send(
-                "api/v1/query_range",
-                &self.params,
-                HttpMethod::GET,
-                self.headers,
-            )
-            .await?;
+        let response = self.get_raw().await?;
         Client::deserialize(response).await
     }
 
@@ -123,16 +126,35 @@ impl RangeQueryBuilder {
     /// the size of the final URL may break Prometheus' or an intermediate proxies' URL
     /// character limits.
     pub async fn post(self) -> Result<PromqlResult, Error> {
-        let response = self
-            .client
+        let response = self.post_raw().await?;
+        Client::deserialize(response).await
+    }
+
+    /// Execute the range query (using HTTP GET) and return the raw API response.
+    pub async fn get_raw(self) -> Result<reqwest::Response, Error> {
+        self.client
+            .send(
+                "api/v1/query_range",
+                &self.params,
+                HttpMethod::GET,
+                self.headers,
+            )
+            .await
+    }
+
+    /// Execute the instant query (using HTTP POST) and return the raw API response.
+    /// Using a POST request is useful in the context of larger PromQL queries when
+    /// the size of the final URL may break Prometheus' or an intermediate proxies' URL
+    /// character limits.
+    pub async fn post_raw(self) -> Result<reqwest::Response, Error> {
+        self.client
             .send(
                 "api/v1/query_range",
                 &self.params,
                 HttpMethod::POST,
                 self.headers,
             )
-            .await?;
-        Client::deserialize(response).await
+            .await
     }
 }
 
@@ -223,6 +245,15 @@ impl RulesQueryBuilder {
     /// Execute the rules query (using HTTP GET) and return the [`RuleGroup`]s sent
     /// by Prometheus.
     pub async fn get(self) -> Result<Vec<RuleGroup>, Error> {
+        let response = self.get_raw().await?;
+        Client::deserialize(response)
+            .await
+            .map(|r: RuleGroups| r.groups)
+    }
+
+    /// Execute the rules query (using HTTP GET) and return the raw response sent
+    /// by Prometheus.
+    pub async fn get_raw(self) -> Result<reqwest::Response, Error> {
         let mut params = vec![];
 
         if let Some(k) = self.kind {
@@ -241,14 +272,9 @@ impl RulesQueryBuilder {
             params.push(("file[]", file))
         }
 
-        let response = self
-            .client
+        self.client
             .send("api/v1/rules", &params, HttpMethod::GET, None)
-            .await?;
-
-        Client::deserialize(response)
             .await
-            .map(|r: RuleGroups| r.groups)
     }
 }
 
@@ -291,6 +317,13 @@ impl<'a> TargetMetadataQueryBuilder<'a> {
     /// Execute the target metadata query (using HTTP GET) and return the collection of
     /// [`TargetMetadata`] sent by Prometheus.
     pub async fn get(self) -> Result<Vec<TargetMetadata>, Error> {
+        let response = self.get_raw().await?;
+        Client::deserialize(response).await
+    }
+
+    /// Execute the target metadata query (using HTTP GET) and return the raw response
+    /// sent by Prometheus.
+    pub async fn get_raw(self) -> Result<reqwest::Response, Error> {
         let mut params = vec![];
 
         if let Some(metric) = self.metric {
@@ -305,12 +338,9 @@ impl<'a> TargetMetadataQueryBuilder<'a> {
             params.push(("limit", limit.to_string()))
         }
 
-        let response = self
-            .client
+        self.client
             .send("api/v1/targets/metadata", &params, HttpMethod::GET, None)
-            .await?;
-
-        Client::deserialize(response).await
+            .await
     }
 }
 
@@ -352,6 +382,13 @@ impl MetricMetadataQueryBuilder {
     /// Execute the metric metadata query (using HTTP GET) and return the collection of
     /// [`MetricMetadata`] sent by Prometheus.
     pub async fn get(self) -> Result<HashMap<String, Vec<MetricMetadata>>, Error> {
+        let response = self.get_raw().await?;
+        Client::deserialize(response).await
+    }
+
+    /// Execute the metric metadata query (using HTTP GET) and return the raw response
+    /// sent by Prometheus.
+    pub async fn get_raw(self) -> Result<reqwest::Response, Error> {
         let mut params = vec![];
 
         if let Some(metric) = self.metric {
@@ -366,12 +403,9 @@ impl MetricMetadataQueryBuilder {
             params.push(("limit_per_metric", limit_per_metric.to_string()))
         }
 
-        let response = self
-            .client
+        self.client
             .send("api/v1/metadata", &params, HttpMethod::GET, None)
-            .await?;
-
-        Client::deserialize(response).await
+            .await
     }
 }
 
@@ -404,6 +438,13 @@ impl SeriesQueryBuilder {
     /// Execute the series metadata query (using HTTP GET) and return a collection of
     /// matching time series sent by Prometheus.
     pub async fn get(self) -> Result<Vec<HashMap<String, String>>, Error> {
+        let response = self.get_raw().await?;
+        Client::deserialize(response).await
+    }
+
+    /// Execute the series metadata query (using HTTP GET) and return the raw response
+    /// sent by Prometheus.
+    pub async fn get_raw(self) -> Result<reqwest::Response, Error> {
         let mut params = vec![];
 
         if let Some(start) = self.start {
@@ -416,12 +457,9 @@ impl SeriesQueryBuilder {
 
         params.extend(self.selectors);
 
-        let response = self
-            .client
+        self.client
             .send("api/v1/series", &params, HttpMethod::GET, None)
-            .await?;
-
-        Client::deserialize(response).await
+            .await
     }
 }
 
@@ -471,6 +509,12 @@ impl LabelNamesQueryBuilder {
     /// Execute the query (using HTTP GET) and retrieve a collection of
     /// label names.
     pub async fn get(self) -> Result<Vec<String>, Error> {
+        let response = self.get_raw().await?;
+        Client::deserialize(response).await
+    }
+
+    /// Execute the query (using HTTP GET) and retrieve the raw response.
+    pub async fn get_raw(self) -> Result<reqwest::Response, Error> {
         let mut params = vec![];
 
         if let Some(start) = self.start {
@@ -483,12 +527,9 @@ impl LabelNamesQueryBuilder {
 
         params.extend(self.selectors);
 
-        let response = self
-            .client
+        self.client
             .send("api/v1/labels", &params, HttpMethod::GET, None)
-            .await?;
-
-        Client::deserialize(response).await
+            .await
     }
 }
 
@@ -540,6 +581,13 @@ impl LabelValuesQueryBuilder {
     /// Execute the query (using HTTP GET) and retrieve a collection of
     /// label values for the given label name.
     pub async fn get(self) -> Result<Vec<String>, Error> {
+        let response = self.get_raw().await?;
+        Client::deserialize(response).await
+    }
+
+    /// Execute the query (using HTTP GET) and retrieve a collection of
+    /// label values for the given label name.
+    pub async fn get_raw(self) -> Result<reqwest::Response, Error> {
         let mut params = vec![];
 
         if let Some(start) = self.start {
@@ -553,11 +601,9 @@ impl LabelValuesQueryBuilder {
         params.extend(self.selectors);
 
         let path = format!("api/v1/label/{}/values", self.label);
-        let response = self
-            .client
+        self.client
             .send(&path, &params, HttpMethod::GET, None)
-            .await?;
-        Client::deserialize(response).await
+            .await
     }
 }
 
