@@ -50,6 +50,12 @@ impl InstantQueryBuilder {
         self
     }
 
+    /// Include an additional parameter to the request.
+    pub fn param(mut self, name: &'static str, value: impl Into<String>) -> Self {
+        self.params.push((name, value.into()));
+        self
+    }
+
     /// Execute the instant query (using HTTP GET) and return the parsed API response.
     pub async fn get(self) -> Result<PromqlResult, Error> {
         self.client
@@ -99,6 +105,12 @@ impl RangeQueryBuilder {
         self.headers
             .get_or_insert_with(Default::default)
             .append(name, value.into());
+        self
+    }
+
+    /// Include an additional parameter to the request.
+    pub fn param(mut self, name: &'static str, value: impl Into<String>) -> Self {
+        self.params.push((name, value.into()));
         self
     }
 
