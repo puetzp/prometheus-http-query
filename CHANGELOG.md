@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.1] - unreleased
+### Added
+- `InstantQueryBuilder::get_raw`
+- `InstantQueryBuilder::post_raw`
+- `RangeQueryBuilder::get_raw`
+- `RangeQueryBuilder::post_raw`
+- `LabelNamesQueryBuilder::get_raw`
+- `LabelValuesQueryBuilder::get_raw`
+- `MetricMetadataQueryBuilder::get_raw`
+- `RulesQueryBuilder::get_raw`
+- `SeriesQueryBuilder::get_raw`
+- `TargetMetadataQueryBuilder::get_raw`
+
+All changes by courtesy of @VoltaireNoir via [pull request](https://github.com/puetzp/prometheus-http-query/pull/11).
 
 ## [0.8.0] - 2023-12-09
 ### Added
