@@ -51,7 +51,7 @@ impl InstantQueryBuilder {
     }
 
     /// Include an additional parameter to the request.
-    pub fn param(mut self, name: &'static str, value: impl ToString) -> Self {
+    pub fn query(mut self, name: &'static str, value: impl ToString) -> Self {
         self.params.push((name, value.to_string()));
         self
     }
@@ -109,7 +109,7 @@ impl RangeQueryBuilder {
     }
 
     /// Include an additional parameter to the request.
-    pub fn param(mut self, name: &'static str, value: impl ToString) -> Self {
+    pub fn query(mut self, name: &'static str, value: impl ToString) -> Self {
         self.params.push((name, value.to_string()));
         self
     }
