@@ -25,22 +25,14 @@ mod de {
     where
         D: Deserializer<'de>,
     {
-        #[derive(Deserialize)]
-        #[serde(untagged)]
-        enum Value {
-            Str(String),
-            Number(f64),
-        }
-
-        match Value::deserialize(deserializer)? {
-            Value::Str(s) => f64::from_str(&s).map_err(|_| {
+        String::deserialize(deserializer).and_then(|s| {
+            f64::from_str(&s).map_err(|_| {
                 SerdeError::invalid_value(
                     Unexpected::Str(&s),
                     &"a float value inside a quoted JSON string",
                 )
-            }),
-            Value::Number(n) => Ok(n),
-        }
+            })
+        })
     }
 
     // This function is used to deserialize a specific datetime string like "20191102-16:19:59".
@@ -195,7 +187,7 @@ impl Timings {
 #[derive(Debug, Clone, Deserialize)]
 pub struct Samples {
     #[serde(alias = "totalQueryableSamplesPerStep")]
-    total_queryable_samples_per_step: Option<Vec<Sample>>,
+    total_queryable_samples_per_step: Option<Vec<SamplesPerStep>>,
     #[serde(alias = "totalQueryableSamples")]
     total_queryable_samples: i64,
     #[serde(alias = "peakSamples")]
@@ -203,7 +195,7 @@ pub struct Samples {
 }
 
 impl Samples {
-    pub fn total_queryable_samples_per_step(&self) -> Option<&Vec<Sample>> {
+    pub fn total_queryable_samples_per_step(&self) -> Option<&Vec<SamplesPerStep>> {
         self.total_queryable_samples_per_step.as_ref()
     }
 
@@ -213,6 +205,25 @@ impl Samples {
 
     pub fn peak_samples(&self) -> i64 {
         self.peak_samples
+    }
+}
+
+/// A hint to the total queryable samples in this step.
+#[derive(Clone, Copy, Debug, PartialEq, Deserialize)]
+pub struct SamplesPerStep {
+    pub(crate) timestamp: f64,
+    pub(crate) value: usize,
+}
+
+impl SamplesPerStep {
+    /// Returns the timestamp at the start of this step.
+    pub fn timestamp(&self) -> f64 {
+        self.timestamp
+    }
+
+    /// Returns the number of samples in this step.
+    pub fn value(&self) -> usize {
+        self.value
     }
 }
 
@@ -376,11 +387,15 @@ pub struct ActiveTarget {
     #[serde(alias = "lastScrapeDuration")]
     pub(crate) last_scrape_duration: f64,
     pub(crate) health: TargetHealth,
-    #[serde(alias = "scrapeInterval")]
-    #[serde(deserialize_with = "de::deserialize_prometheus_duration")]
+    #[serde(
+        alias = "scrapeInterval",
+        deserialize_with = "de::deserialize_prometheus_duration"
+    )]
     pub(crate) scrape_interval: Duration,
-    #[serde(alias = "scrapeTimeout")]
-    #[serde(deserialize_with = "de::deserialize_prometheus_duration")]
+    #[serde(
+        alias = "scrapeTimeout",
+        deserialize_with = "de::deserialize_prometheus_duration"
+    )]
     pub(crate) scrape_timeout: Duration,
 }
 
@@ -667,8 +682,7 @@ pub(crate) struct Alerts {
 /// A single alert.
 #[derive(Clone, Debug, Deserialize)]
 pub struct Alert {
-    #[serde(alias = "activeAt")]
-    #[serde(with = "time::serde::rfc3339")]
+    #[serde(alias = "activeAt", with = "time::serde::rfc3339")]
     pub(crate) active_at: OffsetDateTime,
     pub(crate) annotations: HashMap<String, String>,
     pub(crate) labels: HashMap<String, String>,
@@ -922,15 +936,13 @@ impl BuildInformation {
 /// An object containing Prometheus server build information.
 #[derive(Clone, Debug, Deserialize)]
 pub struct RuntimeInformation {
-    #[serde(alias = "startTime")]
-    #[serde(with = "time::serde::rfc3339")]
+    #[serde(alias = "startTime", with = "time::serde::rfc3339")]
     pub(crate) start_time: OffsetDateTime,
     #[serde(alias = "CWD")]
     pub(crate) cwd: String,
     #[serde(alias = "reloadConfigSuccess")]
     pub(crate) reload_config_success: bool,
-    #[serde(alias = "lastConfigTime")]
-    #[serde(with = "time::serde::rfc3339")]
+    #[serde(alias = "lastConfigTime", with = "time::serde::rfc3339")]
     pub(crate) last_config_time: OffsetDateTime,
     #[serde(alias = "corruptionCount")]
     pub(crate) corruption_count: i64,
@@ -942,8 +954,10 @@ pub struct RuntimeInformation {
     pub(crate) go_gc: String,
     #[serde(alias = "GODEBUG")]
     pub(crate) go_debug: String,
-    #[serde(alias = "storageRetention")]
-    #[serde(deserialize_with = "de::deserialize_prometheus_duration")]
+    #[serde(
+        alias = "storageRetention",
+        deserialize_with = "de::deserialize_prometheus_duration"
+    )]
     pub(crate) storage_retention: Duration,
 }
 
@@ -1329,13 +1343,13 @@ mod tests {
         let per_step = samples.total_queryable_samples_per_step().unwrap();
         assert!(per_step.len() == 4);
         assert!(per_step[0].timestamp() == 1659268100.0);
-        assert!(per_step[0].value() == 1.0);
+        assert!(per_step[0].value() == 1);
         assert!(per_step[1].timestamp() == 1659268160.0);
-        assert!(per_step[1].value() == 1.0);
+        assert!(per_step[1].value() == 1);
         assert!(per_step[2].timestamp() == 1659268220.0);
-        assert!(per_step[2].value() == 1.0);
+        assert!(per_step[2].value() == 1);
         assert!(per_step[3].timestamp() == 1659268280.0);
-        assert!(per_step[3].value() == 1.0);
+        assert!(per_step[3].value() == 1);
         Ok(())
     }
 

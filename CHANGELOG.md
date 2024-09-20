@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.4] - unreleased
+### Changed
+- `Samples::total_queryable_samples_per_step` now returns `Option<&Vec<SamplesPerStep>>` instead of `Option<&Vec<Sample>>`. The new type `SamplesPerStep` better describes what is measured by this query statistic. It also enables more efficient deserialization of `Sample`.
+
 ## [0.8.3] - 2024-04-08
 ### Changed
 - Bumped dependency `reqwest` to v12.x (@chris13524 via [pull request](https://github.com/puetzp/prometheus-http-query/pull/13))
