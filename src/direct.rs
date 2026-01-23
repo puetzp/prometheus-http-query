@@ -304,7 +304,7 @@ pub async fn alertmanagers(host: &str) -> Result<Alertmanagers, Error> {
 ///     Ok(())
 /// }
 /// ```
-pub fn target_metadata(host: &str) -> Result<TargetMetadataQueryBuilder, Error> {
+pub fn target_metadata(host: &'_ str) -> Result<TargetMetadataQueryBuilder<'_>, Error> {
     Client::from_str(host).map(|c| c.target_metadata())
 }
 
