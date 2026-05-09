@@ -215,3 +215,6 @@ pub use self::error::Error;
 pub use self::selector::Selector;
 pub use self::util::RuleKind;
 pub use self::util::TargetState;
+
+// Re-exported for users' convenience.
+pub use reqwest;
