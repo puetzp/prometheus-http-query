@@ -12,7 +12,7 @@ keywords = [ "prometheus", "prometheus-http-api", "promql", "api", "reqwest" ]
 
 [dependencies]
 mime = "0.3"
-reqwest = { version = "0.13.1", default-features = false, features = ["form", "json", "query"] }
+reqwest = { version = "0.13", default-features = false, features = ["form", "json", "query"] }
 serde = { version = "1", features = ["derive"] }
 url = { version = "2.5", features = ["serde"] }
 time = { version = "0.3", features = ["parsing", "macros", "serde"] }
