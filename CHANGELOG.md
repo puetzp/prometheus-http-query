@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2026-05-09
+### Added
+- Re-export `reqwest` to avoid having to manage multiple, possibly conflicting dependencies to the same crate in a user's `Cargo.toml` (thanks to @svcalex via [pull request](https://github.com/puetzp/prometheus-http-query/pull/17))
+
+### Changed
+- Update `reqwest` in `Cargo.toml` to `0.13` (thanks to @drbrain via [pull request](https://github.com/puetzp/prometheus-http-query/pull/16))
+- Also contains the unreleased changes of `0.8.4`
+
 ## [0.8.4] - unreleased
 ### Changed
 - `Samples::total_queryable_samples_per_step` now returns `Option<&Vec<SamplesPerStep>>` instead of `Option<&Vec<Sample>>`. The new type `SamplesPerStep` better describes what is measured by this query statistic. It also enables more efficient deserialization of `Sample`.
