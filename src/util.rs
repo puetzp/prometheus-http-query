@@ -2,7 +2,7 @@ use crate::error::{Error, ParseUrlError};
 use mime::Mime;
 use reqwest::header::HeaderValue;
 use serde::Deserialize;
-use std::fmt;
+use std::{fmt, str::FromStr};
 use url::Url;
 
 /// A helper enum to filter targets by state.
@@ -149,6 +149,18 @@ impl fmt::Display for RuleKind {
         match self {
             Self::Alerting => f.write_str("alerting"),
             Self::Recording => f.write_str("recording"),
+        }
+    }
+}
+
+impl FromStr for RuleKind {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "alert"| "alerting" => Ok(Self::Alerting),
+            "record"| "recording" => Ok(Self::Recording),
+            _ => Err(Error::Parse(format!("failed to parse rule type from '{}', must be one of 'alert', 'alerting', 'record', 'recording'", s)))
         }
     }
 }

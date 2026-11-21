@@ -171,7 +171,7 @@ impl RangeQueryBuilder {
 }
 
 /// Provides methods to build a query to the rules endpoint and send it to Prometheus.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct RulesQueryBuilder {
     client: Client,
     kind: Option<RuleKind>,
@@ -621,7 +621,7 @@ impl LabelValuesQueryBuilder {
 
 /// A client used to execute queries. It uses a [`reqwest::Client`] internally
 /// that manages connections for us.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Client {
     pub(crate) client: reqwest::Client,
     pub(crate) base_url: Url,

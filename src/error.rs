@@ -22,6 +22,8 @@ pub enum Error {
     EmptySeriesSelector,
     /// Wraps errors from the [`url`] crate.
     ParseUrl(ParseUrlError),
+    /// Wraps parsing errors that are raised directly from the crate.
+    Parse(String),
 }
 
 impl fmt::Display for Error {
@@ -31,6 +33,7 @@ impl fmt::Display for Error {
             Self::Prometheus(e) => e.fmt(f),
             Self::EmptySeriesSelector => f.write_str("at least one series selector must be provided in order to query the series endpoint"),
             Self::ParseUrl(e) => e.fmt(f),
+            Self::Parse(s) => f.write_str(s)
         }
     }
 }
@@ -42,6 +45,7 @@ impl StdError for Error {
             Self::Prometheus(_) => None,
             Self::EmptySeriesSelector => None,
             Self::ParseUrl(e) => e.source(),
+            Self::Parse(_) => None,
         }
     }
 }
