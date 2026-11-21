@@ -213,7 +213,10 @@ pub use self::client::{
 pub use self::direct::*;
 pub use self::error::Error;
 pub use self::selector::Selector;
+pub use self::util::AlertState;
+pub use self::util::RuleHealth;
 pub use self::util::RuleKind;
+pub use self::util::TargetHealth;
 pub use self::util::TargetState;
 
 // Re-exported for users' convenience.
