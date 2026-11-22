@@ -472,7 +472,7 @@ pub struct SeriesQueryBuilder {
 }
 
 impl SeriesQueryBuilder {
-    /// Set series selectors that tell Prometheus which series to return. This can
+    /// Add series selectors that tell Prometheus which series to return. This can
     /// be used multiple times to extend the set of series selectors.
     /// At least one selector must be provided.
     pub fn selectors<T>(mut self, selectors: T) -> Self
@@ -485,7 +485,7 @@ impl SeriesQueryBuilder {
         self
     }
 
-    /// Set a series selector that tells Prometheus which series to return. This can
+    /// Add a series selector that tells Prometheus which series to return. This can
     /// be used multiple times to extend the set of series selectors.
     /// At least one selector must be provided.
     pub fn selector(mut self, selector: impl std::fmt::Display) -> Self {
