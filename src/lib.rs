@@ -34,7 +34,7 @@
 //! ## Execute PromQL queries
 //!
 //! ```rust
-//! use prometheus_http_query::{Client, Selector};
+//! use prometheus_http_query::Client;
 //!
 //! #[tokio::main(flavor = "current_thread")]
 //! async fn main() -> Result<(), anyhow::Error> {
@@ -69,20 +69,16 @@
 //! More metadata queries are available, e.g. methods to retrieve label names and values.
 //!
 //! ```rust
-//! use prometheus_http_query::{Client, Selector};
+//! use prometheus_http_query::Client;
 //!
 //! #[tokio::main(flavor = "current_thread")]
 //! async fn main() -> Result<(), anyhow::Error> {
 //!     let client = Client::default();
 //!
-//!     let s1 = Selector::new()
-//!         .eq("handler", "/api/v1/query");
-//!
-//!     let s2 = Selector::new()
-//!         .eq("job", "node")
-//!         .regex_eq("mode", ".+");
-//!
-//!     let response = client.series(&[s1, s2])?.get().await;
+//!     let response = client.series()
+//!         .selectors(&["{handler=\"/api/v1/query\"}", "{job=\"node\", mode=\".+\"}"])
+//!         .get()
+//!         .await;
 //!
 //!     assert!(response.is_ok());
 //!

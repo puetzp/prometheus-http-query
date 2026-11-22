@@ -1,8 +1,6 @@
 use crate::client::*;
 use crate::error::Error;
 use crate::response::*;
-use crate::selector::Selector;
-use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::str::FromStr;
 
@@ -72,26 +70,22 @@ pub fn query_range(
 /// This is just a convenience function for one-off requests, see [`Client::series`].
 ///
 /// ```rust
-/// use prometheus_http_query::{series, Selector};
+/// use prometheus_http_query::series;
 ///
 /// #[tokio::main(flavor = "current_thread")]
 /// async fn main() -> Result<(), anyhow::Error> {
-///     let select = Selector::new()
-///         .eq("handler", "/api/v1/query");
-///
-///     let response = series("http://localhost:9090", &[select])?.get().await;
+///     let response = series("http://localhost:9090")?
+///         .selectors(&["{handler=\"/api/v1/query\"}"])
+///         .get()
+///         .await;
 ///
 ///     assert!(response.is_ok());
 ///
 ///     Ok(())
 /// }
 /// ```
-pub fn series<'a, T>(host: &str, selectors: T) -> Result<SeriesQueryBuilder, Error>
-where
-    T: IntoIterator,
-    T::Item: Borrow<Selector<'a>>,
-{
-    Client::from_str(host).and_then(|c| c.series(selectors))
+pub fn series(host: &str) -> Result<SeriesQueryBuilder, Error> {
+    Client::from_str(host).map(|c| c.series())
 }
 
 /// Create a [`LabelNamesQueryBuilder`] to apply filters to a query for the label
@@ -145,7 +139,7 @@ pub fn label_values(host: &str, label: &str) -> Result<LabelValuesQueryBuilder, 
 ///
 /// #[tokio::main(flavor = "current_thread")]
 /// async fn main() -> Result<(), anyhow::Error> {
-///     let response = targets("http://localhost:9090").get().await;
+///     let response = targets("http://localhost:9090")?.get().await;
 ///
 ///     assert!(response.is_ok());
 ///

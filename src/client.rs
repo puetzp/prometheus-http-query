@@ -466,12 +466,29 @@ impl MetricMetadataQueryBuilder {
 #[derive(Clone)]
 pub struct SeriesQueryBuilder {
     client: Client,
-    selectors: Vec<(&'static str, String)>,
+    selectors: Vec<String>,
     start: Option<i64>,
     end: Option<i64>,
 }
 
 impl SeriesQueryBuilder {
+    /// Set series selectors that tell Prometheus which series to return. This can
+    /// be used multiple times to extend the set of series selectors.
+    /// At least one selector must be provided.
+    pub fn selectors(mut self, selectors: &[impl std::fmt::Display]) -> Self {
+        self.selectors
+            .extend(selectors.into_iter().map(|item| item.to_string()));
+        self
+    }
+
+    /// Set a series selector that tells Prometheus which series to return. This can
+    /// be used multiple times to extend the set of series selectors.
+    /// At least one selector must be provided.
+    pub fn selector(mut self, selector: impl std::fmt::Display) -> Self {
+        self.selectors.push(selector.to_string());
+        self
+    }
+
     /// Limit the amount of metadata returned by setting a start time
     /// (UNIX timestamp in seconds).
     /// Calling this repeatedly will replace the current setting.
@@ -500,6 +517,10 @@ impl SeriesQueryBuilder {
     pub async fn get_raw(self) -> Result<reqwest::Response, Error> {
         let mut params = vec![];
 
+        for selector in self.selectors {
+            params.push(("match[]", selector.to_string()));
+        }
+
         if let Some(start) = self.start {
             params.push(("start", start.to_string()));
         }
@@ -507,8 +528,6 @@ impl SeriesQueryBuilder {
         if let Some(end) = self.end {
             params.push(("end", end.to_string()));
         }
-
-        params.extend(self.selectors);
 
         self.client
             .send("api/v1/series", &params, HttpMethod::GET, None)
@@ -940,53 +959,33 @@ impl Client {
     }
 
     /// Create a [`SeriesQueryBuilder`] to apply filters to a series metadata
-    /// query before sending it to Prometheus.
-    ///
-    /// # Arguments
-    /// * `selectors` - Iterable container of [`Selector`]s that tells Prometheus which series to return. Must not be empty!
-    ///
+    /// query before sending it to Prometheus.<br>
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Selector};
+    /// use prometheus_http_query::Client;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
-    ///     let s1 = Selector::new()
-    ///         .eq("handler", "/api/v1/query");
-    ///
-    ///     let s2 = Selector::new()
-    ///         .eq("job", "node")
-    ///         .regex_eq("mode", ".+");
-    ///
-    ///     let response = client.series(&[s1, s2])?.get().await;
+    ///     let response = client.series()
+    ///         .selector("up")
+    ///         .selector("{job=\"node\",instance=~\".+\"}")
+    ///         .get()
+    ///         .await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub fn series<'a, T>(&self, selectors: T) -> Result<SeriesQueryBuilder, Error>
-    where
-        T: IntoIterator,
-        T::Item: Borrow<Selector<'a>>,
-    {
-        let selectors: Vec<(&str, String)> = selectors
-            .into_iter()
-            .map(|s| ("match[]", s.borrow().to_string()))
-            .collect();
-
-        if selectors.is_empty() {
-            Err(Error::EmptySeriesSelector)
-        } else {
-            Ok(SeriesQueryBuilder {
-                client: self.clone(),
-                selectors,
-                start: None,
-                end: None,
-            })
+    pub fn series(&self) -> SeriesQueryBuilder {
+        SeriesQueryBuilder {
+            client: self.clone(),
+            selectors: vec![],
+            start: None,
+            end: None,
         }
     }
 
