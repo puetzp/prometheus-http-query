@@ -292,9 +292,9 @@ impl RulesQueryBuilder {
 
 /// Provides methods to build a query to the target metadata endpoint and send it to Prometheus.
 #[derive(Clone)]
-pub struct TargetMetadataQueryBuilder<'a> {
+pub struct TargetMetadataQueryBuilder {
     client: Client,
-    match_target: Option<Selector<'a>>,
+    match_target: Option<String>,
     metric: Option<String>,
     limit: Option<i32>,
 }
@@ -303,12 +303,12 @@ pub struct TargetMetadataQueryBuilder<'a> {
 /// and only returns target metadata that matches all filters.<br>
 /// See the official documentation for a thorough explanation on the filters that can
 /// be set: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-target-metadata).
-impl<'a> TargetMetadataQueryBuilder<'a> {
+impl TargetMetadataQueryBuilder {
     /// Pass a label selector to instruct Prometheus to filter targets by their label
     /// sets.
     /// Calling this repeatedly will replace the current label selector.
-    pub fn match_target(mut self, selector: &'a Selector<'a>) -> Self {
-        self.match_target = Some(selector.clone());
+    pub fn match_target(mut self, match_target: impl std::fmt::Display) -> Self {
+        self.match_target = Some(match_target.to_string());
         self
     }
 
@@ -339,11 +339,11 @@ impl<'a> TargetMetadataQueryBuilder<'a> {
         let mut params = vec![];
 
         if let Some(metric) = self.metric {
-            params.push(("metric", metric.to_string()))
+            params.push(("metric", metric))
         }
 
         if let Some(match_target) = self.match_target {
-            params.push(("match_target", match_target.to_string()))
+            params.push(("match_target", match_target))
         }
 
         if let Some(limit) = self.limit {
@@ -1322,30 +1322,32 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-target-metadata)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Selector};
+    /// use prometheus_http_query::Client;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
     ///     // Retrieve metadata for a specific metric from all targets.
-    ///     let response = client.target_metadata().metric("go_goroutines").get().await;
+    ///     let response = client.target_metadata()
+    ///         .metric("go_goroutines")
+    ///         .get()
+    ///         .await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     // Retrieve metric metadata from specific targets.
-    ///     let s = Selector::new().eq("job", "prometheus");
-    ///
-    ///     let response = client.target_metadata().match_target(&s).get().await;
+    ///     let response = client.target_metadata()
+    ///         .match_target("{job=\"prometheus\"}")
+    ///         .get()
+    ///         .await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     // Retrieve metadata for a specific metric from targets that match a specific label set.
-    ///     let s = Selector::new().eq("job", "node");
-    ///
     ///     let response = client.target_metadata()
     ///         .metric("node_cpu_seconds_total")
-    ///         .match_target(&s)
+    ///         .match_target("{job=\"node\"}")
     ///         .get()
     ///         .await;
     ///
@@ -1354,7 +1356,7 @@ impl Client {
     ///     Ok(())
     /// }
     /// ```
-    pub fn target_metadata<'a>(&self) -> TargetMetadataQueryBuilder<'a> {
+    pub fn target_metadata(&self) -> TargetMetadataQueryBuilder {
         TargetMetadataQueryBuilder {
             client: self.clone(),
             match_target: None,

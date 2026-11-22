@@ -277,7 +277,7 @@ pub async fn alertmanagers(host: &str) -> Result<Alertmanagers, Error> {
 /// This is just a convenience function for one-off requests, see [`Client::target_metadata`].
 ///
 /// ```rust
-/// use prometheus_http_query::{target_metadata, Selector};
+/// use prometheus_http_query::target_metadata;
 ///
 /// #[tokio::main(flavor = "current_thread")]
 /// async fn main() -> Result<(), anyhow::Error> {
@@ -285,19 +285,20 @@ pub async fn alertmanagers(host: &str) -> Result<Alertmanagers, Error> {
 ///         .metric("go_goroutines")
 ///         .get()
 ///         .await;
+///
 ///     assert!(response.is_ok());
 ///
-///     let select = Selector::new().eq("job", "prometheus");
 ///     let response = target_metadata("http://localhost:9090")?
-///         .match_target(&select)
+///         .match_target("{job=\"prometheus\"}")
 ///         .get()
 ///         .await;
+///
 ///     assert!(response.is_ok());
 ///
 ///     Ok(())
 /// }
 /// ```
-pub fn target_metadata(host: &'_ str) -> Result<TargetMetadataQueryBuilder<'_>, Error> {
+pub fn target_metadata(host: &str) -> Result<TargetMetadataQueryBuilder, Error> {
     Client::from_str(host).map(|c| c.target_metadata())
 }
 
