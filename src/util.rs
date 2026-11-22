@@ -6,7 +6,7 @@ use std::{fmt, str::FromStr};
 use url::Url;
 
 /// A helper enum to filter targets by state.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub enum TargetState {
     Active,
     Dropped,
@@ -19,6 +19,22 @@ impl fmt::Display for TargetState {
             Self::Active => f.write_str("active"),
             Self::Dropped => f.write_str("dropped"),
             Self::Any => f.write_str("any"),
+        }
+    }
+}
+
+impl FromStr for TargetState {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "active" => Ok(Self::Active),
+            "dropped" => Ok(Self::Dropped),
+            "any" => Ok(Self::Any),
+            _ => Err(Error::Parse(format!(
+                "failed to parse target state from '{}', must be one of 'active', 'dropped', 'any'",
+                s
+            ))),
         }
     }
 }
