@@ -475,7 +475,11 @@ impl SeriesQueryBuilder {
     /// Set series selectors that tell Prometheus which series to return. This can
     /// be used multiple times to extend the set of series selectors.
     /// At least one selector must be provided.
-    pub fn selectors(mut self, selectors: &[impl std::fmt::Display]) -> Self {
+    pub fn selectors<T>(mut self, selectors: T) -> Self
+    where
+        T: IntoIterator,
+        T::Item: std::fmt::Display,
+    {
         self.selectors
             .extend(selectors.into_iter().map(|item| item.to_string()));
         self
