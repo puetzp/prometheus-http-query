@@ -208,7 +208,7 @@ mod util;
 pub use self::client::{
     Client, InstantQueryBuilder, LabelNamesQueryBuilder, LabelValuesQueryBuilder,
     MetricMetadataQueryBuilder, RangeQueryBuilder, RulesQueryBuilder, SeriesQueryBuilder,
-    TargetMetadataQueryBuilder,
+    TargetMetadataQueryBuilder, TargetsQueryBuilder,
 };
 pub use self::direct::*;
 pub use self::error::Error;

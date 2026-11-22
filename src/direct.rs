@@ -2,7 +2,6 @@ use crate::client::*;
 use crate::error::Error;
 use crate::response::*;
 use crate::selector::Selector;
-use crate::util::TargetState;
 use std::borrow::Borrow;
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -146,15 +145,15 @@ pub fn label_values(host: &str, label: &str) -> Result<LabelValuesQueryBuilder, 
 ///
 /// #[tokio::main(flavor = "current_thread")]
 /// async fn main() -> Result<(), anyhow::Error> {
-///     let response = targets("http://localhost:9090", Some(TargetState::Active)).await;
+///     let response = targets("http://localhost:9090").get().await;
 ///
 ///     assert!(response.is_ok());
 ///
 ///     Ok(())
 /// }
 /// ```
-pub async fn targets(host: &str, state: Option<TargetState>) -> Result<Targets, Error> {
-    Client::from_str(host)?.targets(state).await
+pub fn targets(host: &str) -> Result<TargetsQueryBuilder, Error> {
+    Client::from_str(host).map(|c| c.targets())
 }
 
 /// Create a [`RulesQueryBuilder`] to apply filters to the rules query before

@@ -356,6 +356,47 @@ impl<'a> TargetMetadataQueryBuilder<'a> {
     }
 }
 
+/// Provides methods to build a query to the targets endpoint and send it to Prometheus.
+#[derive(Clone)]
+pub struct TargetsQueryBuilder {
+    client: Client,
+    state: Option<TargetState>,
+}
+
+/// Note that Prometheus combines all filters that have been set in the final request
+/// and only returns targets that match all filters.<br>
+/// See the official documentation for a thorough explanation on the filters that can
+/// be set: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#targets).
+impl TargetsQueryBuilder {
+    /// Set this to filter by active or dropped targets.
+    /// Calling this repeatedly will replace the current filter.
+    pub fn state(mut self, state: TargetState) -> Self {
+        self.state = Some(state);
+        self
+    }
+
+    /// Execute the targets query (using HTTP GET) and return the [`Targets`]
+    /// sent by Prometheus.
+    pub async fn get(self) -> Result<Targets, Error> {
+        let response = self.get_raw().await?;
+        Client::deserialize(response).await
+    }
+
+    /// Execute the targets query (using HTTP GET) and return the raw response
+    /// sent by Prometheus.
+    pub async fn get_raw(self) -> Result<reqwest::Response, Error> {
+        let mut params = vec![];
+
+        if let Some(state) = self.state {
+            params.push(("state", state.to_string()))
+        }
+
+        self.client
+            .send("api/v1/targets", &params, HttpMethod::GET, None)
+            .await
+    }
+}
+
 /// Provides methods to build a query to the metric metadata endpoint and send it to Prometheus.
 #[derive(Clone)]
 pub struct MetricMetadataQueryBuilder {
@@ -1042,29 +1083,23 @@ impl Client {
     /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
-    ///     let response = client.targets(None).await;
+    ///     let response = client.targets().get().await;
     ///
     ///     assert!(response.is_ok());
     ///
-    ///     // Filter targets by type:
-    ///     let response = client.targets(Some(TargetState::Active)).await;
+    ///     // Filter targets by state:
+    ///     let response = client.targets().state(TargetState::Active).get().await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn targets(&self, state: Option<TargetState>) -> Result<Targets, Error> {
-        let mut params = vec![];
-
-        if let Some(s) = &state {
-            params.push(("state", s.to_string()))
+    pub fn targets(&self) -> TargetsQueryBuilder {
+        TargetsQueryBuilder {
+            client: self.clone(),
+            state: None,
         }
-
-        let response = self
-            .send("api/v1/targets", &params, HttpMethod::GET, None)
-            .await?;
-        Client::deserialize(response).await
     }
 
     /// Create a [`RulesQueryBuilder`] to apply filters to the rules query before
