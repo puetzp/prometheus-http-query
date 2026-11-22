@@ -543,26 +543,35 @@ impl SeriesQueryBuilder {
 #[derive(Clone)]
 pub struct LabelNamesQueryBuilder {
     client: Client,
-    selectors: Vec<(&'static str, String)>,
+    selectors: Vec<String>,
     start: Option<i64>,
     end: Option<i64>,
+    limit: Option<i32>,
 }
 
 impl LabelNamesQueryBuilder {
-    /// Set series selectors to filter the time series from wich Prometheus
-    /// reads labels from.
+    /// Add series selectors to filter the time series from wich Prometheus
+    /// reads labels from.<br>
     /// This can be called multiple times to merge the series selectors with
-    /// those that have been set before.
-    pub fn selectors<'a, T>(mut self, selectors: T) -> Self
+    /// those that have been set before.<br>
+    /// This corresponds to setting `match[]` from [`Getting label names`](https://prometheus.io/docs/prometheus/latest/querying/api/#getting-label-names) repeatedly.
+    pub fn selectors<T>(mut self, selectors: T) -> Self
     where
         T: IntoIterator,
-        T::Item: Borrow<Selector<'a>>,
+        T::Item: std::fmt::Display,
     {
-        self.selectors.extend(
-            selectors
-                .into_iter()
-                .map(|s| ("match[]", s.borrow().to_string())),
-        );
+        self.selectors
+            .extend(selectors.into_iter().map(|item| item.to_string()));
+        self
+    }
+
+    /// Add a serie selector to filter the time series from wich Prometheus
+    /// reads labels from.<br>
+    /// This can be called multiple times to merge the series selectors with
+    /// those that have been set before.<br>
+    /// This corresponds to setting `match[]` from [`Getting label names`](https://prometheus.io/docs/prometheus/latest/querying/api/#getting-label-names) once.
+    pub fn selector(mut self, selector: impl std::fmt::Display) -> Self {
+        self.selectors.push(selector.to_string());
         self
     }
 
@@ -582,6 +591,13 @@ impl LabelNamesQueryBuilder {
         self
     }
 
+    /// Limit the maximum number of returned series.
+    /// Calling this repeatedly will replace the current limit.
+    pub fn limit(mut self, limit: i32) -> Self {
+        self.limit = Some(limit);
+        self
+    }
+
     /// Execute the query (using HTTP GET) and retrieve a collection of
     /// label names.
     pub async fn get(self) -> Result<Vec<String>, Error> {
@@ -593,6 +609,10 @@ impl LabelNamesQueryBuilder {
     pub async fn get_raw(self) -> Result<reqwest::Response, Error> {
         let mut params = vec![];
 
+        for selector in self.selectors {
+            params.push(("match[]", selector.to_string()));
+        }
+
         if let Some(start) = self.start {
             params.push(("start", start.to_string()));
         }
@@ -601,7 +621,9 @@ impl LabelNamesQueryBuilder {
             params.push(("end", end.to_string()));
         }
 
-        params.extend(self.selectors);
+        if let Some(limit) = self.limit {
+            params.push(("limit", limit.to_string()));
+        }
 
         self.client
             .send("api/v1/labels", &params, HttpMethod::GET, None)
@@ -999,7 +1021,7 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#getting-label-names)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Selector};
+    /// use prometheus_http_query::Client;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), anyhow::Error> {
@@ -1011,14 +1033,11 @@ impl Client {
     ///     assert!(response.is_ok());
     ///
     ///     // Use a selector to retrieve a list of labels that appear in specific time series:
-    ///     let s1 = Selector::new()
-    ///         .eq("handler", "/api/v1/query");
-    ///
-    ///     let s2 = Selector::new()
-    ///         .eq("job", "node")
-    ///         .regex_eq("mode", ".+");
-    ///
-    ///     let response = client.label_names().selectors(&[s1, s2]).get().await;
+    ///     let response = client.label_names()
+    ///         .selector("{handler=\"/api/v1/query\"}")
+    ///         .selector("{job=\"node\",mode=~\".+\"}")
+    ///         .get()
+    ///         .await;
     ///
     ///     assert!(response.is_ok());
     ///
@@ -1031,6 +1050,7 @@ impl Client {
             selectors: vec![],
             start: None,
             end: None,
+            limit: None,
         }
     }
 
