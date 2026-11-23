@@ -1,11 +1,9 @@
 use crate::error::{ClientError, Error};
 use crate::response::*;
-use crate::selector::Selector;
 use crate::util::{self, build_final_url, RuleKind, TargetState, ToBaseUrl};
 use reqwest::header::{HeaderMap, HeaderValue, IntoHeaderName, CONTENT_TYPE};
 use reqwest::Method as HttpMethod;
 use serde::{de::DeserializeOwned, Serialize};
-use std::borrow::Borrow;
 use std::collections::HashMap;
 use url::Url;
 
@@ -550,8 +548,8 @@ pub struct LabelNamesQueryBuilder {
 }
 
 impl LabelNamesQueryBuilder {
-    /// Add series selectors to filter the time series from wich Prometheus
-    /// reads labels from.<br>
+    /// Add series selectors to filter the time series from which Prometheus
+    /// reads label names.<br>
     /// This can be called multiple times to merge the series selectors with
     /// those that have been set before.<br>
     /// This corresponds to setting `match[]` from [`Getting label names`](https://prometheus.io/docs/prometheus/latest/querying/api/#getting-label-names) repeatedly.
@@ -565,8 +563,8 @@ impl LabelNamesQueryBuilder {
         self
     }
 
-    /// Add a serie selector to filter the time series from wich Prometheus
-    /// reads labels from.<br>
+    /// Add a serie selector to filter the time series from which Prometheus
+    /// reads label names.<br>
     /// This can be called multiple times to merge the series selectors with
     /// those that have been set before.<br>
     /// This corresponds to setting `match[]` from [`Getting label names`](https://prometheus.io/docs/prometheus/latest/querying/api/#getting-label-names) once.
@@ -637,26 +635,35 @@ impl LabelNamesQueryBuilder {
 pub struct LabelValuesQueryBuilder {
     client: Client,
     label: String,
-    selectors: Vec<(&'static str, String)>,
+    selectors: Vec<String>,
     start: Option<i64>,
     end: Option<i64>,
+    limit: Option<i32>,
 }
 
 impl LabelValuesQueryBuilder {
-    /// Set series selectors to filter the time series from wich Prometheus
-    /// reads label values from.
+    /// Add series selectors to filter the time series from which Prometheus
+    /// reads label values.<br>
     /// This can be called multiple times to merge the series selectors with
-    /// those that have been set before.
-    pub fn selectors<'a, T>(mut self, selectors: T) -> Self
+    /// those that have been set before.<br>
+    /// This corresponds to setting `match[]` from [`Querying label values`](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-label-values) repeatedly.
+    pub fn selectors<T>(mut self, selectors: T) -> Self
     where
         T: IntoIterator,
-        T::Item: Borrow<Selector<'a>>,
+        T::Item: std::fmt::Display,
     {
-        self.selectors.extend(
-            selectors
-                .into_iter()
-                .map(|s| ("match[]", s.borrow().to_string())),
-        );
+        self.selectors
+            .extend(selectors.into_iter().map(|item| item.to_string()));
+        self
+    }
+
+    /// Add a serie selector to filter the time series from which Prometheus
+    /// reads label values.<br>
+    /// This can be called multiple times to merge the series selectors with
+    /// those that have been set before.<br>
+    /// This corresponds to setting `match[]` from [`Querying label values`](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-label-values) once.
+    pub fn selector(mut self, selector: impl std::fmt::Display) -> Self {
+        self.selectors.push(selector.to_string());
         self
     }
 
@@ -676,6 +683,13 @@ impl LabelValuesQueryBuilder {
         self
     }
 
+    /// Limit the maximum number of returned series.
+    /// Calling this repeatedly will replace the current limit.
+    pub fn limit(mut self, limit: i32) -> Self {
+        self.limit = Some(limit);
+        self
+    }
+
     /// Execute the query (using HTTP GET) and retrieve a collection of
     /// label values for the given label name.
     pub async fn get(self) -> Result<Vec<String>, Error> {
@@ -688,6 +702,10 @@ impl LabelValuesQueryBuilder {
     pub async fn get_raw(self) -> Result<reqwest::Response, Error> {
         let mut params = vec![];
 
+        for selector in self.selectors {
+            params.push(("match[]", selector.to_string()));
+        }
+
         if let Some(start) = self.start {
             params.push(("start", start.to_string()));
         }
@@ -696,9 +714,12 @@ impl LabelValuesQueryBuilder {
             params.push(("end", end.to_string()));
         }
 
-        params.extend(self.selectors);
+        if let Some(limit) = self.limit {
+            params.push(("limit", limit.to_string()));
+        }
 
         let path = format!("api/v1/label/{}/values", self.label);
+
         self.client
             .send(&path, &params, HttpMethod::GET, None)
             .await
@@ -1063,7 +1084,7 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-label-values)
     ///
     /// ```rust
-    /// use prometheus_http_query::{Client, Selector};
+    /// use prometheus_http_query::Client;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), anyhow::Error> {
@@ -1075,10 +1096,11 @@ impl Client {
     ///     assert!(response.is_ok());
     ///
     ///     // To retrieve a list of label values of labels that appear in specific time series:
-    ///     let s1 = Selector::new()
-    ///         .regex_eq("instance", ".+");
-    ///
-    ///     let response = client.label_values("job").selectors(&[s1]).get().await;
+
+    ///     let response = client.label_values("job")
+    ///         .selector("{instance=~\".+\"}")
+    ///         .get()
+    ///         .await;
     ///
     ///     assert!(response.is_ok());
     ///
@@ -1092,6 +1114,7 @@ impl Client {
             selectors: vec![],
             start: None,
             end: None,
+            limit: None,
         }
     }
 

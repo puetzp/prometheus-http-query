@@ -308,7 +308,7 @@ pub fn target_metadata(host: &str) -> Result<TargetMetadataQueryBuilder, Error> 
 /// This is just a convenience function for one-off requests, see [`Client::metric_metadata`].
 ///
 /// ```rust
-/// use prometheus_http_query::{metric_metadata, Selector};
+/// use prometheus_http_query::metric_metadata;
 ///
 /// #[tokio::main(flavor = "current_thread")]
 /// async fn main() -> Result<(), anyhow::Error> {
