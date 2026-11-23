@@ -1,10 +1,11 @@
 use crate::error::{ClientError, Error};
 use crate::response::*;
+use crate::selector::Selector;
 use crate::util::{self, build_final_url, RuleKind, TargetState, ToBaseUrl};
 use reqwest::header::{HeaderMap, HeaderValue, IntoHeaderName, CONTENT_TYPE};
 use reqwest::Method as HttpMethod;
 use serde::{de::DeserializeOwned, Serialize};
-use std::collections::HashMap;
+use std::{borrow::Borrow, collections::HashMap};
 use url::Url;
 
 /// Provides a builder to set some query parameters in the context
@@ -553,7 +554,7 @@ impl LabelNamesQueryBuilder {
     /// This can be called multiple times to merge the series selectors with
     /// those that have been set before.<br>
     /// This corresponds to setting `match[]` from [`Getting label names`](https://prometheus.io/docs/prometheus/latest/querying/api/#getting-label-names) repeatedly.
-    pub fn selectors<T>(mut self, selectors: T) -> Self
+    pub fn match_many<T>(mut self, selectors: T) -> Self
     where
         T: IntoIterator,
         T::Item: std::fmt::Display,
@@ -563,12 +564,35 @@ impl LabelNamesQueryBuilder {
         self
     }
 
-    /// Add a serie selector to filter the time series from which Prometheus
+    /// Add a series selector to filter the time series from which Prometheus
     /// reads label names.<br>
     /// This can be called multiple times to merge the series selectors with
     /// those that have been set before.<br>
     /// This corresponds to setting `match[]` from [`Getting label names`](https://prometheus.io/docs/prometheus/latest/querying/api/#getting-label-names) once.
-    pub fn selector(mut self, selector: impl std::fmt::Display) -> Self {
+    pub fn match_one(mut self, selector: impl std::fmt::Display) -> Self {
+        self.selectors.push(selector.to_string());
+        self
+    }
+
+    /// This is a strongly typed version of [LabelNamesQueryBuilder::match_many].
+    /// Both methods can be used interchangeably.<br>
+    /// This can be called multiple times to merge the series selectors with
+    /// those that have been set before.
+    pub fn selectors<'a, T>(mut self, selectors: T) -> Self
+    where
+        T: IntoIterator,
+        T::Item: Borrow<Selector<'a>>,
+    {
+        self.selectors
+            .extend(selectors.into_iter().map(|s| s.borrow().to_string()));
+        self
+    }
+
+    /// This is a strongly typed version of [LabelNamesQueryBuilder::match_one].
+    /// Both methods can be used interchangeably.<br>
+    /// This can be called multiple times to merge the series selectors with
+    /// those that have been set before.
+    pub fn selector<'a>(mut self, selector: &Selector<'a>) -> Self {
         self.selectors.push(selector.to_string());
         self
     }
@@ -1042,7 +1066,7 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#getting-label-names)
     ///
     /// ```rust
-    /// use prometheus_http_query::Client;
+    /// use prometheus_http_query::{Client, Selector};
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), anyhow::Error> {
@@ -1053,14 +1077,32 @@ impl Client {
     ///
     ///     assert!(response.is_ok());
     ///
-    ///     // Use a selector to retrieve a list of labels that appear in specific time series:
-    ///     let response = client.label_names()
-    ///         .selector("{handler=\"/api/v1/query\"}")
-    ///         .selector("{job=\"node\",mode=~\".+\"}")
-    ///         .get()
-    ///         .await;
+    ///     // Use free-form selectors to retrieve a list of labels
+    ///     // that appear in specific time series:
+    ///     {
+    ///         let response = client.label_names()
+    ///             .match_one("{handler=\"/api/v1/query\"}")
+    ///             .match_one("{job=\"node\",mode=~\".+\"}")
+    ///             .get()
+    ///             .await;
     ///
-    ///     assert!(response.is_ok());
+    ///         assert!(response.is_ok());
+    ///     }
+    ///
+    ///     // Use strongly typed selectors to retrieve a list of labels
+    ///     // that appear in specific time series:
+    ///     {
+    ///         let s1 = Selector::new()
+    ///             .eq("handler", "/api/v1/query");
+    ///
+    ///         let s2 = Selector::new()
+    ///             .eq("job", "node")
+    ///             .regex_eq("mode", ".+");
+    ///
+    ///         let response = client.label_names().selectors(&[s1, s2]).get().await;
+    ///
+    ///         assert!(response.is_ok());
+    ///     }
     ///
     ///     Ok(())
     /// }
