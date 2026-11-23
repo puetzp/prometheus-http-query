@@ -671,7 +671,7 @@ impl LabelValuesQueryBuilder {
     /// This can be called multiple times to merge the series selectors with
     /// those that have been set before.<br>
     /// This corresponds to setting `match[]` from [`Querying label values`](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-label-values) repeatedly.
-    pub fn selectors<T>(mut self, selectors: T) -> Self
+    pub fn match_many<T>(mut self, selectors: T) -> Self
     where
         T: IntoIterator,
         T::Item: std::fmt::Display,
@@ -681,12 +681,35 @@ impl LabelValuesQueryBuilder {
         self
     }
 
-    /// Add a serie selector to filter the time series from which Prometheus
+    /// Add a series selector to filter the time series from which Prometheus
     /// reads label values.<br>
     /// This can be called multiple times to merge the series selectors with
     /// those that have been set before.<br>
     /// This corresponds to setting `match[]` from [`Querying label values`](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-label-values) once.
-    pub fn selector(mut self, selector: impl std::fmt::Display) -> Self {
+    pub fn match_one(mut self, selector: impl std::fmt::Display) -> Self {
+        self.selectors.push(selector.to_string());
+        self
+    }
+
+    /// This is a strongly typed version of [LabelValuesQueryBuilder::match_many].
+    /// Both methods can be used interchangeably.<br>
+    /// This can be called multiple times to merge the series selectors with
+    /// those that have been set before.
+    pub fn selectors<'a, T>(mut self, selectors: T) -> Self
+    where
+        T: IntoIterator,
+        T::Item: Borrow<Selector<'a>>,
+    {
+        self.selectors
+            .extend(selectors.into_iter().map(|s| s.borrow().to_string()));
+        self
+    }
+
+    /// This is a strongly typed version of [LabelValuesQueryBuilder::match_one].
+    /// Both methods can be used interchangeably.<br>
+    /// This can be called multiple times to merge the series selectors with
+    /// those that have been set before.
+    pub fn selector<'a>(mut self, selector: &Selector<'a>) -> Self {
         self.selectors.push(selector.to_string());
         self
     }
@@ -1126,7 +1149,7 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-label-values)
     ///
     /// ```rust
-    /// use prometheus_http_query::Client;
+    /// use prometheus_http_query::{Client, Selector};
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), anyhow::Error> {
@@ -1137,14 +1160,30 @@ impl Client {
     ///
     ///     assert!(response.is_ok());
     ///
-    ///     // To retrieve a list of label values of labels that appear in specific time series:
-
-    ///     let response = client.label_values("job")
-    ///         .selector("{instance=~\".+\"}")
-    ///         .get()
-    ///         .await;
+    ///     // Using free-form series selectors to retrieve a list of label values
+    ///     // that appear in specific time series:
+    ///     {
+    ///         let response = client.label_values("job")
+    ///             .match_one("{instance=~\".+\"}")
+    ///             .get()
+    ///             .await;
     ///
-    ///     assert!(response.is_ok());
+    ///         assert!(response.is_ok());
+    ///     }
+    ///
+    ///     // Using strongly typed series selectors to retrieve a list of label
+    ///     // values that appear in specific time series:
+    ///     {
+    ///         let selector = Selector::new()
+    ///             .regex_eq("instance", ".+");
+    ///
+    ///         let response = client.label_values("job")
+    ///             .selector(&selector)
+    ///             .get()
+    ///             .await;
+    ///
+    ///         assert!(response.is_ok());
+    ///     }
     ///
     ///     Ok(())
     /// }
