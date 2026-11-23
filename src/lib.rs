@@ -65,22 +65,40 @@
 //!
 //! ## Metadata queries
 //!
-//! Retrieve a list of time series that match a certain label set by providing one or more series [`Selector`]s.
+//! Retrieve a list of time series that match a certain label set by providing one or more time series [`Selector`]s
+//! or providing selectors in their native string syntax, depending on what better suits your use case.<br>
 //! More metadata queries are available, e.g. methods to retrieve label names and values.
 //!
 //! ```rust
-//! use prometheus_http_query::Client;
+//! use prometheus_http_query::{Client, Selector};
 //!
 //! #[tokio::main(flavor = "current_thread")]
 //! async fn main() -> Result<(), anyhow::Error> {
 //!     let client = Client::default();
 //!
-//!     let response = client.series()
-//!         .selectors(&["{handler=\"/api/v1/query\"}", "{job=\"node\", mode=\".+\"}"])
-//!         .get()
-//!         .await;
+//!     // Using `Selector`.
+//!     {
+//!         let s1 = Selector::new()
+//!             .eq("handler", "/api/v1/query");
 //!
-//!     assert!(response.is_ok());
+//!         let s2 = Selector::new()
+//!             .eq("job", "node")
+//!             .regex_eq("mode", ".+");
+//!
+//!         let response = client.series().selectors(&[s1, s2]).get().await;
+//!
+//!         assert!(response.is_ok());
+//!     }
+//!
+//!     // Using the free-form API.
+//!     {
+//!         let response = client.series()
+//!             .match_many(&["{handler=\"/api/v1/query\"}", "{job=\"node\", mode=\".+\"}"])
+//!             .get()
+//!             .await;
+//!
+//!         assert!(response.is_ok());
+//!     }
 //!
 //!     Ok(())
 //! }

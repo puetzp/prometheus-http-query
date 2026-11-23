@@ -473,8 +473,9 @@ pub struct SeriesQueryBuilder {
 impl SeriesQueryBuilder {
     /// Add series selectors that tell Prometheus which series to return. This can
     /// be used multiple times to extend the set of series selectors.
-    /// At least one selector must be provided.
-    pub fn selectors<T>(mut self, selectors: T) -> Self
+    /// At least one selector must be provided.<br>
+    /// This corresponds to setting `match[]` from [`Finding series by label matchers`](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers) repeatedly.
+    pub fn match_many<T>(mut self, selectors: T) -> Self
     where
         T: IntoIterator,
         T::Item: std::fmt::Display,
@@ -486,8 +487,32 @@ impl SeriesQueryBuilder {
 
     /// Add a series selector that tells Prometheus which series to return. This can
     /// be used multiple times to extend the set of series selectors.
-    /// At least one selector must be provided.
-    pub fn selector(mut self, selector: impl std::fmt::Display) -> Self {
+    /// At least one selector must be provided.<br>
+    /// This corresponds to setting `match[]` from [`Finding series by label matchers`](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers) once.
+    pub fn match_one(mut self, selector: impl std::fmt::Display) -> Self {
+        self.selectors.push(selector.to_string());
+        self
+    }
+
+    /// This is a strongly typed version of [SeriesQueryBuilder::match_many].
+    /// Both methods can be used interchangeably.<br>
+    /// This can be called multiple times to merge the series selectors with
+    /// those that have been set before.
+    pub fn selectors<'a, T>(mut self, selectors: T) -> Self
+    where
+        T: IntoIterator,
+        T::Item: Borrow<Selector<'a>>,
+    {
+        self.selectors
+            .extend(selectors.into_iter().map(|s| s.borrow().to_string()));
+        self
+    }
+
+    /// This is a strongly typed version of [SeriesQueryBuilder::match_one].
+    /// Both methods can be used interchangeably.<br>
+    /// This can be called multiple times to merge the series selectors with
+    /// those that have been set before.
+    pub fn selector<'a>(mut self, selector: &Selector<'a>) -> Self {
         self.selectors.push(selector.to_string());
         self
     }
@@ -1057,19 +1082,41 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers)
     ///
     /// ```rust
-    /// use prometheus_http_query::Client;
+    /// use prometheus_http_query::{Client, Selector};
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
-    ///     let response = client.series()
-    ///         .selector("up")
-    ///         .selector("{job=\"node\",instance=~\".+\"}")
-    ///         .get()
-    ///         .await;
+    ///     // Use free-form series selectors to only return time series
+    ///     // matching a certain label set.
+    ///     {
+    ///         let response = client.series()
+    ///             .match_one("up")
+    ///             .match_one("{job=\"node\",instance=~\".+\"}")
+    ///             .get()
+    ///             .await;
     ///
-    ///     assert!(response.is_ok());
+    ///         assert!(response.is_ok());
+    ///     }
+    ///
+    ///     // Use strongly typed series selectors to only return time series
+    ///     // matching a certain label set.
+    ///     {
+    ///         let s1 = Selector::new()
+    ///             .eq("handler", "/api/v1/query");
+    ///
+    ///         let s2 = Selector::new()
+    ///             .eq("job", "node")
+    ///             .regex_eq("mode", ".+");
+    ///
+    ///         let response = client.series()
+    ///             .selectors(&[s1, s2])
+    ///             .get()
+    ///             .await;
+    ///
+    ///         assert!(response.is_ok());
+    ///     }
     ///
     ///     Ok(())
     /// }

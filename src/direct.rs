@@ -75,7 +75,7 @@ pub fn query_range(
 /// #[tokio::main(flavor = "current_thread")]
 /// async fn main() -> Result<(), anyhow::Error> {
 ///     let response = series("http://localhost:9090")?
-///         .selectors(&["{handler=\"/api/v1/query\"}"])
+///         .match_many(&["{handler=\"/api/v1/query\"}"])
 ///         .get()
 ///         .await;
 ///
