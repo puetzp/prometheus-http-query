@@ -3,7 +3,98 @@ use mime::Mime;
 use reqwest::header::HeaderValue;
 use serde::Deserialize;
 use std::{fmt, str::FromStr};
+use time::Duration as TimeDuration;
 use url::Url;
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct Duration(TimeDuration);
+
+impl FromStr for Duration {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut total_milliseconds: i64 = 0;
+
+        // Add each number character to a string until a unit character is encountered.
+        // This string is then cleared to process the next number + unit.
+        let mut raw_num = String::new();
+
+        // Iterate the duration string, convert each unit to nanoseconds and add
+        // it to the total.
+        let mut duration_iter = s.chars().peekable();
+
+        if let Some(c) = duration_iter.next_if_eq(&'-') {
+            raw_num.push(c);
+        }
+
+        while let Some(item) = duration_iter.next() {
+            if ('0'..='9').contains(&item) {
+                raw_num.push(item);
+                continue;
+            }
+
+            let num = raw_num.parse::<i64>().map_err(Error::ParseInt)?;
+
+            match item {
+                'y' => {
+                    total_milliseconds += num * 1000 * 60 * 60 * 24 * 365;
+                }
+                'w' => {
+                    total_milliseconds += num * 1000 * 60 * 60 * 24 * 7;
+                }
+                'd' => {
+                    total_milliseconds += num * 1000 * 60 * 60 * 24;
+                }
+                'h' => {
+                    total_milliseconds += num * 1000 * 60 * 60;
+                }
+                'm' => {
+                    if duration_iter.next_if_eq(&'s').is_some() {
+                        total_milliseconds += num;
+                    } else {
+                        total_milliseconds += num * 1000 * 60;
+                    }
+                }
+                's' => {
+                    total_milliseconds += num * 1000;
+                }
+                _ => return Err(Error::Parse(format!("invalid time duration: {}", s))),
+            };
+
+            raw_num.clear();
+        }
+
+        Ok(Self(TimeDuration::milliseconds(total_milliseconds)))
+    }
+}
+
+impl std::ops::Deref for Duration {
+    type Target = TimeDuration;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl TryFrom<String> for Duration {
+    type Error = Error;
+
+    fn try_from(s: String) -> Result<Self, Self::Error> {
+        Self::from_str(&s)
+    }
+}
+
+impl From<f64> for Duration {
+    fn from(f: f64) -> Self {
+        Self(TimeDuration::saturating_seconds_f64(f))
+    }
+}
+
+impl From<i64> for Duration {
+    fn from(s: i64) -> Self {
+        Self(TimeDuration::seconds(s))
+    }
+}
 
 /// A helper enum to filter targets by state.
 #[derive(Clone, Copy, Debug)]
@@ -258,7 +349,9 @@ pub(crate) fn is_json(v: Option<&HeaderValue>) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::{build_final_url, is_json, ToBaseUrl};
+    use super::{build_final_url, is_json, Duration, ToBaseUrl};
+    use std::str::FromStr;
+    use time::Duration as TimeDuration;
 
     #[test]
     fn test_simple_str_to_url() {
@@ -317,5 +410,34 @@ mod tests {
     fn test_is_json_with_charset() {
         let header = reqwest::header::HeaderValue::from_static("application/json; charset=utf-8");
         assert!(is_json(Some(&header)));
+    }
+
+    #[test]
+    fn test_duration() -> Result<(), anyhow::Error> {
+        {
+            let s = "1s";
+            let expected = Duration(TimeDuration::seconds(1));
+            assert_eq!(Duration::from_str(s)?, expected);
+        }
+
+        {
+            let s = "2m";
+            let expected = Duration(TimeDuration::seconds(120));
+            assert_eq!(Duration::from_str(s)?, expected);
+        }
+
+        {
+            let s = "1ms";
+            let expected = Duration(TimeDuration::milliseconds(1));
+            assert_eq!(Duration::from_str(s)?, expected);
+        }
+
+        {
+            let s = "-2h";
+            let expected = Duration(TimeDuration::seconds(-7200));
+            assert_eq!(Duration::from_str(s)?, expected);
+        }
+
+        Ok(())
     }
 }

@@ -66,54 +66,9 @@ mod de {
     {
         let raw_str = String::deserialize(deserializer)?;
 
-        let mut total_milliseconds: i64 = 0;
+        let duration = crate::util::Duration::try_from(raw_str).map_err(SerdeError::custom)?;
 
-        // Add each number character to a string until a unit character is encountered.
-        // This string is then cleared to process the next number + unit.
-        let mut raw_num = String::new();
-
-        // Iterate the duration string, convert each unit to nanoseconds and add
-        // it to the total.
-        let mut duration_iter = raw_str.chars().peekable();
-
-        while let Some(item) = duration_iter.next() {
-            if ('0'..='9').contains(&item) {
-                raw_num.push(item);
-                continue;
-            }
-
-            let num = raw_num.parse::<i64>().map_err(SerdeError::custom)?;
-
-            match item {
-                'y' => {
-                    total_milliseconds += num * 1000 * 60 * 60 * 24 * 365;
-                }
-                'w' => {
-                    total_milliseconds += num * 1000 * 60 * 60 * 24 * 7;
-                }
-                'd' => {
-                    total_milliseconds += num * 1000 * 60 * 60 * 24;
-                }
-                'h' => {
-                    total_milliseconds += num * 1000 * 60 * 60;
-                }
-                'm' => {
-                    if duration_iter.next_if_eq(&'s').is_some() {
-                        total_milliseconds += num * 1000 * 60 * 60;
-                    } else {
-                        total_milliseconds += num * 1000 * 60;
-                    }
-                }
-                's' => {
-                    total_milliseconds += num * 1000;
-                }
-                _ => return Err(SerdeError::custom("invalid time duration")),
-            };
-
-            raw_num.clear();
-        }
-
-        Ok(Duration::milliseconds(total_milliseconds))
+        Ok(*duration)
     }
 }
 
