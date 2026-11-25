@@ -311,6 +311,14 @@ impl TargetMetadataQueryBuilder {
         self
     }
 
+    /// Pass a label selector to instruct Prometheus to filter targets by their label
+    /// sets. This is stronger typed version of [TargetMetadataQueryBuilder::match_target].
+    /// Calling this repeatedly will replace the current label selector.
+    pub fn match_target_selector(mut self, match_target: Selector) -> Self {
+        self.match_target = Some(match_target.to_string());
+        self
+    }
+
     /// Set this to only retrieve target metadata for this metric.
     /// Calling this repeatedly will replace the current metric name.
     pub fn metric(mut self, metric: impl std::fmt::Display) -> Self {
@@ -1499,7 +1507,7 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-target-metadata)
     ///
     /// ```rust
-    /// use prometheus_http_query::Client;
+    /// use prometheus_http_query::{Client, Selector};
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), anyhow::Error> {
@@ -1522,9 +1530,11 @@ impl Client {
     ///     assert!(response.is_ok());
     ///
     ///     // Retrieve metadata for a specific metric from targets that match a specific label set.
+    ///     // Also use a stronger typed selector.
+    ///     let s = Selector::new().eq("job", "node");
     ///     let response = client.target_metadata()
     ///         .metric("node_cpu_seconds_total")
-    ///         .match_target("{job=\"node\"}")
+    ///         .match_target_selector(s)
     ///         .get()
     ///         .await;
     ///
