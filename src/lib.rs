@@ -125,7 +125,7 @@
 //!     assert!(response.is_ok());
 //!
 //!     // Request active alerts:
-//!     let response = client.alerts().await;
+//!     let response = client.alerts().get().await;
 //!
 //!     assert!(response.is_ok());
 //!

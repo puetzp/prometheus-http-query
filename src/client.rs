@@ -728,6 +728,30 @@ impl LabelValuesQueryBuilder {
     }
 }
 
+#[derive(Clone, Debug)]
+pub struct AlertsQueryBuilder {
+    client: Client,
+}
+
+impl AlertsQueryBuilder {
+    /// Execute the query (using HTTP GET) and retrieve a collection of
+    /// active alerts.
+    pub async fn get(self) -> Result<Vec<Alert>, Error> {
+        let response = self.get_raw().await?;
+        Client::deserialize(response)
+            .await
+            .map(|r: Alerts| r.alerts)
+    }
+
+    /// Execute the query (using HTTP GET) and retrieve the raw response
+    /// from the [`reqwest`] crate.
+    pub async fn get_raw(self) -> Result<reqwest::Response, Error> {
+        self.client
+            .send("api/v1/alerts", &(), HttpMethod::GET, None)
+            .await
+    }
+}
+
 /// A client used to execute queries. It uses a [`reqwest::Client`] internally
 /// that manages connections for us.
 #[derive(Clone, Debug)]
@@ -1257,20 +1281,25 @@ impl Client {
     /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
-    ///     let response = client.alerts().await;
+    ///     let response = client.alerts().get().await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn alerts(&self) -> Result<Vec<Alert>, Error> {
+    pub fn alerts(&self) -> AlertsQueryBuilder {
+        AlertsQueryBuilder {
+            client: self.clone(),
+        }
+        /*
         let response = self
             .send("api/v1/alerts", &(), HttpMethod::GET, None)
             .await?;
         Client::deserialize(response)
             .await
-            .map(|r: Alerts| r.alerts)
+        .map(|r: Alerts| r.alerts)
+        */
     }
 
     /// Retrieve a list of flags that Prometheus was configured with.

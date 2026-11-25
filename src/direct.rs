@@ -180,15 +180,15 @@ pub fn rules(host: &str) -> Result<RulesQueryBuilder, Error> {
 ///
 /// #[tokio::main(flavor = "current_thread")]
 /// async fn main() -> Result<(), anyhow::Error> {
-///     let response = alerts("http://localhost:9090").await;
+///     let response = alerts("http://localhost:9090")?.get().await;
 ///
 ///     assert!(response.is_ok());
 ///
 ///     Ok(())
 /// }
 /// ```
-pub async fn alerts(host: &str) -> Result<Vec<Alert>, Error> {
-    Client::from_str(host)?.alerts().await
+pub fn alerts(host: &str) -> Result<AlertsQueryBuilder, Error> {
+    Client::from_str(host).map(|c| c.alerts())
 }
 
 /// Retrieve a list of flags that Prometheus was configured with.

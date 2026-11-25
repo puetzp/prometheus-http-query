@@ -6,7 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.10.0-rc.1] - 2026-11-25
 ### Added
-- New `TargetsQueryBuilder` as returned by `Client::targets` to build queries and optionally return raw responses.
+- New `TargetsQueryBuilder` as returned by `Client::targets` to build queries gradually and choose between raw or deserialized query responses via `get` and `get_raw` respectively.
 - `SeriesQueryBuilder::match_many` to set time series selectors in `match[]` query parameters instead of passing them directly to `Client::series`.
 - `SeriesQueryBuilder::match_one` to set time series selectors in a `match[]` query parameter instead of passing them directly to `Client::series`.
 - `LabelNamesQueryBuilder::match_many` to replace `LabelNamesQueryBuilder::selectors` by accepting any collection whose items implement `std::fmt::Display` and set `match[]` query parameters.
@@ -17,11 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `LabelValuesQueryBuilder::limit`.
 - `Error::ParseInt` and `Error::Parse` variants.
 - New `Duration` type (wrapper around `time::Duration`) to help with (de)serializing Prometheus time duration (such as `5m`).
+- New `AlertsQueryBuilder` as returned by `Client::alerts` to choose between raw or deserialized query responses via `get` and `get_raw` respectively.
 
 ### Changed
 - `TargetMetadataQueryBuilder::match_target` now takes any type that implements `std::fmt::Display`, including but not limited to `Selector`.
 - `Client::series` to not accept selectors but delegate it to more flexible methods `SeriesQueryBuilder::match_many` and `SeriesQueryBuilder::match_one`.
 - `Client::targets` now returns builder type `TargetsQueryBuilder` and does not take any arguments anymore.
+- `Client::alerts` now returns builder type `AlertsQueryBuilder`.
 
 ### Removed
 - `LabelNamesQueryBuilder::selectors` to be replaced by `LabelNamesQueryBuilder::match_*` methods.
