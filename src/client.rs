@@ -1,11 +1,10 @@
 use crate::error::{ClientError, Error};
 use crate::response::*;
-use crate::selector::Selector;
 use crate::util::{self, build_final_url, RuleKind, TargetState, ToBaseUrl};
 use reqwest::header::{HeaderMap, HeaderValue, IntoHeaderName, CONTENT_TYPE};
 use reqwest::Method as HttpMethod;
 use serde::{de::DeserializeOwned, Serialize};
-use std::{borrow::Borrow, collections::HashMap};
+use std::collections::HashMap;
 use url::Url;
 
 /// Provides a builder to set some query parameters in the context
@@ -670,29 +669,6 @@ impl LabelValuesQueryBuilder {
         self
     }
 
-    /// This is a strongly typed version of [LabelValuesQueryBuilder::match_many].
-    /// Both methods can be used interchangeably.<br>
-    /// This can be called multiple times to merge the series selectors with
-    /// those that have been set before.
-    pub fn selectors<'a, T>(mut self, selectors: T) -> Self
-    where
-        T: IntoIterator,
-        T::Item: Borrow<Selector<'a>>,
-    {
-        self.selectors
-            .extend(selectors.into_iter().map(|s| s.borrow().to_string()));
-        self
-    }
-
-    /// This is a strongly typed version of [LabelValuesQueryBuilder::match_one].
-    /// Both methods can be used interchangeably.<br>
-    /// This can be called multiple times to merge the series selectors with
-    /// those that have been set before.
-    pub fn selector<'a>(mut self, selector: &Selector<'a>) -> Self {
-        self.selectors.push(selector.to_string());
-        self
-    }
-
     /// Limit the amount of metadata returned by setting a start time
     /// (UNIX timestamp in seconds).
     /// Calling this repeatedly will replace the current setting.
@@ -1185,7 +1161,7 @@ impl Client {
     ///             .regex_eq("instance", ".+");
     ///
     ///         let response = client.label_values("job")
-    ///             .selector(&selector)
+    ///             .match_one(&selector)
     ///             .get()
     ///             .await;
     ///
