@@ -1038,7 +1038,8 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries)
     ///
     /// ```rust
-    /// use prometheus_http_query::Client;
+    /// use prometheus_http_query::{Client, Duration};
+    /// use std::str::FromStr;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), anyhow::Error> {
@@ -1051,7 +1052,12 @@ impl Client {
     ///     assert!(response.data().as_matrix().is_some());
     ///
     ///     // Or make a POST request.
-    ///     let response = client.query_range(q, 1648373100, 1648373300, 10.0).post().await?;
+    ///     // A Prometheus time duration can also be parsed from a string when
+    ///     // it is not available in its float representation.
+    ///     let duration = Duration::from_str("10s")?;
+    ///     let response = client.query_range(q, 1648373100, 1648373300, duration.into())
+    ///         .post()
+    ///         .await?;
     ///
     ///     assert!(response.data().as_matrix().is_some());
     ///
