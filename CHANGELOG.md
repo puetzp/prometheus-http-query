@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0-rc.1] - 2026-11-25
+### Added
+- New `TargetsQueryBuilder` as returned by `Client::targets` to build queries and optionally return raw responses.
+- `SeriesQueryBuilder::match_many` to set time series selectors in `match[]` query parameters instead of passing them directly to `Client::series`.
+- `SeriesQueryBuilder::match_one` to set time series selectors in a `match[]` query parameter instead of passing them directly to `Client::series`.
+- `LabelNamesQueryBuilder::match_many` to replace `LabelNamesQueryBuilder::selectors` by accepting any collection whose items implement `std::fmt::Display` and set `match[]` query parameters.
+- `LabelNamesQueryBuilder::match_one` to replace `LabelNamesQueryBuilder::selectors` by accepting any type that implements `std::fmt::Display` and set a `match[]` query parameter.
+- `LabelNamesQueryBuilder::limit`.
+- `LabelValuesQueryBuilder::match_many` to set `match[]` query parameters.
+- `LabelValuesQueryBuilder::match_one` to set `match[]` query parameter.
+- `LabelValuesQueryBuilder::limit`.
+- `Error::ParseInt` and `Error::Parse` variants.
+- New `Duration` type (wrapper around `time::Duration`) to help with (de)serializing Prometheus time duration (such as `5m`).
+
+### Changed
+- `TargetMetadataQueryBuilder::match_target` now takes any type that implements `std::fmt::Display`, including but not limited to `Selector`.
+- `Client::series` to not accept selectors but delegate it to more flexible methods `SeriesQueryBuilder::match_many` and `SeriesQueryBuilder::match_one`.
+- `Client::targets` now returns builder type `TargetsQueryBuilder` and does not take any arguments anymore.
+
+### Removed
+- `LabelNamesQueryBuilder::selectors` to be replaced by `LabelNamesQueryBuilder::match_*` methods.
+
 ## [0.9.0] - 2026-05-09
 ### Added
 - Re-export `reqwest` to avoid having to manage multiple, possibly conflicting dependencies to the same crate in a user's `Cargo.toml` (thanks to @svcalex via [pull request](https://github.com/puetzp/prometheus-http-query/pull/17))
