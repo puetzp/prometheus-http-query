@@ -311,14 +311,6 @@ impl TargetMetadataQueryBuilder {
         self
     }
 
-    /// Pass a label selector to instruct Prometheus to filter targets by their label
-    /// sets. This is stronger typed version of [TargetMetadataQueryBuilder::match_target].
-    /// Calling this repeatedly will replace the current label selector.
-    pub fn match_target_selector(mut self, match_target: Selector) -> Self {
-        self.match_target = Some(match_target.to_string());
-        self
-    }
-
     /// Set this to only retrieve target metadata for this metric.
     /// Calling this repeatedly will replace the current metric name.
     pub fn metric(mut self, metric: impl std::fmt::Display) -> Self {
@@ -502,29 +494,6 @@ impl SeriesQueryBuilder {
         self
     }
 
-    /// This is a strongly typed version of [SeriesQueryBuilder::match_many].
-    /// Both methods can be used interchangeably.<br>
-    /// This can be called multiple times to merge the series selectors with
-    /// those that have been set before.
-    pub fn match_selectors<'a, T>(mut self, selectors: T) -> Self
-    where
-        T: IntoIterator,
-        T::Item: Borrow<Selector<'a>>,
-    {
-        self.selectors
-            .extend(selectors.into_iter().map(|s| s.borrow().to_string()));
-        self
-    }
-
-    /// This is a strongly typed version of [SeriesQueryBuilder::match_one].
-    /// Both methods can be used interchangeably.<br>
-    /// This can be called multiple times to merge the series selectors with
-    /// those that have been set before.
-    pub fn match_selector<'a>(mut self, selector: &Selector<'a>) -> Self {
-        self.selectors.push(selector.to_string());
-        self
-    }
-
     /// Limit the amount of metadata returned by setting a start time
     /// (UNIX timestamp in seconds).
     /// Calling this repeatedly will replace the current setting.
@@ -603,29 +572,6 @@ impl LabelNamesQueryBuilder {
     /// those that have been set before.<br>
     /// This corresponds to setting `match[]` from [`Getting label names`](https://prometheus.io/docs/prometheus/latest/querying/api/#getting-label-names) once.
     pub fn match_one(mut self, selector: impl std::fmt::Display) -> Self {
-        self.selectors.push(selector.to_string());
-        self
-    }
-
-    /// This is a strongly typed version of [LabelNamesQueryBuilder::match_many].
-    /// Both methods can be used interchangeably.<br>
-    /// This can be called multiple times to merge the series selectors with
-    /// those that have been set before.
-    pub fn match_selectors<'a, T>(mut self, selectors: T) -> Self
-    where
-        T: IntoIterator,
-        T::Item: Borrow<Selector<'a>>,
-    {
-        self.selectors
-            .extend(selectors.into_iter().map(|s| s.borrow().to_string()));
-        self
-    }
-
-    /// This is a strongly typed version of [LabelNamesQueryBuilder::match_one].
-    /// Both methods can be used interchangeably.<br>
-    /// This can be called multiple times to merge the series selectors with
-    /// those that have been set before.
-    pub fn match_selector<'a>(mut self, selector: &Selector<'a>) -> Self {
         self.selectors.push(selector.to_string());
         self
     }
@@ -1125,7 +1071,7 @@ impl Client {
     ///             .regex_eq("mode", ".+");
     ///
     ///         let response = client.series()
-    ///             .match_selectors(&[s1, s2])
+    ///             .match_many(&[s1, s2])
     ///             .get()
     ///             .await;
     ///
@@ -1183,7 +1129,7 @@ impl Client {
     ///             .eq("job", "node")
     ///             .regex_eq("mode", ".+");
     ///
-    ///         let response = client.label_names().match_selectors(&[s1, s2]).get().await;
+    ///         let response = client.label_names().match_many(&[s1, s2]).get().await;
     ///
     ///         assert!(response.is_ok());
     ///     }
@@ -1534,7 +1480,7 @@ impl Client {
     ///     let s = Selector::new().eq("job", "node");
     ///     let response = client.target_metadata()
     ///         .metric("node_cpu_seconds_total")
-    ///         .match_target_selector(s)
+    ///         .match_target(s)
     ///         .get()
     ///         .await;
     ///
