@@ -32,7 +32,7 @@ async fn main() -> Result<(), Error> {
         .eq("job", "node")
         .regex_eq("mode", ".+");
 
-    let time_series = client.series(&[select1, select2]).get().await;
+    let time_series = client.series().match_many(&[select1, select2]).get().await;
     assert!(time_series.is_ok());
 
     Ok(())
