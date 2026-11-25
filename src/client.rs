@@ -9,7 +9,7 @@ use url::Url;
 
 /// Provides a builder to set some query parameters in the context
 /// of an instant query before sending it to Prometheus.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct InstantQueryBuilder {
     client: Client,
     params: Vec<(&'static str, String)>,
@@ -89,7 +89,7 @@ impl InstantQueryBuilder {
 
 /// Provides a builder to set some query parameters in the context
 /// of a range query before sending it to Prometheus.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct RangeQueryBuilder {
     client: Client,
     params: Vec<(&'static str, String)>,
@@ -289,7 +289,7 @@ impl RulesQueryBuilder {
 }
 
 /// Provides methods to build a query to the target metadata endpoint and send it to Prometheus.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct TargetMetadataQueryBuilder {
     client: Client,
     match_target: Option<String>,
@@ -355,7 +355,7 @@ impl TargetMetadataQueryBuilder {
 }
 
 /// Provides methods to build a query to the targets endpoint and send it to Prometheus.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct TargetsQueryBuilder {
     client: Client,
     state: Option<TargetState>,
@@ -396,7 +396,7 @@ impl TargetsQueryBuilder {
 }
 
 /// Provides methods to build a query to the metric metadata endpoint and send it to Prometheus.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct MetricMetadataQueryBuilder {
     client: Client,
     metric: Option<String>,
@@ -461,7 +461,7 @@ impl MetricMetadataQueryBuilder {
 }
 
 /// Provides methods to build a query to the series endpoint and send it to Prometheus.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SeriesQueryBuilder {
     client: Client,
     selectors: Vec<String>,
@@ -540,7 +540,7 @@ impl SeriesQueryBuilder {
 }
 
 /// Provides methods to build a query to retrieve label names from Prometheus.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct LabelNamesQueryBuilder {
     client: Client,
     selectors: Vec<String>,
@@ -633,7 +633,7 @@ impl LabelNamesQueryBuilder {
 
 /// Provides methods to build a query to retrieve label values for a specific
 /// label from Prometheus.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct LabelValuesQueryBuilder {
     client: Client,
     label: String,
@@ -728,6 +728,8 @@ impl LabelValuesQueryBuilder {
     }
 }
 
+/// Provides a builder to choose how the response from Prometheus
+/// is returned to the caller.
 #[derive(Clone, Debug)]
 pub struct AlertsQueryBuilder {
     client: Client,
@@ -748,6 +750,30 @@ impl AlertsQueryBuilder {
     pub async fn get_raw(self) -> Result<reqwest::Response, Error> {
         self.client
             .send("api/v1/alerts", &(), HttpMethod::GET, None)
+            .await
+    }
+}
+
+/// Provides a builder to choose how the response from Prometheus
+/// is returned to the caller.
+#[derive(Clone, Debug)]
+pub struct AlertmanagersQueryBuilder {
+    client: Client,
+}
+
+impl AlertmanagersQueryBuilder {
+    /// Execute the query (using HTTP GET) and retrieve an overview
+    /// of the current state of Prometheus alertmanager discovery.
+    pub async fn get(self) -> Result<Alertmanagers, Error> {
+        let response = self.get_raw().await?;
+        Client::deserialize(response).await
+    }
+
+    /// Execute the query (using HTTP GET) and retrieve the raw response
+    /// from the [`reqwest`] crate.
+    pub async fn get_raw(self) -> Result<reqwest::Response, Error> {
+        self.client
+            .send("api/v1/alertmanagers", &(), HttpMethod::GET, None)
             .await
     }
 }
@@ -1438,18 +1464,17 @@ impl Client {
     /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
-    ///     let response = client.alertmanagers().await;
+    ///     let response = client.alertmanagers().get().await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn alertmanagers(&self) -> Result<Alertmanagers, Error> {
-        let response = self
-            .send("api/v1/alertmanagers", &(), HttpMethod::GET, None)
-            .await?;
-        Client::deserialize(response).await
+    pub fn alertmanagers(&self) -> AlertmanagersQueryBuilder {
+        AlertmanagersQueryBuilder {
+            client: self.clone(),
+        }
     }
 
     /// Create a [`TargetMetadataQueryBuilder`] to apply filters to a target metadata

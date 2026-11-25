@@ -18,12 +18,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Error::ParseInt` and `Error::Parse` variants.
 - New `Duration` type (wrapper around `time::Duration`) to help with (de)serializing Prometheus time duration (such as `5m`).
 - New `AlertsQueryBuilder` as returned by `Client::alerts` to choose between raw or deserialized query responses via `get` and `get_raw` respectively.
+- New `AlertmanagersQueryBuilder` as returned by `Client::alertmanagers` to choose between raw or deserialized query responses via `get` and `get_raw` respectively.
 
 ### Changed
 - `TargetMetadataQueryBuilder::match_target` now takes any type that implements `std::fmt::Display`, including but not limited to `Selector`.
 - `Client::series` to not accept selectors but delegate it to more flexible methods `SeriesQueryBuilder::match_many` and `SeriesQueryBuilder::match_one`.
 - `Client::targets` now returns builder type `TargetsQueryBuilder` and does not take any arguments anymore.
 - `Client::alerts` now returns builder type `AlertsQueryBuilder`.
+- `Client::alertmanagers` now returns builder type `AlertmanagersQueryBuilder`.
 
 ### Removed
 - `LabelNamesQueryBuilder::selectors` to be replaced by `LabelNamesQueryBuilder::match_*` methods.

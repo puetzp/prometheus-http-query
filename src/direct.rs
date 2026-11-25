@@ -260,15 +260,15 @@ pub async fn runtime_information(host: &str) -> Result<RuntimeInformation, Error
 ///
 /// #[tokio::main(flavor = "current_thread")]
 /// async fn main() -> Result<(), anyhow::Error> {
-///     let response = alertmanagers("http://localhost:9090").await;
+///     let response = alertmanagers("http://localhost:9090")?.get().await;
 ///
 ///     assert!(response.is_ok());
 ///
 ///     Ok(())
 /// }
 /// ```
-pub async fn alertmanagers(host: &str) -> Result<Alertmanagers, Error> {
-    Client::from_str(host)?.alertmanagers().await
+pub fn alertmanagers(host: &str) -> Result<AlertmanagersQueryBuilder, Error> {
+    Client::from_str(host).map(|c| c.alertmanagers())
 }
 
 /// Create a [`TargetMetadataQueryBuilder`] to apply filters to a target metadata
