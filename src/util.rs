@@ -6,6 +6,27 @@ use std::{fmt, str::FromStr};
 use time::Duration as TimeDuration;
 use url::Url;
 
+/// A wrapper around [`time::Duration`] that is used to deserialize
+/// responses or verify time durations before sending them to Prometheus.
+///
+/// ```rust
+/// use prometheus_http_query::{Duration, Client};
+/// use std::str::FromStr;
+///
+/// #[tokio::main(flavor = "current_thread")]
+/// async fn main() -> Result<(), anyhow::Error> {
+///     let client = Client::default();
+///
+///     let q = "prometheus_http_requests_total";
+///     let d = Duration::from_str("1m")?;
+///
+///     let response = client.query_range(q, 1648373100, 1648373300, d.into()).get().await?;
+///
+///     assert!(response.data().as_matrix().is_some());
+///
+///     Ok(())
+/// }
+/// ```
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Duration(TimeDuration);
 
@@ -87,9 +108,21 @@ impl From<f64> for Duration {
     }
 }
 
+impl Into<f64> for Duration {
+    fn into(self) -> f64 {
+        self.as_seconds_f64()
+    }
+}
+
 impl From<i64> for Duration {
     fn from(s: i64) -> Self {
         Self(TimeDuration::seconds(s))
+    }
+}
+
+impl Into<i64> for Duration {
+    fn into(self) -> i64 {
+        self.whole_seconds()
     }
 }
 
@@ -415,60 +448,80 @@ mod tests {
             let s = "1s";
             let expected = Duration(TimeDuration::seconds(1));
             assert_eq!(Duration::from_str(s)?, expected);
+            assert_eq!(Into::<f64>::into(expected), 1.0);
+            assert_eq!(Into::<i64>::into(expected), 1);
         }
 
         {
             let s = "-1s";
             let expected = Duration(TimeDuration::seconds(-1));
             assert_eq!(Duration::from_str(s)?, expected);
+            assert_eq!(Into::<f64>::into(expected), -1.0);
+            assert_eq!(Into::<i64>::into(expected), -1);
         }
 
         {
             let s = "2m";
             let expected = Duration(TimeDuration::seconds(120));
             assert_eq!(Duration::from_str(s)?, expected);
+            assert_eq!(Into::<f64>::into(expected), 120.0);
+            assert_eq!(Into::<i64>::into(expected), 120);
         }
 
         {
             let s = "-2m";
             let expected = Duration(TimeDuration::seconds(-120));
             assert_eq!(Duration::from_str(s)?, expected);
+            assert_eq!(Into::<f64>::into(expected), -120.0);
+            assert_eq!(Into::<i64>::into(expected), -120);
         }
 
         {
             let s = "1ms";
             let expected = Duration(TimeDuration::milliseconds(1));
             assert_eq!(Duration::from_str(s)?, expected);
+            assert_eq!(Into::<f64>::into(expected), 0.001);
+            assert_eq!(Into::<i64>::into(expected), 0);
         }
 
         {
             let s = "-1ms";
             let expected = Duration(TimeDuration::milliseconds(-1));
             assert_eq!(Duration::from_str(s)?, expected);
+            assert_eq!(Into::<f64>::into(expected), -0.001);
+            assert_eq!(Into::<i64>::into(expected), 0);
         }
 
         {
             let s = "-2h";
             let expected = Duration(TimeDuration::seconds(-7200));
             assert_eq!(Duration::from_str(s)?, expected);
+            assert_eq!(Into::<f64>::into(expected), -7200.0);
+            assert_eq!(Into::<i64>::into(expected), -7200);
         }
 
         {
             let s = "1h30m";
             let expected = Duration(TimeDuration::seconds(5400));
             assert_eq!(Duration::from_str(s)?, expected);
+            assert_eq!(Into::<f64>::into(expected), 5400.0);
+            assert_eq!(Into::<i64>::into(expected), 5400);
         }
 
         {
             let s = "12h34m56s";
             let expected = Duration(TimeDuration::seconds(45296));
             assert_eq!(Duration::from_str(s)?, expected);
+            assert_eq!(Into::<f64>::into(expected), 45296.0);
+            assert_eq!(Into::<i64>::into(expected), 45296);
         }
 
         {
             let s = "54s321ms";
             let expected = Duration(TimeDuration::saturating_seconds_f64(54.321));
             assert_eq!(Duration::from_str(s)?, expected);
+            assert_eq!(Into::<f64>::into(expected), 54.321);
+            assert_eq!(Into::<i64>::into(expected), 54);
         }
 
         Ok(())
