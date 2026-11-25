@@ -85,7 +85,7 @@
 //!             .eq("job", "node")
 //!             .regex_eq("mode", ".+");
 //!
-//!         let response = client.series().selectors(&[s1, s2]).get().await;
+//!         let response = client.series().match_selectors(&[s1, s2]).get().await;
 //!
 //!         assert!(response.is_ok());
 //!     }

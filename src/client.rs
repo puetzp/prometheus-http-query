@@ -506,7 +506,7 @@ impl SeriesQueryBuilder {
     /// Both methods can be used interchangeably.<br>
     /// This can be called multiple times to merge the series selectors with
     /// those that have been set before.
-    pub fn selectors<'a, T>(mut self, selectors: T) -> Self
+    pub fn match_selectors<'a, T>(mut self, selectors: T) -> Self
     where
         T: IntoIterator,
         T::Item: Borrow<Selector<'a>>,
@@ -520,7 +520,7 @@ impl SeriesQueryBuilder {
     /// Both methods can be used interchangeably.<br>
     /// This can be called multiple times to merge the series selectors with
     /// those that have been set before.
-    pub fn selector<'a>(mut self, selector: &Selector<'a>) -> Self {
+    pub fn match_selector<'a>(mut self, selector: &Selector<'a>) -> Self {
         self.selectors.push(selector.to_string());
         self
     }
@@ -611,7 +611,7 @@ impl LabelNamesQueryBuilder {
     /// Both methods can be used interchangeably.<br>
     /// This can be called multiple times to merge the series selectors with
     /// those that have been set before.
-    pub fn selectors<'a, T>(mut self, selectors: T) -> Self
+    pub fn match_selectors<'a, T>(mut self, selectors: T) -> Self
     where
         T: IntoIterator,
         T::Item: Borrow<Selector<'a>>,
@@ -625,7 +625,7 @@ impl LabelNamesQueryBuilder {
     /// Both methods can be used interchangeably.<br>
     /// This can be called multiple times to merge the series selectors with
     /// those that have been set before.
-    pub fn selector<'a>(mut self, selector: &Selector<'a>) -> Self {
+    pub fn match_selector<'a>(mut self, selector: &Selector<'a>) -> Self {
         self.selectors.push(selector.to_string());
         self
     }
@@ -1125,7 +1125,7 @@ impl Client {
     ///             .regex_eq("mode", ".+");
     ///
     ///         let response = client.series()
-    ///             .selectors(&[s1, s2])
+    ///             .match_selectors(&[s1, s2])
     ///             .get()
     ///             .await;
     ///
@@ -1183,7 +1183,7 @@ impl Client {
     ///             .eq("job", "node")
     ///             .regex_eq("mode", ".+");
     ///
-    ///         let response = client.label_names().selectors(&[s1, s2]).get().await;
+    ///         let response = client.label_names().match_selectors(&[s1, s2]).get().await;
     ///
     ///         assert!(response.is_ok());
     ///     }
