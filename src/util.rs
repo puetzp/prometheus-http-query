@@ -23,9 +23,10 @@ impl FromStr for Duration {
         // it to the total.
         let mut duration_iter = s.chars().peekable();
 
-        if let Some(c) = duration_iter.next_if_eq(&'-') {
-            raw_num.push(c);
-        }
+        // Check for minus sign. It can be safely ignored at this point and the first
+        // number parsed as a positive integer because any of the following
+        // multiplications will switch the sign automatically.
+        let is_neg = duration_iter.next_if_eq(&'-').is_some();
 
         while let Some(item) = duration_iter.next() {
             if ('0'..='9').contains(&item) {
@@ -35,31 +36,27 @@ impl FromStr for Duration {
 
             let num = raw_num.parse::<i64>().map_err(Error::ParseInt)?;
 
-            match item {
-                'y' => {
-                    total_milliseconds += num * 1000 * 60 * 60 * 24 * 365;
-                }
-                'w' => {
-                    total_milliseconds += num * 1000 * 60 * 60 * 24 * 7;
-                }
-                'd' => {
-                    total_milliseconds += num * 1000 * 60 * 60 * 24;
-                }
-                'h' => {
-                    total_milliseconds += num * 1000 * 60 * 60;
-                }
+            let factor = match item {
+                'y' => 1000 * 60 * 60 * 24 * 365,
+                'w' => 1000 * 60 * 60 * 24 * 7,
+                'd' => 1000 * 60 * 60 * 24,
+                'h' => 1000 * 60 * 60,
                 'm' => {
                     if duration_iter.next_if_eq(&'s').is_some() {
-                        total_milliseconds += num;
+                        1
                     } else {
-                        total_milliseconds += num * 1000 * 60;
+                        1000 * 60
                     }
                 }
-                's' => {
-                    total_milliseconds += num * 1000;
-                }
+                's' => 1000,
                 _ => return Err(Error::Parse(format!("invalid time duration: {}", s))),
             };
+
+            if is_neg {
+                total_milliseconds -= num * factor;
+            } else {
+                total_milliseconds += num * factor;
+            }
 
             raw_num.clear();
         }
@@ -421,8 +418,20 @@ mod tests {
         }
 
         {
+            let s = "-1s";
+            let expected = Duration(TimeDuration::seconds(-1));
+            assert_eq!(Duration::from_str(s)?, expected);
+        }
+
+        {
             let s = "2m";
             let expected = Duration(TimeDuration::seconds(120));
+            assert_eq!(Duration::from_str(s)?, expected);
+        }
+
+        {
+            let s = "-2m";
+            let expected = Duration(TimeDuration::seconds(-120));
             assert_eq!(Duration::from_str(s)?, expected);
         }
 
@@ -433,8 +442,32 @@ mod tests {
         }
 
         {
+            let s = "-1ms";
+            let expected = Duration(TimeDuration::milliseconds(-1));
+            assert_eq!(Duration::from_str(s)?, expected);
+        }
+
+        {
             let s = "-2h";
             let expected = Duration(TimeDuration::seconds(-7200));
+            assert_eq!(Duration::from_str(s)?, expected);
+        }
+
+        {
+            let s = "1h30m";
+            let expected = Duration(TimeDuration::seconds(5400));
+            assert_eq!(Duration::from_str(s)?, expected);
+        }
+
+        {
+            let s = "12h34m56s";
+            let expected = Duration(TimeDuration::seconds(45296));
+            assert_eq!(Duration::from_str(s)?, expected);
+        }
+
+        {
+            let s = "54s321ms";
+            let expected = Duration(TimeDuration::saturating_seconds_f64(54.321));
             assert_eq!(Duration::from_str(s)?, expected);
         }
 
