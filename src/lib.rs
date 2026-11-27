@@ -191,21 +191,34 @@
 //!
 //! # Supported operations
 //!
-//! - [x] Execute instant and range queries (GET or POST) and properly parse the results (vector/matrix/scalar)
-//! - [x] Execute series metadata queries
-//! - [x] Execute label metadata queries (names/values)
-//! - [x] Retrieve target discovery status
-//! - [x] Retrieve alerting + recording rules
-//! - [x] Retrieve active alerts
-//! - [x] Retrieve configured flags & values
-//! - [x] Query target metadata
-//! - [x] Query metric metadata
-//! - [x] Query alertmanager service discovery status
-//! - [x] Prometheus server health and readiness
-//! - [x] Prometheus server flags
-//! - [x] Prometheus server build information
-//! - [x] Prometheus server runtime information
-//! - [ ] Prometheus server config
+//! - [x] [Instant queries](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries) via [`Client::query`]
+//! - [x] [Range queries](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries) via [`Client::query_range`]
+//! - [ ] [Query cost estimation](https://prometheus.io/docs/prometheus/latest/querying/api/#query-cost)
+//! - [ ] [Formatting query expressions](https://prometheus.io/docs/prometheus/latest/querying/api/#formatting-query-expressions)
+//! - [ ] [Parsing PromQL expression into an abstract syntax tree](https://prometheus.io/docs/prometheus/latest/querying/api/#parsing-a-promql-expressions-into-a-abstract-syntax-tree-ast)
+//! - [x] [Finding series by label matchers](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers) via [`Client::series`]
+//! - [x] [Getting label names](https://prometheus.io/docs/prometheus/latest/querying/api/#getting-label-names) via [`Client::label_names`]
+//! - [x] [Querying label values](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-label-values) via [`Client::label_values`]
+//! - [ ] [Searching metric names, label names and label values](https://prometheus.io/docs/prometheus/latest/querying/api/#searching-metric-names-label-names-and-label-values)
+//! - [ ] [Querying exemplars](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-exemplars)
+//! - [ ] [Scrape pools](https://prometheus.io/docs/prometheus/latest/querying/api/#scrape-pools)
+//! - [x] [Targets](https://prometheus.io/docs/prometheus/latest/querying/api/#targets) via [`Client::targets`]
+//! - [ ] [Relabel steps](https://prometheus.io/docs/prometheus/latest/querying/api/#relabel-steps)
+//! - [x] [Rules](https://prometheus.io/docs/prometheus/latest/querying/api/#rules) via [`Client::rules`]
+//! - [x] [Alerts](https://prometheus.io/docs/prometheus/latest/querying/api/#alerts) via [`Client::alerts`]
+//! - [x] [Querying target metadata](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-target-metadata) via [`Client::target_metadata`]
+//! - [x] [Querying metric metadata](https://prometheus.io/docs/prometheus/latest/querying/api/#querying-metric-metadata) via [`Client::metric_metadata`]
+//! - [x] [Alertmanagers](https://prometheus.io/docs/prometheus/latest/querying/api/#alertmanagers) via [`Client::alertmanagers`]
+//! - [ ] [Prometheus server config](https://prometheus.io/docs/prometheus/latest/querying/api/#config)
+//! - [x] [Prometheus server flags](https://prometheus.io/docs/prometheus/latest/querying/api/#flags) via [`Client::flags`]
+//! - [x] [Prometheus server runtime information](https://prometheus.io/docs/prometheus/latest/querying/api/#runtime-information) via [`Client::runtime_information`]
+//! - [x] [Prometheus server build information](https://prometheus.io/docs/prometheus/latest/querying/api/#build-information) via [`Client::build_information`]
+//! - [x] [Prometheus server TSDB stats](https://prometheus.io/docs/prometheus/latest/querying/api/#tsdb-stats) via [`Client::tsdb_statistics`]
+//! - [ ] [Prometheus server TSDB blocks](https://prometheus.io/docs/prometheus/latest/querying/api/#tsdb-blocks)
+//! - [x] [WAL Replay Stats](https://prometheus.io/docs/prometheus/latest/querying/api/#wal-replay-stats) via [`Client::wal_replay_statistics`]
+//! - [ ] [Prometheus server self metrics](https://prometheus.io/docs/prometheus/latest/querying/api/#self-metrics)
+//! - [x] [Prometheus server health](https://prometheus.io/docs/prometheus/latest/management_api/#health-check) via [`Client::is_server_healthy`]
+//! - [x] [Prometheus server readiness](https://prometheus.io/docs/prometheus/latest/management_api/#readiness-check) via [`Client::is_server_ready`]
 //!
 //! # Limitations
 //!
