@@ -68,7 +68,7 @@ mod de {
 
         let duration = crate::util::Duration::try_from(raw_str).map_err(SerdeError::custom)?;
 
-        Ok(*duration)
+        Ok(duration.inner)
     }
 }
 

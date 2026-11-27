@@ -27,8 +27,11 @@ use url::Url;
 ///     Ok(())
 /// }
 /// ```
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct Duration(TimeDuration);
+#[derive(Clone, Debug, Eq)]
+pub struct Duration {
+    pub(crate) inner: TimeDuration,
+    raw: String,
+}
 
 impl FromStr for Duration {
     type Err = Error;
@@ -82,15 +85,16 @@ impl FromStr for Duration {
             raw_num.clear();
         }
 
-        Ok(Self(TimeDuration::milliseconds(total_milliseconds)))
+        Ok(Self {
+            inner: TimeDuration::milliseconds(total_milliseconds),
+            raw: s.to_string(),
+        })
     }
 }
 
-impl std::ops::Deref for Duration {
-    type Target = TimeDuration;
-
-    fn deref(&self) -> &Self::Target {
-        &self.0
+impl fmt::Display for Duration {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.raw)
     }
 }
 
@@ -102,27 +106,88 @@ impl TryFrom<String> for Duration {
     }
 }
 
+impl PartialEq for Duration {
+    fn eq(&self, other: &Self) -> bool {
+        self.inner == other.inner
+    }
+}
+
+/// Convert fractional seconds to `Duration`.
+///
+/// ```rust
+/// use prometheus_http_query::Duration;
+/// use std::str::FromStr;
+///
+/// #[tokio::main(flavor = "current_thread")]
+/// async fn main() -> Result<(), anyhow::Error> {
+///     {
+///         let a = Duration::from_str("1s")?;
+///         let b = Duration::from(1.0);
+///         assert_eq!(a, b);
+///     }
+///
+///     {
+///         let a = Duration::from_str("312ms")?;
+///         let b = Duration::from(0.312);
+///         assert_eq!(a, b);
+///     }
+///
+///     Ok(())
+/// }
+/// ```
 impl From<f64> for Duration {
     fn from(f: f64) -> Self {
-        Self(TimeDuration::saturating_seconds_f64(f))
+        let inner = TimeDuration::saturating_seconds_f64(f);
+        Self {
+            raw: format!("{}ms", inner.whole_milliseconds()),
+            inner,
+        }
     }
 }
 
 impl Into<f64> for Duration {
     fn into(self) -> f64 {
-        self.as_seconds_f64()
+        self.inner.as_seconds_f64()
     }
 }
 
+/// Convert seconds to `Duration`.
+///
+/// ```rust
+/// use prometheus_http_query::Duration;
+/// use std::str::FromStr;
+///
+/// #[tokio::main(flavor = "current_thread")]
+/// async fn main() -> Result<(), anyhow::Error> {
+///     {
+///         let a = Duration::from_str("120s")?;
+///         let b = Duration::from(120);
+///         assert_eq!(a, b);
+///     }
+///
+///     {
+///         let a = Duration::from_str("1h")?;
+///         let b = Duration::from(3600);
+///         assert_eq!(a, b);
+///     }
+///
+///     Ok(())
+/// }
+/// ```
 impl From<i64> for Duration {
     fn from(s: i64) -> Self {
-        Self(TimeDuration::seconds(s))
+        let inner = TimeDuration::seconds(s);
+
+        Self {
+            raw: format!("{}s", inner.whole_seconds()),
+            inner,
+        }
     }
 }
 
 impl Into<i64> for Duration {
     fn into(self) -> i64 {
-        self.whole_seconds()
+        self.inner.whole_seconds()
     }
 }
 
@@ -446,81 +511,131 @@ mod tests {
     fn test_duration() -> Result<(), anyhow::Error> {
         {
             let s = "1s";
-            let expected = Duration(TimeDuration::seconds(1));
+            let expected = Duration {
+                inner: TimeDuration::seconds(1),
+                raw: "1s".to_string(),
+            };
             assert_eq!(Duration::from_str(s)?, expected);
-            assert_eq!(Into::<f64>::into(expected), 1.0);
+            assert_eq!(Into::<f64>::into(expected.clone()), 1.0);
             assert_eq!(Into::<i64>::into(expected), 1);
         }
 
         {
             let s = "-1s";
-            let expected = Duration(TimeDuration::seconds(-1));
+            let expected = Duration {
+                inner: TimeDuration::seconds(-1),
+                raw: "-1s".to_string(),
+            };
             assert_eq!(Duration::from_str(s)?, expected);
-            assert_eq!(Into::<f64>::into(expected), -1.0);
+            assert_eq!(Into::<f64>::into(expected.clone()), -1.0);
             assert_eq!(Into::<i64>::into(expected), -1);
         }
 
         {
             let s = "2m";
-            let expected = Duration(TimeDuration::seconds(120));
+            let expected = Duration {
+                inner: TimeDuration::seconds(120),
+                raw: "2m".to_string(),
+            };
             assert_eq!(Duration::from_str(s)?, expected);
-            assert_eq!(Into::<f64>::into(expected), 120.0);
+            assert_eq!(Into::<f64>::into(expected.clone()), 120.0);
             assert_eq!(Into::<i64>::into(expected), 120);
         }
 
         {
             let s = "-2m";
-            let expected = Duration(TimeDuration::seconds(-120));
+            let expected = Duration {
+                inner: TimeDuration::seconds(-120),
+                raw: "-2m".to_string(),
+            };
             assert_eq!(Duration::from_str(s)?, expected);
-            assert_eq!(Into::<f64>::into(expected), -120.0);
+            assert_eq!(Into::<f64>::into(expected.clone()), -120.0);
             assert_eq!(Into::<i64>::into(expected), -120);
         }
 
         {
             let s = "1ms";
-            let expected = Duration(TimeDuration::milliseconds(1));
+            let expected = Duration {
+                inner: TimeDuration::milliseconds(1),
+                raw: "1ms".to_string(),
+            };
             assert_eq!(Duration::from_str(s)?, expected);
-            assert_eq!(Into::<f64>::into(expected), 0.001);
+            assert_eq!(Into::<f64>::into(expected.clone()), 0.001);
             assert_eq!(Into::<i64>::into(expected), 0);
         }
 
         {
             let s = "-1ms";
-            let expected = Duration(TimeDuration::milliseconds(-1));
+            let expected = Duration {
+                inner: TimeDuration::milliseconds(-1),
+                raw: "-1ms".to_string(),
+            };
             assert_eq!(Duration::from_str(s)?, expected);
-            assert_eq!(Into::<f64>::into(expected), -0.001);
+            assert_eq!(Into::<f64>::into(expected.clone()), -0.001);
             assert_eq!(Into::<i64>::into(expected), 0);
         }
 
         {
             let s = "-2h";
-            let expected = Duration(TimeDuration::seconds(-7200));
+            let expected = Duration {
+                inner: TimeDuration::seconds(-7200),
+                raw: "-2h".to_string(),
+            };
             assert_eq!(Duration::from_str(s)?, expected);
-            assert_eq!(Into::<f64>::into(expected), -7200.0);
+            assert_eq!(Into::<f64>::into(expected.clone()), -7200.0);
             assert_eq!(Into::<i64>::into(expected), -7200);
         }
 
         {
             let s = "1h30m";
-            let expected = Duration(TimeDuration::seconds(5400));
+            let expected = Duration {
+                inner: TimeDuration::seconds(5400),
+                raw: "1h30m".to_string(),
+            };
             assert_eq!(Duration::from_str(s)?, expected);
-            assert_eq!(Into::<f64>::into(expected), 5400.0);
+            assert_eq!(Into::<f64>::into(expected.clone()), 5400.0);
             assert_eq!(Into::<i64>::into(expected), 5400);
         }
 
         {
             let s = "12h34m56s";
-            let expected = Duration(TimeDuration::seconds(45296));
+            let expected = Duration {
+                inner: TimeDuration::seconds(45296),
+                raw: "12h34m56s".to_string(),
+            };
             assert_eq!(Duration::from_str(s)?, expected);
-            assert_eq!(Into::<f64>::into(expected), 45296.0);
+            assert_eq!(Into::<f64>::into(expected.clone()), 45296.0);
             assert_eq!(Into::<i64>::into(expected), 45296);
         }
 
         {
             let s = "54s321ms";
-            let expected = Duration(TimeDuration::saturating_seconds_f64(54.321));
+            let expected = Duration {
+                inner: TimeDuration::saturating_seconds_f64(54.321),
+                raw: "54s321ms".to_string(),
+            };
             assert_eq!(Duration::from_str(s)?, expected);
-            assert_eq!(Into::<f64>::into(expected), 54.321);
+            assert_eq!(Into::<f64>::into(expected.clone()), 54.321);
+            assert_eq!(Into::<i64>::into(expected), 54);
+        }
+
+        {
+            let expected = Duration {
+                inner: TimeDuration::saturating_seconds_f64(54.321),
+                raw: "54321ms".to_string(),
+            };
+            assert_eq!(Duration::from(54.321), expected);
+            assert_eq!(Into::<f64>::into(expected.clone()), 54.321);
+            assert_eq!(Into::<i64>::into(expected), 54);
+        }
+
+        {
+            let expected = Duration {
+                inner: TimeDuration::seconds(54),
+                raw: "54s".to_string(),
+            };
+            assert_eq!(Duration::from(54), expected);
+            assert_eq!(Into::<f64>::into(expected.clone()), 54.0);
             assert_eq!(Into::<i64>::into(expected), 54);
         }
 

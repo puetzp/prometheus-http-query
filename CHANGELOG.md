@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Client::alerts` now returns builder type `AlertsQueryBuilder`.
 - `Client::alertmanagers` now returns builder type `AlertmanagersQueryBuilder`.
 - Renamed `InstantQueryBuilder::at` to `InstantQueryBuilder::time`.
+- `InstantQueryBuilder::timeout` and `RangeQueryBuilder::timeout` now take a `Duration` as an argument instead of `i64`.
 
 ### Removed
 - `LabelNamesQueryBuilder::selectors` to be replaced by `LabelNamesQueryBuilder::match_*` methods.

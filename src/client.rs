@@ -1,6 +1,6 @@
 use crate::error::{ClientError, Error};
 use crate::response::*;
-use crate::util::{self, build_final_url, RuleKind, TargetState, ToBaseUrl};
+use crate::util::{self, build_final_url, Duration, RuleKind, TargetState, ToBaseUrl};
 use reqwest::header::{HeaderMap, HeaderValue, IntoHeaderName, CONTENT_TYPE};
 use reqwest::Method as HttpMethod;
 use serde::{de::DeserializeOwned, Serialize};
@@ -26,11 +26,18 @@ impl InstantQueryBuilder {
         self
     }
 
-    /// Set the evaluation timeout (milliseconds, e.g. 1000).
+    /// Set the evaluation timeout. Must be positive.
     /// If this is not set the timeout will default to the value of the "-query.timeout" flag of the Prometheus server.
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
-    pub fn timeout(mut self, timeout: i64) -> Self {
-        self.params.push(("timeout", format!("{}ms", timeout)));
+    pub fn timeout(mut self, timeout: Duration) -> Self {
+        self.params.push(("timeout", timeout.to_string()));
+        self
+    }
+
+    /// Set maximum number of returned series. 0 means disabled.
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
+    pub fn limit(mut self, limit: i64) -> Self {
+        self.params.push(("limit", limit.to_string()));
         self
     }
 
@@ -97,11 +104,11 @@ pub struct RangeQueryBuilder {
 }
 
 impl RangeQueryBuilder {
-    /// Set the evaluation timeout (milliseconds, e.g. 1000).
+    /// Set the evaluation timeout. Must be positive.
     /// If this is not set the timeout will default to the value of the "-query.timeout" flag of the Prometheus server.
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries)
-    pub fn timeout(mut self, timeout: i64) -> Self {
-        self.params.push(("timeout", format!("{}ms", timeout)));
+    pub fn timeout(mut self, timeout: Duration) -> Self {
+        self.params.push(("timeout", timeout.to_string()));
         self
     }
 
@@ -1032,7 +1039,10 @@ impl Client {
     ///
     ///     let q = "prometheus_http_requests_total";
     ///
-    ///     let response = client.query_range(q, 1648373100, 1648373300, 10.0).get().await?;
+    ///     let response = client.query_range(q, 1648373100, 1648373300, 10.0)
+    ///         .timeout(10.into())
+    ///         .get()
+    ///         .await?;
     ///
     ///     assert!(response.data().as_matrix().is_some());
     ///

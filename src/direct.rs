@@ -15,12 +15,12 @@ use std::str::FromStr;
 /// async fn main() -> Result<(), anyhow::Error> {
 ///     let q = "sum(prometheus_http_requests_total)";
 ///
-///     let response = query("http://localhost:9090", q)?.timeout(1000).get().await?;
+///     let response = query("http://localhost:9090", q)?.timeout((1000.0).into()).get().await?;
 ///
 ///     assert!(response.data().as_vector().is_some());
 ///
 ///     // Or make a POST request.
-///     let response = query("http://localhost:9090", q)?.timeout(1000).post().await?;
+///     let response = query("http://localhost:9090", q)?.timeout((1000.0).into()).post().await?;
 ///
 ///     assert!(response.data().as_vector().is_some());
 ///
