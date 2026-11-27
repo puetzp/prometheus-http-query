@@ -387,6 +387,7 @@ impl TargetMetadataQueryBuilder {
 pub struct TargetsQueryBuilder {
     client: Client,
     state: Option<TargetState>,
+    scrape_pool: Option<String>,
 }
 
 /// Note that Prometheus combines all filters that have been set in the final request
@@ -398,6 +399,13 @@ impl TargetsQueryBuilder {
     /// Calling this repeatedly will replace the current filter.
     pub fn state(mut self, state: TargetState) -> Self {
         self.state = Some(state);
+        self
+    }
+
+    /// Set this to filter by scrape pool name.
+    /// Calling this repeatedly will replace the current filter.
+    pub fn scrape_pool(mut self, name: impl std::fmt::Display) -> Self {
+        self.scrape_pool = Some(name.to_string());
         self
     }
 
@@ -415,6 +423,10 @@ impl TargetsQueryBuilder {
 
         if let Some(state) = self.state {
             params.push(("state", state.to_string()))
+        }
+
+        if let Some(scrape_pool) = self.scrape_pool {
+            params.push(("scrapePool", scrape_pool))
         }
 
         self.client
@@ -1305,8 +1317,11 @@ impl Client {
     ///
     ///     assert!(response.is_ok());
     ///
-    ///     // Filter targets by state:
-    ///     let response = client.targets().state(TargetState::Active).get().await;
+    ///     // Filter targets by state and scrape pool name.
+    ///     let response = client.targets()
+    ///         .state(TargetState::Active)
+    ///         .scrape_pool("node_exporter")
+    ///         .get().await;
     ///
     ///     assert!(response.is_ok());
     ///
@@ -1317,6 +1332,7 @@ impl Client {
         TargetsQueryBuilder {
             client: self.clone(),
             state: None,
+            scrape_pool: None,
         }
     }
 
