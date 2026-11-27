@@ -16,33 +16,31 @@ pub struct InstantQueryBuilder {
     headers: Option<HeaderMap<HeaderValue>>,
 }
 
+/// See the official documentation for a thorough explanation on the filters that can
+/// be set: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries).
 impl InstantQueryBuilder {
     /// Set the evaluation timestamp (Unix timestamp in seconds, e.g. 1659182624).
     /// If this is not set the evaluation timestamp will default to the current Prometheus
-    /// server time.<br>
-    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
+    /// server time.
     pub fn time(mut self, time: i64) -> Self {
         self.params.push(("time", time.to_string()));
         self
     }
 
     /// Set the evaluation timeout. Must be positive.
-    /// If this is not set the timeout will default to the value of the "-query.timeout" flag of the Prometheus server.<br>
-    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
+    /// If this is not set the timeout will default to the value of the "-query.timeout" flag of the Prometheus server.
     pub fn timeout(mut self, timeout: Duration) -> Self {
         self.params.push(("timeout", timeout.to_string()));
         self
     }
 
-    /// Set maximum number of returned series. 0 means disabled.<br>
-    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
+    /// Set maximum number of returned series. 0 means disabled.
     pub fn limit(mut self, limit: i64) -> Self {
         self.params.push(("limit", limit.to_string()));
         self
     }
 
-    /// Override the lookback period just for this query.<br>
-    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
+    /// Override the lookback period just for this query.
     pub fn lookback_delta(mut self, duration: Duration) -> Self {
         self.params.push(("lookback_delta", duration.to_string()));
         self
@@ -110,24 +108,23 @@ pub struct RangeQueryBuilder {
     headers: Option<HeaderMap<HeaderValue>>,
 }
 
+/// See the official documentation for a thorough explanation on the filters that can
+/// be set: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries).
 impl RangeQueryBuilder {
     /// Set the evaluation timeout. Must be positive.
-    /// If this is not set the timeout will default to the value of the "-query.timeout" flag of the Prometheus server.<br>
-    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries)
+    /// If this is not set the timeout will default to the value of the "-query.timeout" flag of the Prometheus server.
     pub fn timeout(mut self, timeout: Duration) -> Self {
         self.params.push(("timeout", timeout.to_string()));
         self
     }
 
-    /// Set maximum number of returned series. 0 means disabled.<br>
-    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries)
+    /// Set maximum number of returned series. 0 means disabled.
     pub fn limit(mut self, limit: i64) -> Self {
         self.params.push(("limit", limit.to_string()));
         self
     }
 
-    /// Override the lookback period just for this query.<br>
-    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries)
+    /// Override the lookback period just for this query.
     pub fn lookback_delta(mut self, duration: Duration) -> Self {
         self.params.push(("lookback_delta", duration.to_string()));
         self
@@ -510,11 +507,15 @@ pub struct SeriesQueryBuilder {
     limit: Option<i64>,
 }
 
+/// Note that Prometheus combines all filters that have been set in the final request
+/// and only returns series that matches all filters.<br>
+/// See the official documentation for a thorough explanation on the filters that can
+/// be set: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers).
 impl SeriesQueryBuilder {
     /// Add series selectors that tell Prometheus which series to return. This can
     /// be used multiple times to extend the set of series selectors.
     /// At least one selector must be provided.<br>
-    /// This corresponds to setting [`match[]`](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers) repeatedly.
+    /// This corresponds to setting the `match[]` query parameter repeatedly.
     pub fn match_many<T>(mut self, selectors: T) -> Self
     where
         T: IntoIterator,
@@ -528,7 +529,7 @@ impl SeriesQueryBuilder {
     /// Add a series selector that tells Prometheus which series to return. This can
     /// be used multiple times to extend the set of series selectors.
     /// At least one selector must be provided.<br>
-    /// This corresponds to setting [`match[]`](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers) once.
+    /// This corresponds to setting the `match[]` query parameter once.
     pub fn match_one(mut self, selector: impl std::fmt::Display) -> Self {
         self.selectors.push(selector.to_string());
         self
@@ -537,7 +538,6 @@ impl SeriesQueryBuilder {
     /// Limit the amount of metadata returned by setting a start time
     /// (UNIX timestamp in seconds).
     /// Calling this repeatedly will replace the current setting.<br>
-    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers)
     pub fn start(mut self, start: i64) -> Self {
         self.start = Some(start);
         self
@@ -546,14 +546,12 @@ impl SeriesQueryBuilder {
     /// Limit the amount of metadata returned by setting an end time
     /// (UNIX timestamp in seconds).
     /// Calling this repeatedly will replace the current setting.<br>
-    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers)
     pub fn end(mut self, end: i64) -> Self {
         self.end = Some(end);
         self
     }
 
-    /// Set maximum number of returned series. 0 means disabled.<br>
-    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers)
+    /// Set maximum number of returned series. 0 means disabled.
     pub fn limit(mut self, limit: i64) -> Self {
         self.limit = Some(limit);
         self
