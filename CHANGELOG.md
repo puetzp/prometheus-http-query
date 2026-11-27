@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `Duration` type (wrapper around `time::Duration`) to help with (de)serializing Prometheus time duration (such as `5m`).
 - New `AlertsQueryBuilder` as returned by `Client::alerts` to choose between raw or deserialized query responses via `get` and `get_raw` respectively.
 - New `AlertmanagersQueryBuilder` as returned by `Client::alertmanagers` to choose between raw or deserialized query responses via `get` and `get_raw` respectively.
+- New `FlagsQueryBuilder` as returned by `Client::flags` to choose between raw or deserialized query responses via `get` and `get_raw` respectively.
 - `InstantQueryBuilder::limit`.
 - `InstantQueryBuilder::lookback_period`.
 - `RangeQueryBuilder::limit`.
@@ -34,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Client::targets` now returns builder type `TargetsQueryBuilder` and does not take arguments anymore.
 - `Client::alerts` now returns builder type `AlertsQueryBuilder`.
 - `Client::alertmanagers` now returns builder type `AlertmanagersQueryBuilder`.
+- `Client::flags` now returns builder type `FlagsQueryBuilder`.
 - Renamed `InstantQueryBuilder::at` to `InstantQueryBuilder::time`.
 - `InstantQueryBuilder::timeout` and `RangeQueryBuilder::timeout` now take a `Duration` as an argument instead of `i64`.
 

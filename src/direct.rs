@@ -1,7 +1,6 @@
 use crate::client::*;
 use crate::error::Error;
 use crate::response::*;
-use std::collections::HashMap;
 use std::str::FromStr;
 
 /// Execute an instant query.
@@ -200,15 +199,15 @@ pub fn alerts(host: &str) -> Result<AlertsQueryBuilder, Error> {
 ///
 /// #[tokio::main(flavor = "current_thread")]
 /// async fn main() -> Result<(), anyhow::Error> {
-///     let response = flags("http://localhost:9090").await;
+///     let response = flags("http://localhost:9090")?.get().await;
 ///
 ///     assert!(response.is_ok());
 ///
 ///     Ok(())
 /// }
 /// ```
-pub async fn flags(host: &str) -> Result<HashMap<String, String>, Error> {
-    Client::from_str(host)?.flags().await
+pub fn flags(host: &str) -> Result<FlagsQueryBuilder, Error> {
+    Client::from_str(host).map(|c| c.flags())
 }
 
 /// Retrieve Prometheus server build information.

@@ -233,7 +233,7 @@ pub mod response;
 mod selector;
 mod util;
 pub use self::client::{
-    AlertmanagersQueryBuilder, AlertsQueryBuilder, Client, InstantQueryBuilder,
+    AlertmanagersQueryBuilder, AlertsQueryBuilder, Client, FlagsQueryBuilder, InstantQueryBuilder,
     LabelNamesQueryBuilder, LabelValuesQueryBuilder, MetricMetadataQueryBuilder, RangeQueryBuilder,
     RulesQueryBuilder, SeriesQueryBuilder, TargetMetadataQueryBuilder, TargetsQueryBuilder,
 };
