@@ -980,7 +980,8 @@ impl Client {
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
     ///
     /// ```rust
-    /// use prometheus_http_query::Client;
+    /// use prometheus_http_query::{Client, Duration};
+    /// use std::str::FromStr;
     ///
     /// #[tokio::main(flavor = "current_thread")]
     /// async fn main() -> Result<(), anyhow::Error> {
@@ -988,12 +989,13 @@ impl Client {
     ///
     ///     let response = client.query("prometheus_http_request_total")
     ///         .time(time::macros::datetime!(1970-01-01 0:00 -1).unix_timestamp())
+    ///         .timeout(Duration::from_str("10s")?.into())
     ///         .get()
     ///         .await?;
     ///
     ///     assert!(response.data().as_vector().is_some());
     ///
-    ///     // Or make a POST request.
+    ///     // Or send a POST request without extra parameters.
     ///     let response = client.query("prometheus_http_request_total").post().await?;
     ///
     ///     assert!(response.data().as_vector().is_some());
