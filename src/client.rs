@@ -322,7 +322,7 @@ pub struct TargetMetadataQueryBuilder {
     client: Client,
     match_target: Option<String>,
     metric: Option<String>,
-    limit: Option<i32>,
+    limit: Option<i64>,
 }
 
 /// Note that Prometheus combines all filters that have been set in the final request
@@ -347,7 +347,7 @@ impl TargetMetadataQueryBuilder {
 
     /// Limit the maximum number of targets to match.
     /// Calling this repeatedly will replace the current limit.
-    pub fn limit(mut self, limit: i32) -> Self {
+    pub fn limit(mut self, limit: i64) -> Self {
         self.limit = Some(limit);
         self
     }
@@ -588,7 +588,7 @@ pub struct LabelNamesQueryBuilder {
     selectors: Vec<String>,
     start: Option<i64>,
     end: Option<i64>,
-    limit: Option<i32>,
+    limit: Option<i64>,
 }
 
 impl LabelNamesQueryBuilder {
@@ -635,7 +635,7 @@ impl LabelNamesQueryBuilder {
 
     /// Limit the maximum number of returned series.
     /// Calling this repeatedly will replace the current limit.
-    pub fn limit(mut self, limit: i32) -> Self {
+    pub fn limit(mut self, limit: i64) -> Self {
         self.limit = Some(limit);
         self
     }
@@ -682,7 +682,7 @@ pub struct LabelValuesQueryBuilder {
     selectors: Vec<String>,
     start: Option<i64>,
     end: Option<i64>,
-    limit: Option<i32>,
+    limit: Option<i64>,
 }
 
 impl LabelValuesQueryBuilder {
@@ -729,7 +729,7 @@ impl LabelValuesQueryBuilder {
 
     /// Limit the maximum number of returned series.
     /// Calling this repeatedly will replace the current limit.
-    pub fn limit(mut self, limit: i32) -> Self {
+    pub fn limit(mut self, limit: i64) -> Self {
         self.limit = Some(limit);
         self
     }
