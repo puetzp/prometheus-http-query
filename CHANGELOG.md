@@ -25,7 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `RangeQueryBuilder::limit`.
 - `RangeQueryBuilder::lookback_period`.
 - `TargetMetadataQueryBuilder::scrape_pool`.
-- `RulesQueryBuilder::exclude_alerts`
+- `RulesQueryBuilder::exclude_alerts`.
+- `RulesQueryBuilder::match_many` and `RulesQueryBuilder::match_once` to set `match[]` query parameters.
 
 ### Changed
 - `TargetMetadataQueryBuilder::match_target` now takes any type that implements `std::fmt::Display`, including but not limited to `Selector`.

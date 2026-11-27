@@ -202,6 +202,7 @@ pub struct RulesQueryBuilder {
     rule_groups: Vec<String>,
     files: Vec<String>,
     exclude_alerts: Option<bool>,
+    selectors: Vec<String>,
 }
 
 /// Note that Prometheus combines all filters that have been set in the final request
@@ -286,6 +287,29 @@ impl RulesQueryBuilder {
         self
     }
 
+    /// Only return rules that have configured labels that satisfy the label selectors.
+    /// This be used multiple times to extend the set of label selectors, in which case
+    /// rules that match any of the sets of label selectors are returned.<br>
+    /// This corresponds to setting the `match[]` query parameter repeatedly.
+    pub fn match_many<T>(mut self, selectors: T) -> Self
+    where
+        T: IntoIterator,
+        T::Item: std::fmt::Display,
+    {
+        self.selectors
+            .extend(selectors.into_iter().map(|item| item.to_string()));
+        self
+    }
+
+    /// Only return rules that have configured labels that satisfy the label selectors.
+    /// This be used multiple times to extend the set of label selectors, in which case
+    /// rules that match any of the sets of label selectors are returned.<br>
+    /// This corresponds to setting the `match[]` query parameter once.
+    pub fn match_one(mut self, selector: impl std::fmt::Display) -> Self {
+        self.selectors.push(selector.to_string());
+        self
+    }
+
     /// Execute the rules query (using HTTP GET) and return the [`RuleGroup`]s sent
     /// by Prometheus.
     pub async fn get(self) -> Result<Vec<RuleGroup>, Error> {
@@ -318,6 +342,10 @@ impl RulesQueryBuilder {
 
         if let Some(exclude_alerts) = self.exclude_alerts {
             params.push(("exclude_alerts", exclude_alerts.to_string()));
+        }
+
+        for selector in self.selectors {
+            params.push(("match[]", selector.to_string()));
         }
 
         self.client
@@ -1379,6 +1407,7 @@ impl Client {
             rule_groups: vec![],
             files: vec![],
             exclude_alerts: None,
+            selectors: vec![],
         }
     }
 
