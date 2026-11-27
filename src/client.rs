@@ -126,6 +126,13 @@ impl RangeQueryBuilder {
         self
     }
 
+    /// Override the lookback period just for this query.<br>
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries)
+    pub fn lookback_delta(mut self, duration: Duration) -> Self {
+        self.params.push(("lookback_delta", duration.to_string()));
+        self
+    }
+
     /// Instruct Prometheus to compile query statistics as part of the API response.
     pub fn stats(mut self) -> Self {
         self.params.push(("stats", String::from("all")));
@@ -1070,6 +1077,7 @@ impl Client {
     ///     let duration = Duration::from_str("10s")?;
     ///     let response = client.query_range(q, 1648373100, 1648373300, duration.into())
     ///         .limit(10)
+    ///         .lookback_delta((6.5).into())
     ///         .post()
     ///         .await?;
     ///
