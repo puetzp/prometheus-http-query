@@ -345,3 +345,23 @@ pub fn metric_metadata(host: &str) -> Result<MetricMetadataQueryBuilder, Error> 
 pub fn tsdb_statistics(host: &str) -> Result<TsdbStatisticsQueryBuilder, Error> {
     Client::from_str(host).map(|c| c.tsdb_statistics())
 }
+
+/// Retrieve information about the WAL replay.
+///
+/// This is just a convenience function for one-off requests, see [`Client::wal_replay_statistics`].
+///
+/// ```rust
+/// use prometheus_http_query::wal_replay_statistics;
+///
+/// #[tokio::main(flavor = "current_thread")]
+/// async fn main() -> Result<(), anyhow::Error> {
+///     let response = wal_replay_statistics("http://localhost:9090")?.get().await;
+///
+///     assert!(response.is_ok());
+///
+///     Ok(())
+/// }
+/// ```
+pub fn wal_replay_statistics(host: &str) -> Result<WalReplayStatisticsQueryBuilder, Error> {
+    Client::from_str(host).map(|c| c.wal_replay_statistics())
+}

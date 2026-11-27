@@ -237,7 +237,7 @@ pub use self::client::{
     FlagsQueryBuilder, InstantQueryBuilder, LabelNamesQueryBuilder, LabelValuesQueryBuilder,
     MetricMetadataQueryBuilder, RangeQueryBuilder, RulesQueryBuilder,
     RuntimeInformationQueryBuilder, SeriesQueryBuilder, TargetMetadataQueryBuilder,
-    TargetsQueryBuilder, TsdbStatisticsQueryBuilder,
+    TargetsQueryBuilder, TsdbStatisticsQueryBuilder, WalReplayStatisticsQueryBuilder,
 };
 pub use self::direct::*;
 pub use self::error::Error;

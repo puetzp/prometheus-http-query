@@ -967,6 +967,30 @@ impl TsdbStatisticsQueryBuilder {
     }
 }
 
+/// Provides a builder to choose how the response from Prometheus
+/// is returned to the caller.
+#[derive(Clone, Debug)]
+pub struct WalReplayStatisticsQueryBuilder {
+    client: Client,
+}
+
+impl WalReplayStatisticsQueryBuilder {
+    /// Execute the query (using HTTP GET) and retrieve information about
+    /// the WAL replay.
+    pub async fn get(self) -> Result<WalReplayStatistics, Error> {
+        let response = self.get_raw().await?;
+        Client::deserialize(response).await
+    }
+
+    /// Execute the query (using HTTP GET) and retrieve the raw response
+    /// from the [`reqwest`] crate.
+    pub async fn get_raw(self) -> Result<reqwest::Response, Error> {
+        self.client
+            .send("api/v1/status/walreplay", &(), HttpMethod::GET, None)
+            .await
+    }
+}
+
 /// A client used to execute queries. It uses a [`reqwest::Client`] internally
 /// that manages connections for us.
 #[derive(Clone, Debug)]
@@ -1646,18 +1670,17 @@ impl Client {
     /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
-    ///     let response = client.wal_replay_statistics().await;
+    ///     let response = client.wal_replay_statistics().get().await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn wal_replay_statistics(&self) -> Result<WalReplayStatistics, Error> {
-        let response = self
-            .send("api/v1/status/walreplay", &(), HttpMethod::GET, None)
-            .await?;
-        Client::deserialize(response).await
+    pub fn wal_replay_statistics(&self) -> WalReplayStatisticsQueryBuilder {
+        WalReplayStatisticsQueryBuilder {
+            client: self.clone(),
+        }
     }
 
     /// Query the current state of alertmanager discovery.
