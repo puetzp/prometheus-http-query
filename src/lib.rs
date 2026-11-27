@@ -145,7 +145,7 @@
 //!
 //!     assert!(response.data().as_vector().is_some());
 //!
-//!     let response = runtime_information("http://localhost:9090").await;
+//!     let response = runtime_information("http://localhost:9090")?.get().await;
 //!
 //!     assert!(response.is_ok());
 //!

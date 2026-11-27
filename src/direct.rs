@@ -239,15 +239,15 @@ pub async fn build_information(host: &str) -> Result<BuildInformation, Error> {
 ///
 /// #[tokio::main(flavor = "current_thread")]
 /// async fn main() -> Result<(), anyhow::Error> {
-///     let response = runtime_information("http://localhost:9090").await;
+///     let response = runtime_information("http://localhost:9090")?.get().await;
 ///
 ///     assert!(response.is_ok());
 ///
 ///     Ok(())
 /// }
 /// ```
-pub async fn runtime_information(host: &str) -> Result<RuntimeInformation, Error> {
-    Client::from_str(host)?.runtime_information().await
+pub fn runtime_information(host: &str) -> Result<RuntimeInformationQueryBuilder, Error> {
+    Client::from_str(host).map(|c| c.runtime_information())
 }
 
 /// Query the current state of alertmanager discovery.
