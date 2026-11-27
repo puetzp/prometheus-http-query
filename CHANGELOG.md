@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `TargetsQueryBuilder` as returned by `Client::targets` to build queries gradually and choose between raw or deserialized query responses via `get` and `get_raw` respectively.
 - `SeriesQueryBuilder::match_many` to set time series selectors in `match[]` query parameters instead of passing them directly to `Client::series`.
 - `SeriesQueryBuilder::match_one` to set time series selectors in a `match[]` query parameter instead of passing them directly to `Client::series`.
+- `SeriesQueryBuilder::limit`.
 - `LabelNamesQueryBuilder::match_many` to replace `LabelNamesQueryBuilder::selectors` by accepting any collection whose items implement `std::fmt::Display` and set `match[]` query parameters.
 - `LabelNamesQueryBuilder::match_one` to replace `LabelNamesQueryBuilder::selectors` by accepting any type that implements `std::fmt::Display` and set a `match[]` query parameter.
 - `LabelNamesQueryBuilder::limit`.

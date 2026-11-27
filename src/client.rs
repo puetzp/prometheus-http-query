@@ -495,13 +495,14 @@ pub struct SeriesQueryBuilder {
     selectors: Vec<String>,
     start: Option<i64>,
     end: Option<i64>,
+    limit: Option<i64>,
 }
 
 impl SeriesQueryBuilder {
     /// Add series selectors that tell Prometheus which series to return. This can
     /// be used multiple times to extend the set of series selectors.
     /// At least one selector must be provided.<br>
-    /// This corresponds to setting `match[]` from [`Finding series by label matchers`](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers) repeatedly.
+    /// This corresponds to setting [`match[]`](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers) repeatedly.
     pub fn match_many<T>(mut self, selectors: T) -> Self
     where
         T: IntoIterator,
@@ -515,7 +516,7 @@ impl SeriesQueryBuilder {
     /// Add a series selector that tells Prometheus which series to return. This can
     /// be used multiple times to extend the set of series selectors.
     /// At least one selector must be provided.<br>
-    /// This corresponds to setting `match[]` from [`Finding series by label matchers`](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers) once.
+    /// This corresponds to setting [`match[]`](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers) once.
     pub fn match_one(mut self, selector: impl std::fmt::Display) -> Self {
         self.selectors.push(selector.to_string());
         self
@@ -523,7 +524,8 @@ impl SeriesQueryBuilder {
 
     /// Limit the amount of metadata returned by setting a start time
     /// (UNIX timestamp in seconds).
-    /// Calling this repeatedly will replace the current setting.
+    /// Calling this repeatedly will replace the current setting.<br>
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers)
     pub fn start(mut self, start: i64) -> Self {
         self.start = Some(start);
         self
@@ -531,9 +533,17 @@ impl SeriesQueryBuilder {
 
     /// Limit the amount of metadata returned by setting an end time
     /// (UNIX timestamp in seconds).
-    /// Calling this repeatedly will replace the current setting.
+    /// Calling this repeatedly will replace the current setting.<br>
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers)
     pub fn end(mut self, end: i64) -> Self {
         self.end = Some(end);
+        self
+    }
+
+    /// Set maximum number of returned series. 0 means disabled.<br>
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#finding-series-by-label-matchers)
+    pub fn limit(mut self, limit: i64) -> Self {
+        self.limit = Some(limit);
         self
     }
 
@@ -559,6 +569,10 @@ impl SeriesQueryBuilder {
 
         if let Some(end) = self.end {
             params.push(("end", end.to_string()));
+        }
+
+        if let Some(limit) = self.limit {
+            params.push(("limit", limit.to_string()));
         }
 
         self.client
@@ -1122,6 +1136,7 @@ impl Client {
     ///         let response = client.series()
     ///             .match_one("up")
     ///             .match_one("{job=\"node\",instance=~\".+\"}")
+    ///             .limit(5)
     ///             .get()
     ///             .await;
     ///
@@ -1155,6 +1170,7 @@ impl Client {
             selectors: vec![],
             start: None,
             end: None,
+            limit: None,
         }
     }
 
