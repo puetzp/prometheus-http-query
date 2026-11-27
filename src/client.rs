@@ -105,10 +105,17 @@ pub struct RangeQueryBuilder {
 
 impl RangeQueryBuilder {
     /// Set the evaluation timeout. Must be positive.
-    /// If this is not set the timeout will default to the value of the "-query.timeout" flag of the Prometheus server.
+    /// If this is not set the timeout will default to the value of the "-query.timeout" flag of the Prometheus server.<br>
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries)
     pub fn timeout(mut self, timeout: Duration) -> Self {
         self.params.push(("timeout", timeout.to_string()));
+        self
+    }
+
+    /// Set maximum number of returned series. 0 means disabled.<br>
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#range-queries)
+    pub fn limit(mut self, limit: i64) -> Self {
+        self.params.push(("limit", limit.to_string()));
         self
     }
 
@@ -1051,6 +1058,7 @@ impl Client {
     ///     // it is not available in its float representation.
     ///     let duration = Duration::from_str("10s")?;
     ///     let response = client.query_range(q, 1648373100, 1648373300, duration.into())
+    ///         .limit(10)
     ///         .post()
     ///         .await?;
     ///
