@@ -198,9 +198,10 @@ impl RangeQueryBuilder {
 pub struct RulesQueryBuilder {
     client: Client,
     kind: Option<RuleKind>,
-    names: Vec<String>,
-    groups: Vec<String>,
+    rule_names: Vec<String>,
+    rule_groups: Vec<String>,
     files: Vec<String>,
+    exclude_alerts: Option<bool>,
 }
 
 /// Note that Prometheus combines all filters that have been set in the final request
@@ -219,32 +220,33 @@ impl RulesQueryBuilder {
     /// Pass rule names to instruct Prometheus to only return those rules whose
     /// names match one of them. This method can be called repeatedly and merge
     /// the names with those that have been set before.
-    pub fn names<T>(mut self, names: T) -> Self
+    pub fn rule_names<T>(mut self, names: T) -> Self
     where
         T: IntoIterator,
         T::Item: std::fmt::Display,
     {
-        self.names.extend(names.into_iter().map(|n| n.to_string()));
+        self.rule_names
+            .extend(names.into_iter().map(|n| n.to_string()));
         self
     }
 
     /// Pass a rule name to instruct Prometheus to return rules that match this name.
     /// This method can be called repeatedly to extend the set of rule names that
     /// will be sent to Prometheus.
-    pub fn name(mut self, name: impl std::fmt::Display) -> Self {
-        self.names.push(name.to_string());
+    pub fn rule_name(mut self, name: impl std::fmt::Display) -> Self {
+        self.rule_names.push(name.to_string());
         self
     }
 
     /// Pass group names to instruct Prometheus to only return those rules that are
     /// part of one of these groups. This method can be called repeatedly and merge
     /// the group names with those that have been set before.
-    pub fn groups<T>(mut self, groups: T) -> Self
+    pub fn rule_groups<T>(mut self, groups: T) -> Self
     where
         T: IntoIterator,
         T::Item: std::fmt::Display,
     {
-        self.groups
+        self.rule_groups
             .extend(groups.into_iter().map(|g| g.to_string()));
         self
     }
@@ -252,8 +254,8 @@ impl RulesQueryBuilder {
     /// Pass a group name to instruct Prometheus to return rules that are part of this
     /// group. This method can be called repeatedly to extend the set of group names
     /// that will be sent to Prometheus.
-    pub fn group(mut self, group: impl std::fmt::Display) -> Self {
-        self.groups.push(group.to_string());
+    pub fn rule_group(mut self, group: impl std::fmt::Display) -> Self {
+        self.rule_groups.push(group.to_string());
         self
     }
 
@@ -277,6 +279,13 @@ impl RulesQueryBuilder {
         self
     }
 
+    /// Set this to instruct Prometheus to only return rules, but not active alerts.
+    /// Calling this repeatedly will replace the current setting.
+    pub fn exclude_alerts(mut self, exclude_alerts: bool) -> Self {
+        self.exclude_alerts = Some(exclude_alerts);
+        self
+    }
+
     /// Execute the rules query (using HTTP GET) and return the [`RuleGroup`]s sent
     /// by Prometheus.
     pub async fn get(self) -> Result<Vec<RuleGroup>, Error> {
@@ -295,16 +304,20 @@ impl RulesQueryBuilder {
             params.push(("type", k.to_query_param()))
         }
 
-        for name in self.names {
+        for name in self.rule_names {
             params.push(("rule_name[]", name))
         }
 
-        for group in self.groups {
+        for group in self.rule_groups {
             params.push(("rule_group[]", group))
         }
 
         for file in self.files {
             params.push(("file[]", file))
+        }
+
+        if let Some(exclude_alerts) = self.exclude_alerts {
+            params.push(("exclude_alerts", exclude_alerts.to_string()));
         }
 
         self.client
@@ -1362,9 +1375,10 @@ impl Client {
         RulesQueryBuilder {
             client: self.clone(),
             kind: None,
-            names: vec![],
-            groups: vec![],
+            rule_names: vec![],
+            rule_groups: vec![],
             files: vec![],
+            exclude_alerts: None,
         }
     }
 
