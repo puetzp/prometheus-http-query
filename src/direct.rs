@@ -325,3 +325,23 @@ pub fn target_metadata(host: &str) -> Result<TargetMetadataQueryBuilder, Error> 
 pub fn metric_metadata(host: &str) -> Result<MetricMetadataQueryBuilder, Error> {
     Client::from_str(host).map(|c| c.metric_metadata())
 }
+
+/// Retrieve various cardinality statistics about the Prometheus TSDB.
+///
+/// This is just a convenience function for one-off requests, see [`Client::tsdb_statistics`].
+///
+/// ```rust
+/// use prometheus_http_query::tsdb_statistics;
+///
+/// #[tokio::main(flavor = "current_thread")]
+/// async fn main() -> Result<(), anyhow::Error> {
+///     let response = tsdb_statistics("http://localhost:9090")?.get().await;
+///
+///     assert!(response.is_ok());
+///
+///     Ok(())
+/// }
+/// ```
+pub fn tsdb_statistics(host: &str) -> Result<TsdbStatisticsQueryBuilder, Error> {
+    Client::from_str(host).map(|c| c.tsdb_statistics())
+}

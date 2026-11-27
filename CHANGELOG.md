@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `FlagsQueryBuilder` as returned by `Client::flags` to choose between raw or deserialized query responses via `get` and `get_raw` respectively.
 - New `RuntimeInformationQueryBuilder` as returned by `Client::runtime_information` to choose between raw or deserialized query responses via `get` and `get_raw` respectively.
 - New `BuildInformationQueryBuilder` as returned by `Client::build_information` to choose between raw or deserialized query responses via `get` and `get_raw` respectively.
+- New `TsdbStatisticsQueryBuilder` as returned by `Client::tsdb_statistics` to choose between raw or deserialized query responses via `get` and `get_raw` respectively.
 - `InstantQueryBuilder::limit`.
 - `InstantQueryBuilder::lookback_period`.
 - `RangeQueryBuilder::limit`.
@@ -30,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `TargetMetadataQueryBuilder::scrape_pool`.
 - `RulesQueryBuilder::exclude_alerts`.
 - `RulesQueryBuilder::match_many` and `RulesQueryBuilder::match_once` to set `match[]` query parameters.
+- `direct::tsdb_statistics`.
 
 ### Changed
 - `TargetMetadataQueryBuilder::match_target` now takes any type that implements `std::fmt::Display`, including but not limited to `Selector`.

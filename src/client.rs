@@ -943,6 +943,30 @@ impl RuntimeInformationQueryBuilder {
     }
 }
 
+/// Provides a builder to choose how the response from Prometheus
+/// is returned to the caller.
+#[derive(Clone, Debug)]
+pub struct TsdbStatisticsQueryBuilder {
+    client: Client,
+}
+
+impl TsdbStatisticsQueryBuilder {
+    /// Execute the query (using HTTP GET) and retrieve various cardinality
+    /// statistics the Prometheus TSDB.
+    pub async fn get(self) -> Result<TsdbStatistics, Error> {
+        let response = self.get_raw().await?;
+        Client::deserialize(response).await
+    }
+
+    /// Execute the query (using HTTP GET) and retrieve the raw response
+    /// from the [`reqwest`] crate.
+    pub async fn get_raw(self) -> Result<reqwest::Response, Error> {
+        self.client
+            .send("api/v1/status/tsdb", &(), HttpMethod::GET, None)
+            .await
+    }
+}
+
 /// A client used to execute queries. It uses a [`reqwest::Client`] internally
 /// that manages connections for us.
 #[derive(Clone, Debug)]
@@ -1598,18 +1622,17 @@ impl Client {
     /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
-    ///     let response = client.tsdb_statistics().await;
+    ///     let response = client.tsdb_statistics().get().await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn tsdb_statistics(&self) -> Result<TsdbStatistics, Error> {
-        let response = self
-            .send("api/v1/status/tsdb", &(), HttpMethod::GET, None)
-            .await?;
-        Client::deserialize(response).await
+    pub fn tsdb_statistics(&self) -> TsdbStatisticsQueryBuilder {
+        TsdbStatisticsQueryBuilder {
+            client: self.clone(),
+        }
     }
 
     /// Retrieve WAL replay statistics.
