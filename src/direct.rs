@@ -1,6 +1,5 @@
 use crate::client::*;
 use crate::error::Error;
-use crate::response::*;
 use std::str::FromStr;
 
 /// Execute an instant query.
@@ -219,15 +218,15 @@ pub fn flags(host: &str) -> Result<FlagsQueryBuilder, Error> {
 ///
 /// #[tokio::main(flavor = "current_thread")]
 /// async fn main() -> Result<(), anyhow::Error> {
-///     let response = build_information("http://localhost:9090").await;
+///     let response = build_information("http://localhost:9090")?.get().await;
 ///
 ///     assert!(response.is_ok());
 ///
 ///     Ok(())
 /// }
 /// ```
-pub async fn build_information(host: &str) -> Result<BuildInformation, Error> {
-    Client::from_str(host)?.build_information().await
+pub fn build_information(host: &str) -> Result<BuildInformationQueryBuilder, Error> {
+    Client::from_str(host).map(|c| c.build_information())
 }
 
 /// Retrieve Prometheus server runtime information.

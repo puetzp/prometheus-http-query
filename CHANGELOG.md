@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `AlertmanagersQueryBuilder` as returned by `Client::alertmanagers` to choose between raw or deserialized query responses via `get` and `get_raw` respectively.
 - New `FlagsQueryBuilder` as returned by `Client::flags` to choose between raw or deserialized query responses via `get` and `get_raw` respectively.
 - New `RuntimeInformationQueryBuilder` as returned by `Client::runtime_information` to choose between raw or deserialized query responses via `get` and `get_raw` respectively.
+- New `BuildInformationQueryBuilder` as returned by `Client::build_information` to choose between raw or deserialized query responses via `get` and `get_raw` respectively.
 - `InstantQueryBuilder::limit`.
 - `InstantQueryBuilder::lookback_period`.
 - `RangeQueryBuilder::limit`.
@@ -38,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `Client::alertmanagers` now returns builder type `AlertmanagersQueryBuilder`.
 - `Client::flags` now returns builder type `FlagsQueryBuilder`.
 - `Client::runtime_information` now returns builder type `RuntimeInformationQueryBuilder`.
+- `Client::build_information` now returns builder type `BuildInformationQueryBuilder`.
 - Renamed `InstantQueryBuilder::at` to `InstantQueryBuilder::time`.
 - `InstantQueryBuilder::timeout` and `RangeQueryBuilder::timeout` now take a `Duration` as an argument instead of `i64`.
 

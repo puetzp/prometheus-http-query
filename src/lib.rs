@@ -233,9 +233,11 @@ pub mod response;
 mod selector;
 mod util;
 pub use self::client::{
-    AlertmanagersQueryBuilder, AlertsQueryBuilder, Client, FlagsQueryBuilder, InstantQueryBuilder,
-    LabelNamesQueryBuilder, LabelValuesQueryBuilder, MetricMetadataQueryBuilder, RangeQueryBuilder,
-    RulesQueryBuilder, SeriesQueryBuilder, TargetMetadataQueryBuilder, TargetsQueryBuilder,
+    AlertmanagersQueryBuilder, AlertsQueryBuilder, BuildInformationQueryBuilder, Client,
+    FlagsQueryBuilder, InstantQueryBuilder, LabelNamesQueryBuilder, LabelValuesQueryBuilder,
+    MetricMetadataQueryBuilder, RangeQueryBuilder, RulesQueryBuilder,
+    RuntimeInformationQueryBuilder, SeriesQueryBuilder, TargetMetadataQueryBuilder,
+    TargetsQueryBuilder,
 };
 pub use self::direct::*;
 pub use self::error::Error;

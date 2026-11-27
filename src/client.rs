@@ -898,6 +898,30 @@ impl FlagsQueryBuilder {
 /// Provides a builder to choose how the response from Prometheus
 /// is returned to the caller.
 #[derive(Clone, Debug)]
+pub struct BuildInformationQueryBuilder {
+    client: Client,
+}
+
+impl BuildInformationQueryBuilder {
+    /// Execute the query (using HTTP GET) and retrieve various build information
+    /// properties about the Prometheus server.
+    pub async fn get(self) -> Result<BuildInformation, Error> {
+        let response = self.get_raw().await?;
+        Client::deserialize(response).await
+    }
+
+    /// Execute the query (using HTTP GET) and retrieve the raw response
+    /// from the [`reqwest`] crate.
+    pub async fn get_raw(self) -> Result<reqwest::Response, Error> {
+        self.client
+            .send("api/v1/status/buildinfo", &(), HttpMethod::GET, None)
+            .await
+    }
+}
+
+/// Provides a builder to choose how the response from Prometheus
+/// is returned to the caller.
+#[derive(Clone, Debug)]
 pub struct RuntimeInformationQueryBuilder {
     client: Client,
 }
@@ -1526,18 +1550,17 @@ impl Client {
     /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
-    ///     let response = client.build_information().await;
+    ///     let response = client.build_information().get().await;
     ///
     ///     assert!(response.is_ok());
     ///
     ///     Ok(())
     /// }
     /// ```
-    pub async fn build_information(&self) -> Result<BuildInformation, Error> {
-        let response = self
-            .send("api/v1/status/buildinfo", &(), HttpMethod::GET, None)
-            .await?;
-        Client::deserialize(response).await
+    pub fn build_information(&self) -> BuildInformationQueryBuilder {
+        BuildInformationQueryBuilder {
+            client: self.clone(),
+        }
     }
 
     /// Retrieve Prometheus server runtime information.
