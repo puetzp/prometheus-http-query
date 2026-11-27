@@ -21,7 +21,7 @@ impl InstantQueryBuilder {
     /// If this is not set the evaluation timestamp will default to the current Prometheus
     /// server time.
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
-    pub fn at(mut self, time: i64) -> Self {
+    pub fn time(mut self, time: i64) -> Self {
         self.params.push(("time", time.to_string()));
         self
     }
@@ -986,7 +986,10 @@ impl Client {
     /// async fn main() -> Result<(), anyhow::Error> {
     ///     let client = Client::default();
     ///
-    ///     let response = client.query("prometheus_http_request_total").get().await?;
+    ///     let response = client.query("prometheus_http_request_total")
+    ///         .time(time::macros::datetime!(1970-01-01 0:00 -1).unix_timestamp())
+    ///         .get()
+    ///         .await?;
     ///
     ///     assert!(response.data().as_vector().is_some());
     ///
