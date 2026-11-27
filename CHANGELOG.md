@@ -19,17 +19,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `Duration` type (wrapper around `time::Duration`) to help with (de)serializing Prometheus time duration (such as `5m`).
 - New `AlertsQueryBuilder` as returned by `Client::alerts` to choose between raw or deserialized query responses via `get` and `get_raw` respectively.
 - New `AlertmanagersQueryBuilder` as returned by `Client::alertmanagers` to choose between raw or deserialized query responses via `get` and `get_raw` respectively.
+- `InstantQueryBuilder::limit`.
+- `InstantQueryBuilder::lookback_period`.
+- `RangeQueryBuilder::limit`.
 
 ### Changed
 - `TargetMetadataQueryBuilder::match_target` now takes any type that implements `std::fmt::Display`, including but not limited to `Selector`.
 - `Client::series` to not accept selectors but delegate it to more flexible methods `SeriesQueryBuilder::match_many` and `SeriesQueryBuilder::match_one`.
-- `Client::targets` now returns builder type `TargetsQueryBuilder` and does not take any arguments anymore.
+- `Client::targets` now returns builder type `TargetsQueryBuilder` and does not take arguments anymore.
 - `Client::alerts` now returns builder type `AlertsQueryBuilder`.
 - `Client::alertmanagers` now returns builder type `AlertmanagersQueryBuilder`.
 - Renamed `InstantQueryBuilder::at` to `InstantQueryBuilder::time`.
 - `InstantQueryBuilder::timeout` and `RangeQueryBuilder::timeout` now take a `Duration` as an argument instead of `i64`.
-- `InstantQueryBuilder::limit`.
-- `RangeQueryBuilder::limit`.
 
 ### Removed
 - `LabelNamesQueryBuilder::selectors` to be replaced by `LabelNamesQueryBuilder::match_*` methods.

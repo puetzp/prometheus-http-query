@@ -19,7 +19,7 @@ pub struct InstantQueryBuilder {
 impl InstantQueryBuilder {
     /// Set the evaluation timestamp (Unix timestamp in seconds, e.g. 1659182624).
     /// If this is not set the evaluation timestamp will default to the current Prometheus
-    /// server time.
+    /// server time.<br>
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
     pub fn time(mut self, time: i64) -> Self {
         self.params.push(("time", time.to_string()));
@@ -27,17 +27,24 @@ impl InstantQueryBuilder {
     }
 
     /// Set the evaluation timeout. Must be positive.
-    /// If this is not set the timeout will default to the value of the "-query.timeout" flag of the Prometheus server.
+    /// If this is not set the timeout will default to the value of the "-query.timeout" flag of the Prometheus server.<br>
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
     pub fn timeout(mut self, timeout: Duration) -> Self {
         self.params.push(("timeout", timeout.to_string()));
         self
     }
 
-    /// Set maximum number of returned series. 0 means disabled.
+    /// Set maximum number of returned series. 0 means disabled.<br>
     /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
     pub fn limit(mut self, limit: i64) -> Self {
         self.params.push(("limit", limit.to_string()));
+        self
+    }
+
+    /// Override the lookback period just for this query.<br>
+    /// See also: [Prometheus API documentation](https://prometheus.io/docs/prometheus/latest/querying/api/#instant-queries)
+    pub fn lookback_delta(mut self, duration: Duration) -> Self {
+        self.params.push(("lookback_delta", duration.to_string()));
         self
     }
 
@@ -1009,8 +1016,12 @@ impl Client {
     ///
     ///     assert!(response.data().as_vector().is_some());
     ///
-    ///     // Or send a POST request without extra parameters.
-    ///     let response = client.query("prometheus_http_request_total").post().await?;
+    ///     // Or send a POST request without extra parameters. Also set
+    ///     // the lookback period to one hour.
+    ///     let response = client.query("prometheus_http_request_total")
+    ///         .lookback_delta(3600.into())
+    ///         .post()
+    ///         .await?;
     ///
     ///     assert!(response.data().as_vector().is_some());
     ///
